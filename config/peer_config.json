@@ -1,0 +1,12 @@
+{
+    "arch": {
+        "blocksize": 1000,
+        "early_execution": true,
+        "reorder": false
+    },
+    "sysconfig": {
+        "num_execution_threads": 16,
+        "leader": "",
+        "followers": []
+    }
+}
