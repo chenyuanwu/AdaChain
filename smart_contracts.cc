@@ -11,12 +11,12 @@ void ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement) {
 }
 
 void ycsb_put(const RepeatedPtrField<string> &keys, const RepeatedPtrField<string> &values, struct RecordVersion record_version,
-              bool expose_write, Endorsement *endorsement = nullptr) {
+              bool expose_write, Endorsement *endorsement) {
     kv_put(keys[0], values[0], record_version, expose_write, endorsement);
 }
 
 /* interface of versioned key value store over leveldb */
-string kv_get(const string &key, Endorsement *endorsement = nullptr, struct RecordVersion *record_version = nullptr) {
+string kv_get(const string &key, Endorsement *endorsement, struct RecordVersion *record_version) {
     string value;
     leveldb::Status s = db->Get(leveldb::ReadOptions(), key, &value);
 
@@ -43,7 +43,7 @@ string kv_get(const string &key, Endorsement *endorsement = nullptr, struct Reco
 
 /* interface of versioned key value store over leveldb */
 int kv_put(const string &key, const string &value, struct RecordVersion record_version, bool expose_write,
-           Endorsement *endorsement = nullptr) {
+           Endorsement *endorsement) {
     if (endorsement != nullptr) {
         WriteItem *write_item = endorsement->add_write_set();
         write_item->set_write_key(key);
@@ -68,7 +68,7 @@ int kv_put(const string &key, const string &value, struct RecordVersion record_v
 }
 
 void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type type, bool expose_write, struct RecordVersion record_version,
-               Endorsement *endorsement = nullptr) {
+               Endorsement *endorsement) {
     if (type == TransactionProposal::Type::TransactionProposal_Type_TransactSavings) {
         string key = "saving_" + keys[0];
         string value = kv_get(key, endorsement);

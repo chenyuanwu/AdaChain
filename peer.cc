@@ -16,7 +16,7 @@ shared_ptr<grpc::Channel> leader_channel;
 bool is_leader = false;
 atomic<long> total_ops = 0;
 extern deque<atomic<unsigned long>> match_index;
-extern atomic<unsigned long> commit_index(0);
+extern atomic<unsigned long> commit_index;
 
 string sha256(const string str) {
     unsigned char hash[SHA256_DIGEST_LENGTH];
@@ -78,8 +78,8 @@ void *block_formation_thread(void *arg) {
 
     unsigned long last_applied = 0;
     int majority = (peer_config["sysconfig"]["followers"].Size() / 2) + 1;
-    int block_index = 0;
-    int trans_index = 0;
+    uint64_t block_index = 0;
+    uint64_t trans_index = 0;
     size_t max_block_size = peer_config["arch"]["blocksize"].GetInt();  // number of transactions
     bool is_xov = peer_config["arch"]["early_execution"].GetBool();
 
