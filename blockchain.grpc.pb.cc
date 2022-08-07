@@ -24,7 +24,7 @@ static const char* PeerComm_method_names[] = {
   "/PeerComm/append_entries",
   "/PeerComm/send_to_peer",
   "/PeerComm/send_to_peer_stream",
-  "/PeerComm/prepopulate_stream",
+  "/PeerComm/prepopulate",
   "/PeerComm/start_benchmarking",
   "/PeerComm/end_benchmarking",
 };
@@ -39,7 +39,7 @@ PeerComm::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, 
   : channel_(channel), rpcmethod_append_entries_(PeerComm_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_send_to_peer_(PeerComm_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_send_to_peer_stream_(PeerComm_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::CLIENT_STREAMING, channel)
-  , rpcmethod_prepopulate_stream_(PeerComm_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::CLIENT_STREAMING, channel)
+  , rpcmethod_prepopulate_(PeerComm_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_start_benchmarking_(PeerComm_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_end_benchmarking_(PeerComm_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
@@ -106,20 +106,27 @@ void PeerComm::Stub::async::send_to_peer_stream(::grpc::ClientContext* context, 
   return ::grpc::internal::ClientAsyncWriterFactory< ::Request>::Create(channel_.get(), cq, rpcmethod_send_to_peer_stream_, context, response, false, nullptr);
 }
 
-::grpc::ClientWriter< ::TransactionProposal>* PeerComm::Stub::prepopulate_streamRaw(::grpc::ClientContext* context, ::PrepopulateResponse* response) {
-  return ::grpc::internal::ClientWriterFactory< ::TransactionProposal>::Create(channel_.get(), rpcmethod_prepopulate_stream_, context, response);
+::grpc::Status PeerComm::Stub::prepopulate(::grpc::ClientContext* context, const ::TransactionProposal& request, ::PrepopulateResponse* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::TransactionProposal, ::PrepopulateResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_prepopulate_, context, request, response);
 }
 
-void PeerComm::Stub::async::prepopulate_stream(::grpc::ClientContext* context, ::PrepopulateResponse* response, ::grpc::ClientWriteReactor< ::TransactionProposal>* reactor) {
-  ::grpc::internal::ClientCallbackWriterFactory< ::TransactionProposal>::Create(stub_->channel_.get(), stub_->rpcmethod_prepopulate_stream_, context, response, reactor);
+void PeerComm::Stub::async::prepopulate(::grpc::ClientContext* context, const ::TransactionProposal* request, ::PrepopulateResponse* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::TransactionProposal, ::PrepopulateResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_prepopulate_, context, request, response, std::move(f));
 }
 
-::grpc::ClientAsyncWriter< ::TransactionProposal>* PeerComm::Stub::Asyncprepopulate_streamRaw(::grpc::ClientContext* context, ::PrepopulateResponse* response, ::grpc::CompletionQueue* cq, void* tag) {
-  return ::grpc::internal::ClientAsyncWriterFactory< ::TransactionProposal>::Create(channel_.get(), cq, rpcmethod_prepopulate_stream_, context, response, true, tag);
+void PeerComm::Stub::async::prepopulate(::grpc::ClientContext* context, const ::TransactionProposal* request, ::PrepopulateResponse* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_prepopulate_, context, request, response, reactor);
 }
 
-::grpc::ClientAsyncWriter< ::TransactionProposal>* PeerComm::Stub::PrepareAsyncprepopulate_streamRaw(::grpc::ClientContext* context, ::PrepopulateResponse* response, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncWriterFactory< ::TransactionProposal>::Create(channel_.get(), cq, rpcmethod_prepopulate_stream_, context, response, false, nullptr);
+::grpc::ClientAsyncResponseReader< ::PrepopulateResponse>* PeerComm::Stub::PrepareAsyncprepopulateRaw(::grpc::ClientContext* context, const ::TransactionProposal& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::PrepopulateResponse, ::TransactionProposal, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_prepopulate_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::PrepopulateResponse>* PeerComm::Stub::AsyncprepopulateRaw(::grpc::ClientContext* context, const ::TransactionProposal& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncprepopulateRaw(context, request, cq);
+  result->StartCall();
+  return result;
 }
 
 ::grpc::Status PeerComm::Stub::start_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::Empty* response) {
@@ -201,13 +208,13 @@ PeerComm::Service::Service() {
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       PeerComm_method_names[3],
-      ::grpc::internal::RpcMethod::CLIENT_STREAMING,
-      new ::grpc::internal::ClientStreamingHandler< PeerComm::Service, ::TransactionProposal, ::PrepopulateResponse>(
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< PeerComm::Service, ::TransactionProposal, ::PrepopulateResponse, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
           [](PeerComm::Service* service,
              ::grpc::ServerContext* ctx,
-             ::grpc::ServerReader<::TransactionProposal>* reader,
+             const ::TransactionProposal* req,
              ::PrepopulateResponse* resp) {
-               return service->prepopulate_stream(ctx, reader, resp);
+               return service->prepopulate(ctx, req, resp);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       PeerComm_method_names[4],
@@ -255,9 +262,9 @@ PeerComm::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status PeerComm::Service::prepopulate_stream(::grpc::ServerContext* context, ::grpc::ServerReader< ::TransactionProposal>* reader, ::PrepopulateResponse* response) {
+::grpc::Status PeerComm::Service::prepopulate(::grpc::ServerContext* context, const ::TransactionProposal* request, ::PrepopulateResponse* response) {
   (void) context;
-  (void) reader;
+  (void) request;
   (void) response;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }

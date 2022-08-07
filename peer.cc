@@ -5,7 +5,6 @@
 
 INITIALIZE_EASYLOGGINGPP
 
-el::Logger *logger = el::Loggers::getLogger("default");
 Document peer_config;
 leveldb::DB *db;
 leveldb::Options options;
@@ -69,7 +68,7 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
 }
 
 void *block_formation_thread(void *arg) {
-    logger->info("Block formation thread is running.");
+    LOG(INFO) << "Block formation thread is running.";
 
     ifstream log("./log/raft.log", ios::in);
     assert(log.is_open());
@@ -112,7 +111,7 @@ void *block_formation_thread(void *arg) {
             string serialized_request(entry_ptr, size);
             free(entry_ptr);
 
-            logger->debug("[block_id = %v, trans_id = %v]: added transaction to block.", block_index, trans_index);
+            LOG(DEBUG) << "[block_id = " << block_index << ", trans_id = " << trans_index << "]: added transaction to block.";
             Endorsement *endorsement = block.add_transactions();
             struct RecordVersion record_version = {
                 .version_blockid = block_index,
@@ -122,7 +121,7 @@ void *block_formation_thread(void *arg) {
             if (is_xov) {
                 /* validate */
                 if (!endorsement->ParseFromString(serialized_request)) {
-                    logger->error("block formation thread: error in deserialising endorsement.");
+                    LOG(ERROR) << "block formation thread: error in deserialising endorsement.";
                 }
 
                 if (validate_transaction(record_version, endorsement)) {
@@ -133,7 +132,7 @@ void *block_formation_thread(void *arg) {
                 /* execute */
                 TransactionProposal proposal;
                 if (!proposal.ParseFromString(serialized_request)) {
-                    logger->error("block formation thread: error in deserialising transaction proposal.");
+                    LOG(ERROR) << "block formation thread: error in deserialising transaction proposal.";
                 }
 
                 if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
@@ -153,7 +152,7 @@ void *block_formation_thread(void *arg) {
                 block.set_prev_block_hash(prev_block_hash);  // write to disk and hash the block
                 serialized_block.clear();
                 if (!block.SerializeToString(&serialized_block)) {
-                    logger->error("block formation thread: failed to serialize block.");
+                    LOG(ERROR) << "block formation thread: failed to serialize block.";
                 }
                 uint32_t size = serialized_block.size();
                 block_store.write((char *)&size, sizeof(uint32_t));
@@ -212,7 +211,12 @@ void *simulation_handler(void *arg) {
 
 void run_peer(const string &server_address) {
     /* start the gRPC server to accept requests */
-    run_rpc_server(server_address);
+    PeerCommImpl service;
+    ServerBuilder builder;
+    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+    builder.RegisterService(&service);
+    std::unique_ptr<Server> server(builder.BuildAndStart());
+    LOG(INFO) << "RPC server listening on " << server_address << ".";
 
     /* spawn the raft threads on leader, block formation thread, and execution threads */
     CompletionQueue cq;
@@ -244,7 +248,7 @@ void run_peer(const string &server_address) {
         CPU_SET(core_id, &cpuset);
         int ret = pthread_setaffinity_np(exec_tids[i], sizeof(cpu_set_t), &cpuset);
         if (ret) {
-            logger->error("pthread_setaffinity_np failed with '%v'.", strerror(ret));
+            LOG(ERROR) << "pthread_setaffinity_np failed with '" << strerror(ret) << "'.";
         }
         pthread_detach(exec_tids[i]);
     }
@@ -304,10 +308,13 @@ int main(int argc, char *argv[]) {
     IStreamWrapper isw(ifs);
     peer_config.ParseStream(isw);
 
-    std::filesystem::remove_all("/mydata/testdb");
+    el::Configurations conf("./config/logger.conf");
+    el::Loggers::reconfigureLogger("default", conf);
+
+    std::filesystem::remove_all("./testdb");
     options.create_if_missing = true;
     options.error_if_exists = true;
-    leveldb::Status s = leveldb::DB::Open(options, "/mydata/testdb", &db);
+    leveldb::Status s = leveldb::DB::Open(options, "./testdb", &db);
     assert(s.ok());
 
     std::filesystem::remove_all("./log");

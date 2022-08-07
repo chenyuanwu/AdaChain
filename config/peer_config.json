@@ -6,7 +6,7 @@
     },
     "sysconfig": {
         "num_execution_threads": 16,
-        "leader": "",
+        "leader": "10.10.1.2:50052",
         "followers": []
     }
 }

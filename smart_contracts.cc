@@ -4,7 +4,6 @@
 
 extern leveldb::DB *db;
 extern leveldb::Options options;
-extern el::Logger *logger;
 
 void ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement) {
     kv_get(keys[0], endorsement);

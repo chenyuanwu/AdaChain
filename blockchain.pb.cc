@@ -264,24 +264,24 @@ const char descriptor_table_protodef_blockchain_2eproto[] PROTOBUF_SECTION_VARIA
   "proposal\030\002 \001(\0132\024.TransactionProposalH\000B\t"
   "\n\007Message\"V\n\005Block\022\"\n\014transactions\030\001 \003(\013"
   "2\014.Endorsement\022\020\n\010block_id\030\002 \001(\004\022\027\n\017prev"
-  "_block_hash\030\003 \001(\t2\204\003\n\010PeerComm\0223\n\016append"
+  "_block_hash\030\003 \001(\t2\373\002\n\010PeerComm\0223\n\016append"
   "_entries\022\016.AppendRequest\032\017.AppendRespons"
   "e\"\000\0222\n\014send_to_peer\022\010.Request\032\026.google.p"
   "rotobuf.Empty\"\000\022;\n\023send_to_peer_stream\022\010"
-  ".Request\032\026.google.protobuf.Empty\"\000(\001\022D\n\022"
-  "prepopulate_stream\022\024.TransactionProposal"
-  "\032\024.PrepopulateResponse\"\000(\001\022F\n\022start_benc"
-  "hmarking\022\026.google.protobuf.Empty\032\026.googl"
-  "e.protobuf.Empty\"\000\022D\n\020end_benchmarking\022\026"
-  ".google.protobuf.Empty\032\026.google.protobuf"
-  ".Empty\"\000b\006proto3"
+  ".Request\032\026.google.protobuf.Empty\"\000(\001\022;\n\013"
+  "prepopulate\022\024.TransactionProposal\032\024.Prep"
+  "opulateResponse\"\000\022F\n\022start_benchmarking\022"
+  "\026.google.protobuf.Empty\032\026.google.protobu"
+  "f.Empty\"\000\022D\n\020end_benchmarking\022\026.google.p"
+  "rotobuf.Empty\032\026.google.protobuf.Empty\"\000b"
+  "\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_blockchain_2eproto_deps[1] = {
   &::descriptor_table_google_2fprotobuf_2fempty_2eproto,
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_blockchain_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_blockchain_2eproto = {
-  false, false, 1256, descriptor_table_protodef_blockchain_2eproto, "blockchain.proto", 
+  false, false, 1247, descriptor_table_protodef_blockchain_2eproto, "blockchain.proto", 
   &descriptor_table_blockchain_2eproto_once, descriptor_table_blockchain_2eproto_deps, 1, 9,
   schemas, file_default_instances, TableStruct_blockchain_2eproto::offsets,
   file_level_metadata_blockchain_2eproto, file_level_enum_descriptors_blockchain_2eproto, file_level_service_descriptors_blockchain_2eproto,

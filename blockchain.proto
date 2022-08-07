@@ -5,7 +5,7 @@ service PeerComm {
     rpc append_entries (AppendRequest) returns (AppendResponse) {}
     rpc send_to_peer (Request) returns (google.protobuf.Empty) {}
     rpc send_to_peer_stream (stream Request) returns (google.protobuf.Empty) {}
-    rpc prepopulate_stream (stream TransactionProposal) returns (PrepopulateResponse) {}
+    rpc prepopulate (TransactionProposal) returns (PrepopulateResponse) {}
     rpc start_benchmarking (google.protobuf.Empty) returns (google.protobuf.Empty) {}
     rpc end_benchmarking (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }

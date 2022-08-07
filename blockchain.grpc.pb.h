@@ -56,14 +56,12 @@ class PeerComm final {
     std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::Request>> PrepareAsyncsend_to_peer_stream(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::Request>>(PrepareAsyncsend_to_peer_streamRaw(context, response, cq));
     }
-    std::unique_ptr< ::grpc::ClientWriterInterface< ::TransactionProposal>> prepopulate_stream(::grpc::ClientContext* context, ::PrepopulateResponse* response) {
-      return std::unique_ptr< ::grpc::ClientWriterInterface< ::TransactionProposal>>(prepopulate_streamRaw(context, response));
+    virtual ::grpc::Status prepopulate(::grpc::ClientContext* context, const ::TransactionProposal& request, ::PrepopulateResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::PrepopulateResponse>> Asyncprepopulate(::grpc::ClientContext* context, const ::TransactionProposal& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::PrepopulateResponse>>(AsyncprepopulateRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::TransactionProposal>> Asyncprepopulate_stream(::grpc::ClientContext* context, ::PrepopulateResponse* response, ::grpc::CompletionQueue* cq, void* tag) {
-      return std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::TransactionProposal>>(Asyncprepopulate_streamRaw(context, response, cq, tag));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::TransactionProposal>> PrepareAsyncprepopulate_stream(::grpc::ClientContext* context, ::PrepopulateResponse* response, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::TransactionProposal>>(PrepareAsyncprepopulate_streamRaw(context, response, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::PrepopulateResponse>> PrepareAsyncprepopulate(::grpc::ClientContext* context, const ::TransactionProposal& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::PrepopulateResponse>>(PrepareAsyncprepopulateRaw(context, request, cq));
     }
     virtual ::grpc::Status start_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::Empty* response) = 0;
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> Asyncstart_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
@@ -87,7 +85,8 @@ class PeerComm final {
       virtual void send_to_peer(::grpc::ClientContext* context, const ::Request* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
       virtual void send_to_peer(::grpc::ClientContext* context, const ::Request* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void send_to_peer_stream(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::ClientWriteReactor< ::Request>* reactor) = 0;
-      virtual void prepopulate_stream(::grpc::ClientContext* context, ::PrepopulateResponse* response, ::grpc::ClientWriteReactor< ::TransactionProposal>* reactor) = 0;
+      virtual void prepopulate(::grpc::ClientContext* context, const ::TransactionProposal* request, ::PrepopulateResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void prepopulate(::grpc::ClientContext* context, const ::TransactionProposal* request, ::PrepopulateResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void start_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
       virtual void start_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void end_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
@@ -104,9 +103,8 @@ class PeerComm final {
     virtual ::grpc::ClientWriterInterface< ::Request>* send_to_peer_streamRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response) = 0;
     virtual ::grpc::ClientAsyncWriterInterface< ::Request>* Asyncsend_to_peer_streamRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq, void* tag) = 0;
     virtual ::grpc::ClientAsyncWriterInterface< ::Request>* PrepareAsyncsend_to_peer_streamRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientWriterInterface< ::TransactionProposal>* prepopulate_streamRaw(::grpc::ClientContext* context, ::PrepopulateResponse* response) = 0;
-    virtual ::grpc::ClientAsyncWriterInterface< ::TransactionProposal>* Asyncprepopulate_streamRaw(::grpc::ClientContext* context, ::PrepopulateResponse* response, ::grpc::CompletionQueue* cq, void* tag) = 0;
-    virtual ::grpc::ClientAsyncWriterInterface< ::TransactionProposal>* PrepareAsyncprepopulate_streamRaw(::grpc::ClientContext* context, ::PrepopulateResponse* response, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::PrepopulateResponse>* AsyncprepopulateRaw(::grpc::ClientContext* context, const ::TransactionProposal& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::PrepopulateResponse>* PrepareAsyncprepopulateRaw(::grpc::ClientContext* context, const ::TransactionProposal& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* Asyncstart_benchmarkingRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncstart_benchmarkingRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* Asyncend_benchmarkingRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
@@ -138,14 +136,12 @@ class PeerComm final {
     std::unique_ptr< ::grpc::ClientAsyncWriter< ::Request>> PrepareAsyncsend_to_peer_stream(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncWriter< ::Request>>(PrepareAsyncsend_to_peer_streamRaw(context, response, cq));
     }
-    std::unique_ptr< ::grpc::ClientWriter< ::TransactionProposal>> prepopulate_stream(::grpc::ClientContext* context, ::PrepopulateResponse* response) {
-      return std::unique_ptr< ::grpc::ClientWriter< ::TransactionProposal>>(prepopulate_streamRaw(context, response));
+    ::grpc::Status prepopulate(::grpc::ClientContext* context, const ::TransactionProposal& request, ::PrepopulateResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::PrepopulateResponse>> Asyncprepopulate(::grpc::ClientContext* context, const ::TransactionProposal& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::PrepopulateResponse>>(AsyncprepopulateRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncWriter< ::TransactionProposal>> Asyncprepopulate_stream(::grpc::ClientContext* context, ::PrepopulateResponse* response, ::grpc::CompletionQueue* cq, void* tag) {
-      return std::unique_ptr< ::grpc::ClientAsyncWriter< ::TransactionProposal>>(Asyncprepopulate_streamRaw(context, response, cq, tag));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncWriter< ::TransactionProposal>> PrepareAsyncprepopulate_stream(::grpc::ClientContext* context, ::PrepopulateResponse* response, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncWriter< ::TransactionProposal>>(PrepareAsyncprepopulate_streamRaw(context, response, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::PrepopulateResponse>> PrepareAsyncprepopulate(::grpc::ClientContext* context, const ::TransactionProposal& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::PrepopulateResponse>>(PrepareAsyncprepopulateRaw(context, request, cq));
     }
     ::grpc::Status start_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::Empty* response) override;
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> Asyncstart_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
@@ -169,7 +165,8 @@ class PeerComm final {
       void send_to_peer(::grpc::ClientContext* context, const ::Request* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
       void send_to_peer(::grpc::ClientContext* context, const ::Request* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
       void send_to_peer_stream(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::ClientWriteReactor< ::Request>* reactor) override;
-      void prepopulate_stream(::grpc::ClientContext* context, ::PrepopulateResponse* response, ::grpc::ClientWriteReactor< ::TransactionProposal>* reactor) override;
+      void prepopulate(::grpc::ClientContext* context, const ::TransactionProposal* request, ::PrepopulateResponse* response, std::function<void(::grpc::Status)>) override;
+      void prepopulate(::grpc::ClientContext* context, const ::TransactionProposal* request, ::PrepopulateResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
       void start_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
       void start_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
       void end_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
@@ -192,9 +189,8 @@ class PeerComm final {
     ::grpc::ClientWriter< ::Request>* send_to_peer_streamRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response) override;
     ::grpc::ClientAsyncWriter< ::Request>* Asyncsend_to_peer_streamRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq, void* tag) override;
     ::grpc::ClientAsyncWriter< ::Request>* PrepareAsyncsend_to_peer_streamRaw(::grpc::ClientContext* context, ::google::protobuf::Empty* response, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientWriter< ::TransactionProposal>* prepopulate_streamRaw(::grpc::ClientContext* context, ::PrepopulateResponse* response) override;
-    ::grpc::ClientAsyncWriter< ::TransactionProposal>* Asyncprepopulate_streamRaw(::grpc::ClientContext* context, ::PrepopulateResponse* response, ::grpc::CompletionQueue* cq, void* tag) override;
-    ::grpc::ClientAsyncWriter< ::TransactionProposal>* PrepareAsyncprepopulate_streamRaw(::grpc::ClientContext* context, ::PrepopulateResponse* response, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::PrepopulateResponse>* AsyncprepopulateRaw(::grpc::ClientContext* context, const ::TransactionProposal& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::PrepopulateResponse>* PrepareAsyncprepopulateRaw(::grpc::ClientContext* context, const ::TransactionProposal& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* Asyncstart_benchmarkingRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncstart_benchmarkingRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* Asyncend_benchmarkingRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
@@ -202,7 +198,7 @@ class PeerComm final {
     const ::grpc::internal::RpcMethod rpcmethod_append_entries_;
     const ::grpc::internal::RpcMethod rpcmethod_send_to_peer_;
     const ::grpc::internal::RpcMethod rpcmethod_send_to_peer_stream_;
-    const ::grpc::internal::RpcMethod rpcmethod_prepopulate_stream_;
+    const ::grpc::internal::RpcMethod rpcmethod_prepopulate_;
     const ::grpc::internal::RpcMethod rpcmethod_start_benchmarking_;
     const ::grpc::internal::RpcMethod rpcmethod_end_benchmarking_;
   };
@@ -215,7 +211,7 @@ class PeerComm final {
     virtual ::grpc::Status append_entries(::grpc::ServerContext* context, const ::AppendRequest* request, ::AppendResponse* response);
     virtual ::grpc::Status send_to_peer(::grpc::ServerContext* context, const ::Request* request, ::google::protobuf::Empty* response);
     virtual ::grpc::Status send_to_peer_stream(::grpc::ServerContext* context, ::grpc::ServerReader< ::Request>* reader, ::google::protobuf::Empty* response);
-    virtual ::grpc::Status prepopulate_stream(::grpc::ServerContext* context, ::grpc::ServerReader< ::TransactionProposal>* reader, ::PrepopulateResponse* response);
+    virtual ::grpc::Status prepopulate(::grpc::ServerContext* context, const ::TransactionProposal* request, ::PrepopulateResponse* response);
     virtual ::grpc::Status start_benchmarking(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response);
     virtual ::grpc::Status end_benchmarking(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response);
   };
@@ -280,23 +276,23 @@ class PeerComm final {
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_prepopulate_stream : public BaseClass {
+  class WithAsyncMethod_prepopulate : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_prepopulate_stream() {
+    WithAsyncMethod_prepopulate() {
       ::grpc::Service::MarkMethodAsync(3);
     }
-    ~WithAsyncMethod_prepopulate_stream() override {
+    ~WithAsyncMethod_prepopulate() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status prepopulate_stream(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::TransactionProposal>* /*reader*/, ::PrepopulateResponse* /*response*/) override {
+    ::grpc::Status prepopulate(::grpc::ServerContext* /*context*/, const ::TransactionProposal* /*request*/, ::PrepopulateResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void Requestprepopulate_stream(::grpc::ServerContext* context, ::grpc::ServerAsyncReader< ::PrepopulateResponse, ::TransactionProposal>* reader, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncClientStreaming(3, context, reader, new_call_cq, notification_cq, tag);
+    void Requestprepopulate(::grpc::ServerContext* context, ::TransactionProposal* request, ::grpc::ServerAsyncResponseWriter< ::PrepopulateResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(3, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -339,7 +335,7 @@ class PeerComm final {
       ::grpc::Service::RequestAsyncUnary(5, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_append_entries<WithAsyncMethod_send_to_peer<WithAsyncMethod_send_to_peer_stream<WithAsyncMethod_prepopulate_stream<WithAsyncMethod_start_benchmarking<WithAsyncMethod_end_benchmarking<Service > > > > > > AsyncService;
+  typedef WithAsyncMethod_append_entries<WithAsyncMethod_send_to_peer<WithAsyncMethod_send_to_peer_stream<WithAsyncMethod_prepopulate<WithAsyncMethod_start_benchmarking<WithAsyncMethod_end_benchmarking<Service > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_append_entries : public BaseClass {
    private:
@@ -417,26 +413,31 @@ class PeerComm final {
       ::grpc::CallbackServerContext* /*context*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_prepopulate_stream : public BaseClass {
+  class WithCallbackMethod_prepopulate : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_prepopulate_stream() {
+    WithCallbackMethod_prepopulate() {
       ::grpc::Service::MarkMethodCallback(3,
-          new ::grpc::internal::CallbackClientStreamingHandler< ::TransactionProposal, ::PrepopulateResponse>(
+          new ::grpc::internal::CallbackUnaryHandler< ::TransactionProposal, ::PrepopulateResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context, ::PrepopulateResponse* response) { return this->prepopulate_stream(context, response); }));
+                   ::grpc::CallbackServerContext* context, const ::TransactionProposal* request, ::PrepopulateResponse* response) { return this->prepopulate(context, request, response); }));}
+    void SetMessageAllocatorFor_prepopulate(
+        ::grpc::MessageAllocator< ::TransactionProposal, ::PrepopulateResponse>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(3);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::TransactionProposal, ::PrepopulateResponse>*>(handler)
+              ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_prepopulate_stream() override {
+    ~WithCallbackMethod_prepopulate() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status prepopulate_stream(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::TransactionProposal>* /*reader*/, ::PrepopulateResponse* /*response*/) override {
+    ::grpc::Status prepopulate(::grpc::ServerContext* /*context*/, const ::TransactionProposal* /*request*/, ::PrepopulateResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerReadReactor< ::TransactionProposal>* prepopulate_stream(
-      ::grpc::CallbackServerContext* /*context*/, ::PrepopulateResponse* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* prepopulate(
+      ::grpc::CallbackServerContext* /*context*/, const ::TransactionProposal* /*request*/, ::PrepopulateResponse* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
   class WithCallbackMethod_start_benchmarking : public BaseClass {
@@ -492,7 +493,7 @@ class PeerComm final {
     virtual ::grpc::ServerUnaryReactor* end_benchmarking(
       ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_append_entries<WithCallbackMethod_send_to_peer<WithCallbackMethod_send_to_peer_stream<WithCallbackMethod_prepopulate_stream<WithCallbackMethod_start_benchmarking<WithCallbackMethod_end_benchmarking<Service > > > > > > CallbackService;
+  typedef WithCallbackMethod_append_entries<WithCallbackMethod_send_to_peer<WithCallbackMethod_send_to_peer_stream<WithCallbackMethod_prepopulate<WithCallbackMethod_start_benchmarking<WithCallbackMethod_end_benchmarking<Service > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_append_entries : public BaseClass {
@@ -546,18 +547,18 @@ class PeerComm final {
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_prepopulate_stream : public BaseClass {
+  class WithGenericMethod_prepopulate : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_prepopulate_stream() {
+    WithGenericMethod_prepopulate() {
       ::grpc::Service::MarkMethodGeneric(3);
     }
-    ~WithGenericMethod_prepopulate_stream() override {
+    ~WithGenericMethod_prepopulate() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status prepopulate_stream(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::TransactionProposal>* /*reader*/, ::PrepopulateResponse* /*response*/) override {
+    ::grpc::Status prepopulate(::grpc::ServerContext* /*context*/, const ::TransactionProposal* /*request*/, ::PrepopulateResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -657,23 +658,23 @@ class PeerComm final {
     }
   };
   template <class BaseClass>
-  class WithRawMethod_prepopulate_stream : public BaseClass {
+  class WithRawMethod_prepopulate : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_prepopulate_stream() {
+    WithRawMethod_prepopulate() {
       ::grpc::Service::MarkMethodRaw(3);
     }
-    ~WithRawMethod_prepopulate_stream() override {
+    ~WithRawMethod_prepopulate() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status prepopulate_stream(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::TransactionProposal>* /*reader*/, ::PrepopulateResponse* /*response*/) override {
+    ::grpc::Status prepopulate(::grpc::ServerContext* /*context*/, const ::TransactionProposal* /*request*/, ::PrepopulateResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void Requestprepopulate_stream(::grpc::ServerContext* context, ::grpc::ServerAsyncReader< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* reader, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncClientStreaming(3, context, reader, new_call_cq, notification_cq, tag);
+    void Requestprepopulate(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(3, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -783,26 +784,26 @@ class PeerComm final {
       ::grpc::CallbackServerContext* /*context*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_prepopulate_stream : public BaseClass {
+  class WithRawCallbackMethod_prepopulate : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_prepopulate_stream() {
+    WithRawCallbackMethod_prepopulate() {
       ::grpc::Service::MarkMethodRawCallback(3,
-          new ::grpc::internal::CallbackClientStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, ::grpc::ByteBuffer* response) { return this->prepopulate_stream(context, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->prepopulate(context, request, response); }));
     }
-    ~WithRawCallbackMethod_prepopulate_stream() override {
+    ~WithRawCallbackMethod_prepopulate() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status prepopulate_stream(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::TransactionProposal>* /*reader*/, ::PrepopulateResponse* /*response*/) override {
+    ::grpc::Status prepopulate(::grpc::ServerContext* /*context*/, const ::TransactionProposal* /*request*/, ::PrepopulateResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerReadReactor< ::grpc::ByteBuffer>* prepopulate_stream(
-      ::grpc::CallbackServerContext* /*context*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* prepopulate(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
   class WithRawCallbackMethod_start_benchmarking : public BaseClass {
@@ -903,6 +904,33 @@ class PeerComm final {
     virtual ::grpc::Status Streamedsend_to_peer(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::Request,::google::protobuf::Empty>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
+  class WithStreamedUnaryMethod_prepopulate : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_prepopulate() {
+      ::grpc::Service::MarkMethodStreamed(3,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::TransactionProposal, ::PrepopulateResponse>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::TransactionProposal, ::PrepopulateResponse>* streamer) {
+                       return this->Streamedprepopulate(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_prepopulate() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status prepopulate(::grpc::ServerContext* /*context*/, const ::TransactionProposal* /*request*/, ::PrepopulateResponse* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status Streamedprepopulate(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::TransactionProposal,::PrepopulateResponse>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
   class WithStreamedUnaryMethod_start_benchmarking : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
@@ -956,9 +984,9 @@ class PeerComm final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status Streamedend_benchmarking(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::google::protobuf::Empty>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_append_entries<WithStreamedUnaryMethod_send_to_peer<WithStreamedUnaryMethod_start_benchmarking<WithStreamedUnaryMethod_end_benchmarking<Service > > > > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_append_entries<WithStreamedUnaryMethod_send_to_peer<WithStreamedUnaryMethod_prepopulate<WithStreamedUnaryMethod_start_benchmarking<WithStreamedUnaryMethod_end_benchmarking<Service > > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_append_entries<WithStreamedUnaryMethod_send_to_peer<WithStreamedUnaryMethod_start_benchmarking<WithStreamedUnaryMethod_end_benchmarking<Service > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_append_entries<WithStreamedUnaryMethod_send_to_peer<WithStreamedUnaryMethod_prepopulate<WithStreamedUnaryMethod_start_benchmarking<WithStreamedUnaryMethod_end_benchmarking<Service > > > > > StreamedService;
 };
 
 

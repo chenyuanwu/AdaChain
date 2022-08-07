@@ -3,5 +3,6 @@ build/
 log/
 testdb/
 *.o
+*.log
 client
 peer

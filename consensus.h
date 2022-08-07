@@ -86,8 +86,30 @@ class Queue {
     }
 };
 
+class PeerCommImpl final : public PeerComm::Service {
+   public:
+    explicit PeerCommImpl() : log("./log/raft.log", ios::out | ios::binary) {}
+
+    Status append_entries(ServerContext *context, const AppendRequest *request, AppendResponse *response) override;
+
+    Status send_to_peer(ServerContext *context, const Request *request, google::protobuf::Empty *response) override;
+
+    Status send_to_peer_stream(ServerContext *context, ServerReader<Request> *reader, google::protobuf::Empty *response) override;
+
+    Status prepopulate(ServerContext *context, const TransactionProposal *proposal, PrepopulateResponse *response) override;
+
+    Status start_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) override;
+
+    Status end_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) override;
+
+   private:
+    ofstream log;
+    chrono::milliseconds start;
+    chrono::milliseconds end;
+};
+
 void *log_replication_thread(void *arg);
-void run_rpc_server(const string &server_address);
+void *leader_main_thread(void *arg);
 void spawn_raft_threads(const Value &followers);
 
 #endif
