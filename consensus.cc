@@ -94,9 +94,9 @@ Status PeerCommImpl::append_entries(ServerContext *context, const AppendRequest 
 }
 
 Status PeerCommImpl::send_to_peer(ServerContext *context, const Request *request, google::protobuf::Empty *response) {
-    if (request->Message_case() == Request::MessageCase::kEndorsement) {
+    if (request->has_endorsement()) {
         ordering_queue.add(request->endorsement().SerializeAsString());
-    } else if (request->Message_case() == Request::MessageCase::kProposal) {
+    } else if (request->has_proposal()) {
         proposal_queue.add(request->proposal());
     }
 
@@ -107,9 +107,9 @@ Status PeerCommImpl::send_to_peer_stream(ServerContext *context, ServerReader<Re
     Request request;
 
     while (reader->Read(&request)) {
-        if (request.Message_case() == Request::MessageCase::kEndorsement) {
+        if (request.has_endorsement()) {
             ordering_queue.add(request.endorsement().SerializeAsString());
-        } else if (request.Message_case() == Request::MessageCase::kProposal) {
+        } else if (request.has_proposal()) {
             proposal_queue.add(request.proposal());
         }
     }
@@ -130,6 +130,7 @@ Status PeerCommImpl::prepopulate(ServerContext *context, const TransactionPropos
 }
 
 Status PeerCommImpl::start_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) {
+    LOG(INFO) << "starts benchmarking.";
     start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
 
     return Status::OK;

@@ -1384,12 +1384,6 @@ class Request final :
   static const Request& default_instance() {
     return *internal_default_instance();
   }
-  enum MessageCase {
-    kEndorsement = 1,
-    kProposal = 2,
-    MESSAGE_NOT_SET = 0,
-  };
-
   static inline const Request* internal_default_instance() {
     return reinterpret_cast<const Request*>(
                &_Request_default_instance_);
@@ -1505,29 +1499,16 @@ class Request final :
       ::TransactionProposal* proposal);
   ::TransactionProposal* unsafe_arena_release_proposal();
 
-  void clear_Message();
-  MessageCase Message_case() const;
   // @@protoc_insertion_point(class_scope:Request)
  private:
   class _Internal;
-  void set_has_endorsement();
-  void set_has_proposal();
-
-  inline bool has_Message() const;
-  inline void clear_has_Message();
 
   template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
-  union MessageUnion {
-    constexpr MessageUnion() : _constinit_{} {}
-      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized _constinit_;
-    ::Endorsement* endorsement_;
-    ::TransactionProposal* proposal_;
-  } Message_;
+  ::Endorsement* endorsement_;
+  ::TransactionProposal* proposal_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  ::PROTOBUF_NAMESPACE_ID::uint32 _oneof_case_[1];
-
   friend struct ::TableStruct_blockchain_2eproto;
 };
 // -------------------------------------------------------------------
@@ -2405,161 +2386,184 @@ TransactionProposal::mutable_values() {
 
 // .Endorsement endorsement = 1;
 inline bool Request::_internal_has_endorsement() const {
-  return Message_case() == kEndorsement;
+  return this != internal_default_instance() && endorsement_ != nullptr;
 }
 inline bool Request::has_endorsement() const {
   return _internal_has_endorsement();
 }
-inline void Request::set_has_endorsement() {
-  _oneof_case_[0] = kEndorsement;
-}
 inline void Request::clear_endorsement() {
-  if (_internal_has_endorsement()) {
-    if (GetArenaForAllocation() == nullptr) {
-      delete Message_.endorsement_;
-    }
-    clear_has_Message();
+  if (GetArenaForAllocation() == nullptr && endorsement_ != nullptr) {
+    delete endorsement_;
   }
-}
-inline ::Endorsement* Request::release_endorsement() {
-  // @@protoc_insertion_point(field_release:Request.endorsement)
-  if (_internal_has_endorsement()) {
-    clear_has_Message();
-      ::Endorsement* temp = Message_.endorsement_;
-    if (GetArenaForAllocation() != nullptr) {
-      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
-    }
-    Message_.endorsement_ = nullptr;
-    return temp;
-  } else {
-    return nullptr;
-  }
+  endorsement_ = nullptr;
 }
 inline const ::Endorsement& Request::_internal_endorsement() const {
-  return _internal_has_endorsement()
-      ? *Message_.endorsement_
-      : reinterpret_cast< ::Endorsement&>(::_Endorsement_default_instance_);
+  const ::Endorsement* p = endorsement_;
+  return p != nullptr ? *p : reinterpret_cast<const ::Endorsement&>(
+      ::_Endorsement_default_instance_);
 }
 inline const ::Endorsement& Request::endorsement() const {
   // @@protoc_insertion_point(field_get:Request.endorsement)
   return _internal_endorsement();
 }
-inline ::Endorsement* Request::unsafe_arena_release_endorsement() {
-  // @@protoc_insertion_point(field_unsafe_arena_release:Request.endorsement)
-  if (_internal_has_endorsement()) {
-    clear_has_Message();
-    ::Endorsement* temp = Message_.endorsement_;
-    Message_.endorsement_ = nullptr;
-    return temp;
-  } else {
-    return nullptr;
+inline void Request::unsafe_arena_set_allocated_endorsement(
+    ::Endorsement* endorsement) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(endorsement_);
   }
-}
-inline void Request::unsafe_arena_set_allocated_endorsement(::Endorsement* endorsement) {
-  clear_Message();
+  endorsement_ = endorsement;
   if (endorsement) {
-    set_has_endorsement();
-    Message_.endorsement_ = endorsement;
+    
+  } else {
+    
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:Request.endorsement)
 }
-inline ::Endorsement* Request::_internal_mutable_endorsement() {
-  if (!_internal_has_endorsement()) {
-    clear_Message();
-    set_has_endorsement();
-    Message_.endorsement_ = CreateMaybeMessage< ::Endorsement >(GetArenaForAllocation());
+inline ::Endorsement* Request::release_endorsement() {
+  
+  ::Endorsement* temp = endorsement_;
+  endorsement_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
   }
-  return Message_.endorsement_;
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::Endorsement* Request::unsafe_arena_release_endorsement() {
+  // @@protoc_insertion_point(field_release:Request.endorsement)
+  
+  ::Endorsement* temp = endorsement_;
+  endorsement_ = nullptr;
+  return temp;
+}
+inline ::Endorsement* Request::_internal_mutable_endorsement() {
+  
+  if (endorsement_ == nullptr) {
+    auto* p = CreateMaybeMessage<::Endorsement>(GetArenaForAllocation());
+    endorsement_ = p;
+  }
+  return endorsement_;
 }
 inline ::Endorsement* Request::mutable_endorsement() {
   ::Endorsement* _msg = _internal_mutable_endorsement();
   // @@protoc_insertion_point(field_mutable:Request.endorsement)
   return _msg;
 }
+inline void Request::set_allocated_endorsement(::Endorsement* endorsement) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete endorsement_;
+  }
+  if (endorsement) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper<::Endorsement>::GetOwningArena(endorsement);
+    if (message_arena != submessage_arena) {
+      endorsement = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, endorsement, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  endorsement_ = endorsement;
+  // @@protoc_insertion_point(field_set_allocated:Request.endorsement)
+}
 
 // .TransactionProposal proposal = 2;
 inline bool Request::_internal_has_proposal() const {
-  return Message_case() == kProposal;
+  return this != internal_default_instance() && proposal_ != nullptr;
 }
 inline bool Request::has_proposal() const {
   return _internal_has_proposal();
 }
-inline void Request::set_has_proposal() {
-  _oneof_case_[0] = kProposal;
-}
 inline void Request::clear_proposal() {
-  if (_internal_has_proposal()) {
-    if (GetArenaForAllocation() == nullptr) {
-      delete Message_.proposal_;
-    }
-    clear_has_Message();
+  if (GetArenaForAllocation() == nullptr && proposal_ != nullptr) {
+    delete proposal_;
   }
-}
-inline ::TransactionProposal* Request::release_proposal() {
-  // @@protoc_insertion_point(field_release:Request.proposal)
-  if (_internal_has_proposal()) {
-    clear_has_Message();
-      ::TransactionProposal* temp = Message_.proposal_;
-    if (GetArenaForAllocation() != nullptr) {
-      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
-    }
-    Message_.proposal_ = nullptr;
-    return temp;
-  } else {
-    return nullptr;
-  }
+  proposal_ = nullptr;
 }
 inline const ::TransactionProposal& Request::_internal_proposal() const {
-  return _internal_has_proposal()
-      ? *Message_.proposal_
-      : reinterpret_cast< ::TransactionProposal&>(::_TransactionProposal_default_instance_);
+  const ::TransactionProposal* p = proposal_;
+  return p != nullptr ? *p : reinterpret_cast<const ::TransactionProposal&>(
+      ::_TransactionProposal_default_instance_);
 }
 inline const ::TransactionProposal& Request::proposal() const {
   // @@protoc_insertion_point(field_get:Request.proposal)
   return _internal_proposal();
 }
-inline ::TransactionProposal* Request::unsafe_arena_release_proposal() {
-  // @@protoc_insertion_point(field_unsafe_arena_release:Request.proposal)
-  if (_internal_has_proposal()) {
-    clear_has_Message();
-    ::TransactionProposal* temp = Message_.proposal_;
-    Message_.proposal_ = nullptr;
-    return temp;
-  } else {
-    return nullptr;
+inline void Request::unsafe_arena_set_allocated_proposal(
+    ::TransactionProposal* proposal) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(proposal_);
   }
-}
-inline void Request::unsafe_arena_set_allocated_proposal(::TransactionProposal* proposal) {
-  clear_Message();
+  proposal_ = proposal;
   if (proposal) {
-    set_has_proposal();
-    Message_.proposal_ = proposal;
+    
+  } else {
+    
   }
   // @@protoc_insertion_point(field_unsafe_arena_set_allocated:Request.proposal)
 }
-inline ::TransactionProposal* Request::_internal_mutable_proposal() {
-  if (!_internal_has_proposal()) {
-    clear_Message();
-    set_has_proposal();
-    Message_.proposal_ = CreateMaybeMessage< ::TransactionProposal >(GetArenaForAllocation());
+inline ::TransactionProposal* Request::release_proposal() {
+  
+  ::TransactionProposal* temp = proposal_;
+  proposal_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
   }
-  return Message_.proposal_;
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::TransactionProposal* Request::unsafe_arena_release_proposal() {
+  // @@protoc_insertion_point(field_release:Request.proposal)
+  
+  ::TransactionProposal* temp = proposal_;
+  proposal_ = nullptr;
+  return temp;
+}
+inline ::TransactionProposal* Request::_internal_mutable_proposal() {
+  
+  if (proposal_ == nullptr) {
+    auto* p = CreateMaybeMessage<::TransactionProposal>(GetArenaForAllocation());
+    proposal_ = p;
+  }
+  return proposal_;
 }
 inline ::TransactionProposal* Request::mutable_proposal() {
   ::TransactionProposal* _msg = _internal_mutable_proposal();
   // @@protoc_insertion_point(field_mutable:Request.proposal)
   return _msg;
 }
+inline void Request::set_allocated_proposal(::TransactionProposal* proposal) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete proposal_;
+  }
+  if (proposal) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper<::TransactionProposal>::GetOwningArena(proposal);
+    if (message_arena != submessage_arena) {
+      proposal = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, proposal, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  proposal_ = proposal;
+  // @@protoc_insertion_point(field_set_allocated:Request.proposal)
+}
 
-inline bool Request::has_Message() const {
-  return Message_case() != MESSAGE_NOT_SET;
-}
-inline void Request::clear_has_Message() {
-  _oneof_case_[0] = MESSAGE_NOT_SET;
-}
-inline Request::MessageCase Request::Message_case() const {
-  return Request::MessageCase(_oneof_case_[0]);
-}
 // -------------------------------------------------------------------
 
 // Block

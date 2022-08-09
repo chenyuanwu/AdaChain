@@ -1,12 +1,15 @@
 {
     "arch": {
-        "blocksize": 1000,
+        "blocksize": 2000,
         "early_execution": true,
         "reorder": false
     },
     "sysconfig": {
         "num_execution_threads": 16,
         "leader": "10.10.1.2:50052",
-        "followers": []
+        "followers": [
+            "10.10.1.3:50052",
+            "10.10.1.4:50052"
+        ]
     }
 }

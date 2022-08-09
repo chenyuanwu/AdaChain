@@ -112,7 +112,8 @@ struct TransactionProposalDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT TransactionProposalDefaultTypeInternal _TransactionProposal_default_instance_;
 constexpr Request::Request(
   ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
-  : _oneof_case_{}{}
+  : endorsement_(nullptr)
+  , proposal_(nullptr){}
 struct RequestDefaultTypeInternal {
   constexpr RequestDefaultTypeInternal()
     : _instance(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized{}) {}
@@ -202,12 +203,11 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_blockchain_2eproto::offsets[] 
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::Request, _internal_metadata_),
   ~0u,  // no _extensions_
-  PROTOBUF_FIELD_OFFSET(::Request, _oneof_case_[0]),
+  ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  ::PROTOBUF_NAMESPACE_ID::internal::kInvalidFieldOffsetTag,
-  ::PROTOBUF_NAMESPACE_ID::internal::kInvalidFieldOffsetTag,
-  PROTOBUF_FIELD_OFFSET(::Request, Message_),
+  PROTOBUF_FIELD_OFFSET(::Request, endorsement_),
+  PROTOBUF_FIELD_OFFSET(::Request, proposal_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::Block, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -227,7 +227,7 @@ static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOB
   { 38, -1, -1, sizeof(::Endorsement)},
   { 49, -1, -1, sizeof(::TransactionProposal)},
   { 58, -1, -1, sizeof(::Request)},
-  { 67, -1, -1, sizeof(::Block)},
+  { 66, -1, -1, sizeof(::Block)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
@@ -259,29 +259,28 @@ const char descriptor_table_protodef_blockchain_2eproto[] PROTOBUF_SECTION_VARIA
   " \003(\t\022\016\n\006values\030\003 \003(\014\"~\n\004Type\022\007\n\003Get\020\000\022\007\n"
   "\003Put\020\001\022\023\n\017TransactSavings\020\002\022\023\n\017DepositCh"
   "ecking\020\003\022\017\n\013SendPayment\020\004\022\016\n\nWriteCheck\020"
-  "\005\022\016\n\nAmalgamate\020\006\022\t\n\005Query\020\007\"c\n\007Request\022"
-  "#\n\013endorsement\030\001 \001(\0132\014.EndorsementH\000\022(\n\010"
-  "proposal\030\002 \001(\0132\024.TransactionProposalH\000B\t"
-  "\n\007Message\"V\n\005Block\022\"\n\014transactions\030\001 \003(\013"
-  "2\014.Endorsement\022\020\n\010block_id\030\002 \001(\004\022\027\n\017prev"
-  "_block_hash\030\003 \001(\t2\373\002\n\010PeerComm\0223\n\016append"
-  "_entries\022\016.AppendRequest\032\017.AppendRespons"
-  "e\"\000\0222\n\014send_to_peer\022\010.Request\032\026.google.p"
-  "rotobuf.Empty\"\000\022;\n\023send_to_peer_stream\022\010"
-  ".Request\032\026.google.protobuf.Empty\"\000(\001\022;\n\013"
-  "prepopulate\022\024.TransactionProposal\032\024.Prep"
-  "opulateResponse\"\000\022F\n\022start_benchmarking\022"
-  "\026.google.protobuf.Empty\032\026.google.protobu"
-  "f.Empty\"\000\022D\n\020end_benchmarking\022\026.google.p"
-  "rotobuf.Empty\032\026.google.protobuf.Empty\"\000b"
-  "\006proto3"
+  "\005\022\016\n\nAmalgamate\020\006\022\t\n\005Query\020\007\"T\n\007Request\022"
+  "!\n\013endorsement\030\001 \001(\0132\014.Endorsement\022&\n\010pr"
+  "oposal\030\002 \001(\0132\024.TransactionProposal\"V\n\005Bl"
+  "ock\022\"\n\014transactions\030\001 \003(\0132\014.Endorsement\022"
+  "\020\n\010block_id\030\002 \001(\004\022\027\n\017prev_block_hash\030\003 \001"
+  "(\t2\373\002\n\010PeerComm\0223\n\016append_entries\022\016.Appe"
+  "ndRequest\032\017.AppendResponse\"\000\0222\n\014send_to_"
+  "peer\022\010.Request\032\026.google.protobuf.Empty\"\000"
+  "\022;\n\023send_to_peer_stream\022\010.Request\032\026.goog"
+  "le.protobuf.Empty\"\000(\001\022;\n\013prepopulate\022\024.T"
+  "ransactionProposal\032\024.PrepopulateResponse"
+  "\"\000\022F\n\022start_benchmarking\022\026.google.protob"
+  "uf.Empty\032\026.google.protobuf.Empty\"\000\022D\n\020en"
+  "d_benchmarking\022\026.google.protobuf.Empty\032\026"
+  ".google.protobuf.Empty\"\000b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_blockchain_2eproto_deps[1] = {
   &::descriptor_table_google_2fprotobuf_2fempty_2eproto,
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_blockchain_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_blockchain_2eproto = {
-  false, false, 1247, descriptor_table_protodef_blockchain_2eproto, "blockchain.proto", 
+  false, false, 1232, descriptor_table_protodef_blockchain_2eproto, "blockchain.proto", 
   &descriptor_table_blockchain_2eproto_once, descriptor_table_blockchain_2eproto_deps, 1, 9,
   schemas, file_default_instances, TableStruct_blockchain_2eproto::offsets,
   file_level_metadata_blockchain_2eproto, file_level_enum_descriptors_blockchain_2eproto, file_level_service_descriptors_blockchain_2eproto,
@@ -1820,41 +1819,11 @@ class Request::_Internal {
 
 const ::Endorsement&
 Request::_Internal::endorsement(const Request* msg) {
-  return *msg->Message_.endorsement_;
+  return *msg->endorsement_;
 }
 const ::TransactionProposal&
 Request::_Internal::proposal(const Request* msg) {
-  return *msg->Message_.proposal_;
-}
-void Request::set_allocated_endorsement(::Endorsement* endorsement) {
-  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
-  clear_Message();
-  if (endorsement) {
-    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
-      ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper<::Endorsement>::GetOwningArena(endorsement);
-    if (message_arena != submessage_arena) {
-      endorsement = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
-          message_arena, endorsement, submessage_arena);
-    }
-    set_has_endorsement();
-    Message_.endorsement_ = endorsement;
-  }
-  // @@protoc_insertion_point(field_set_allocated:Request.endorsement)
-}
-void Request::set_allocated_proposal(::TransactionProposal* proposal) {
-  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
-  clear_Message();
-  if (proposal) {
-    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
-      ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper<::TransactionProposal>::GetOwningArena(proposal);
-    if (message_arena != submessage_arena) {
-      proposal = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
-          message_arena, proposal, submessage_arena);
-    }
-    set_has_proposal();
-    Message_.proposal_ = proposal;
-  }
-  // @@protoc_insertion_point(field_set_allocated:Request.proposal)
+  return *msg->proposal_;
 }
 Request::Request(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
@@ -1868,25 +1837,24 @@ Request::Request(::PROTOBUF_NAMESPACE_ID::Arena* arena,
 Request::Request(const Request& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  clear_has_Message();
-  switch (from.Message_case()) {
-    case kEndorsement: {
-      _internal_mutable_endorsement()->::Endorsement::MergeFrom(from._internal_endorsement());
-      break;
-    }
-    case kProposal: {
-      _internal_mutable_proposal()->::TransactionProposal::MergeFrom(from._internal_proposal());
-      break;
-    }
-    case MESSAGE_NOT_SET: {
-      break;
-    }
+  if (from._internal_has_endorsement()) {
+    endorsement_ = new ::Endorsement(*from.endorsement_);
+  } else {
+    endorsement_ = nullptr;
+  }
+  if (from._internal_has_proposal()) {
+    proposal_ = new ::TransactionProposal(*from.proposal_);
+  } else {
+    proposal_ = nullptr;
   }
   // @@protoc_insertion_point(copy_constructor:Request)
 }
 
 void Request::SharedCtor() {
-clear_has_Message();
+::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
+    reinterpret_cast<char*>(&endorsement_) - reinterpret_cast<char*>(this)),
+    0, static_cast<size_t>(reinterpret_cast<char*>(&proposal_) -
+    reinterpret_cast<char*>(&endorsement_)) + sizeof(proposal_));
 }
 
 Request::~Request() {
@@ -1898,9 +1866,8 @@ Request::~Request() {
 
 inline void Request::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  if (has_Message()) {
-    clear_Message();
-  }
+  if (this != internal_default_instance()) delete endorsement_;
+  if (this != internal_default_instance()) delete proposal_;
 }
 
 void Request::ArenaDtor(void* object) {
@@ -1913,36 +1880,20 @@ void Request::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
 
-void Request::clear_Message() {
-// @@protoc_insertion_point(one_of_clear_start:Request)
-  switch (Message_case()) {
-    case kEndorsement: {
-      if (GetArenaForAllocation() == nullptr) {
-        delete Message_.endorsement_;
-      }
-      break;
-    }
-    case kProposal: {
-      if (GetArenaForAllocation() == nullptr) {
-        delete Message_.proposal_;
-      }
-      break;
-    }
-    case MESSAGE_NOT_SET: {
-      break;
-    }
-  }
-  _oneof_case_[0] = MESSAGE_NOT_SET;
-}
-
-
 void Request::Clear() {
 // @@protoc_insertion_point(message_clear_start:Request)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  clear_Message();
+  if (GetArenaForAllocation() == nullptr && endorsement_ != nullptr) {
+    delete endorsement_;
+  }
+  endorsement_ = nullptr;
+  if (GetArenaForAllocation() == nullptr && proposal_ != nullptr) {
+    delete proposal_;
+  }
+  proposal_ = nullptr;
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -1998,7 +1949,7 @@ failure:
   (void) cached_has_bits;
 
   // .Endorsement endorsement = 1;
-  if (_internal_has_endorsement()) {
+  if (this->_internal_has_endorsement()) {
     target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessage(
@@ -2006,7 +1957,7 @@ failure:
   }
 
   // .TransactionProposal proposal = 2;
-  if (_internal_has_proposal()) {
+  if (this->_internal_has_proposal()) {
     target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessage(
@@ -2029,25 +1980,20 @@ size_t Request::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  switch (Message_case()) {
-    // .Endorsement endorsement = 1;
-    case kEndorsement: {
-      total_size += 1 +
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-          *Message_.endorsement_);
-      break;
-    }
-    // .TransactionProposal proposal = 2;
-    case kProposal: {
-      total_size += 1 +
-        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-          *Message_.proposal_);
-      break;
-    }
-    case MESSAGE_NOT_SET: {
-      break;
-    }
+  // .Endorsement endorsement = 1;
+  if (this->_internal_has_endorsement()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *endorsement_);
   }
+
+  // .TransactionProposal proposal = 2;
+  if (this->_internal_has_proposal()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *proposal_);
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
 }
 
@@ -2070,18 +2016,11 @@ void Request::MergeFrom(const Request& from) {
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  switch (from.Message_case()) {
-    case kEndorsement: {
-      _internal_mutable_endorsement()->::Endorsement::MergeFrom(from._internal_endorsement());
-      break;
-    }
-    case kProposal: {
-      _internal_mutable_proposal()->::TransactionProposal::MergeFrom(from._internal_proposal());
-      break;
-    }
-    case MESSAGE_NOT_SET: {
-      break;
-    }
+  if (from._internal_has_endorsement()) {
+    _internal_mutable_endorsement()->::Endorsement::MergeFrom(from._internal_endorsement());
+  }
+  if (from._internal_has_proposal()) {
+    _internal_mutable_proposal()->::TransactionProposal::MergeFrom(from._internal_proposal());
   }
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -2100,8 +2039,12 @@ bool Request::IsInitialized() const {
 void Request::InternalSwap(Request* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(Message_, other->Message_);
-  swap(_oneof_case_[0], other->_oneof_case_[0]);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(Request, proposal_)
+      + sizeof(Request::proposal_)
+      - PROTOBUF_FIELD_OFFSET(Request, endorsement_)>(
+          reinterpret_cast<char*>(&endorsement_),
+          reinterpret_cast<char*>(&other->endorsement_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata Request::GetMetadata() const {

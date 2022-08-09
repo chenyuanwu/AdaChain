@@ -44,7 +44,6 @@ void *client_thread(void *arg) {
     LOG(INFO) << "finished prepopulating node " << ctx.peer_grpc_endpoint << ".";
 
     /* start benchmarking */
-    CompletionQueue cq;
     random_device rd;
     mt19937 gen(rd());
     bernoulli_distribution is_hot(ctx.hot_key_ratio);
@@ -59,64 +58,70 @@ void *client_thread(void *arg) {
     {
         ClientContext context;
         google::protobuf::Empty req;
-        stub->Asyncstart_benchmarking(&context, req, &cq);
-        bool ok;
-        void *got_tag;
-        cq.Next(&got_tag, &ok);  // notify peer to start benchmarking
+        google::protobuf::Empty rsp;
+        Status status = stub->start_benchmarking(&context, req, &rsp);
+        if (!status.ok()) {
+            LOG(ERROR) << "grpc failed in start_benchmarking.";
+        } else {
+            LOG(INFO) << "client thread starts benchmarking.";
+        }
     }
 
     while (!end_flag) {
         usleep(ctx.interval);
 
-        for (int i = 0; (!end_flag) & (i < ctx.trans_per_interval); i++) {
-            TransactionProposal proposal;
+        for (int i = 0; (!end_flag) && (i < ctx.trans_per_interval); i++) {
+            Request req;
+            TransactionProposal *proposal = req.mutable_proposal();
             int trans_choice = -1;
             if (is_update(gen)) {
                 trans_choice = trans(gen);
                 if (trans_choice == 0) {
-                    proposal.set_type(TransactionProposal::Type::TransactionProposal_Type_TransactSavings);
+                    proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_TransactSavings);
                 } else if (trans_choice == 1) {
-                    proposal.set_type(TransactionProposal::Type::TransactionProposal_Type_DepositChecking);
+                    proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_DepositChecking);
                 } else if (trans_choice == 2) {
-                    proposal.set_type(TransactionProposal::Type::TransactionProposal_Type_SendPayment);
+                    proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_SendPayment);
                 } else if (trans_choice == 3) {
-                    proposal.set_type(TransactionProposal::Type::TransactionProposal_Type_WriteCheck);
+                    proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_WriteCheck);
                 } else if (trans_choice == 4) {
-                    proposal.set_type(TransactionProposal::Type::TransactionProposal_Type_Amalgamate);
+                    proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_Amalgamate);
                 }
             } else {
-                proposal.set_type(TransactionProposal::Type::TransactionProposal_Type_Query);
+                proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_Query);
             }
 
             if (is_hot(gen)) {
-                proposal.add_keys(to_string(hot_key(gen)));
+                proposal->add_keys(to_string(hot_key(gen)));
                 if (trans_choice == 2) {
-                    proposal.add_keys(to_string(hot_key(gen)));
+                    proposal->add_keys(to_string(hot_key(gen)));
                 }
             } else {
-                proposal.add_keys(to_string(cold_key(gen)));
+                proposal->add_keys(to_string(cold_key(gen)));
                 if (trans_choice == 2) {
-                    proposal.add_keys(to_string(cold_key(gen)));
+                    proposal->add_keys(to_string(cold_key(gen)));
                 }
             }
 
             ClientContext context;
-            Request req;
-            req.set_allocated_proposal(&proposal);
-            stub->Asyncsend_to_peer(&context, req, &cq);
-            bool ok;
-            void *got_tag;
-            cq.Next(&got_tag, &ok);
+            google::protobuf::Empty rsp;
+            Status status = stub->send_to_peer(&context, req, &rsp);
+            if (!status.ok()) {
+                LOG(ERROR) << "grpc failed in send_to_peer.";
+            }
         }
     }
 
     {
         ClientContext context;
         google::protobuf::Empty req;
-        stub->Asyncend_benchmarking(&context, req, &cq);
-        bool ok;
-        void *got_tag;
-        cq.Next(&got_tag, &ok);  // notify peer to end benchmarking
+        google::protobuf::Empty rsp;
+        Status status = stub->end_benchmarking(&context, req, &rsp);
+        if (!status.ok()) {
+            LOG(ERROR) << "grpc failed in end_benchmarking.";
+        } else {
+            LOG(INFO) << "client thread stops benchmarking.";
+        }
     }
     return nullptr;
 }

@@ -60,10 +60,8 @@ message TransactionProposal {
 }
 
 message Request {
-    oneof Message {
-        Endorsement endorsement = 1;
-        TransactionProposal proposal = 2;
-    } 
+    Endorsement endorsement = 1;
+    TransactionProposal proposal = 2;
 }
 
 message Block {

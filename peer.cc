@@ -176,7 +176,6 @@ void *simulation_handler(void *arg) {
     struct ExecThreadContext ctx = *(struct ExecThreadContext *)arg;
     int thread_index = ctx.thread_index;
 
-    CompletionQueue cq;
     unique_ptr<PeerComm::Stub> stub;
     if (!is_leader) {
         stub = PeerComm::NewStub(leader_channel);
@@ -184,25 +183,25 @@ void *simulation_handler(void *arg) {
 
     while (true) {
         TransactionProposal proposal = execution_queue.pop();
-        Endorsement endorsement;
+        Request req;
+        Endorsement *endorsement = req.mutable_endorsement();
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-            ycsb_get(proposal.keys(), &endorsement);
+            ycsb_get(proposal.keys(), endorsement);
         } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-            ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, &endorsement);
+            ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
         } else {
-            smallbank(proposal.keys(), proposal.type(), false, RecordVersion(), &endorsement);
+            smallbank(proposal.keys(), proposal.type(), false, RecordVersion(), endorsement);
         }
 
         if (is_leader) {
-            ordering_queue.add(endorsement.SerializeAsString());
+            ordering_queue.add(endorsement->SerializeAsString());
         } else {
             ClientContext context;
-            Request req;
-            req.set_allocated_endorsement(&endorsement);
-            stub->Asyncsend_to_peer(&context, req, &cq);
-            bool ok;
-            void *got_tag;
-            cq.Next(&got_tag, &ok);
+            google::protobuf::Empty rsp;
+            Status status = stub->send_to_peer(&context, req, &rsp);
+            if (!status.ok()) {
+                LOG(ERROR) << "grpc failed in simulation handler.";
+            }
         }
     }
 
@@ -219,7 +218,6 @@ void run_peer(const string &server_address) {
     LOG(INFO) << "RPC server listening on " << server_address << ".";
 
     /* spawn the raft threads on leader, block formation thread, and execution threads */
-    CompletionQueue cq;
     unique_ptr<PeerComm::Stub> stub;
     if (is_leader) {
         spawn_raft_threads(peer_config["sysconfig"]["followers"]);
@@ -265,11 +263,13 @@ void run_peer(const string &server_address) {
             } else {
                 ClientContext context;
                 Request req;
-                req.set_allocated_proposal(&proposal);
-                stub->Asyncsend_to_peer(&context, req, &cq);
-                bool ok;
-                void *got_tag;
-                cq.Next(&got_tag, &ok);
+                google::protobuf::Empty rsp;
+                TransactionProposal *proposal_ = req.mutable_proposal();
+                *proposal_ = proposal;
+                Status status = stub->send_to_peer(&context, req, &rsp);
+                if (!status.ok()) {
+                    LOG(ERROR) << "grpc failed in run_peer.";
+                }
             }
         }
     }
