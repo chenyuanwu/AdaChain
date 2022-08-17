@@ -27,7 +27,7 @@ void *log_replication_thread(void *arg) {
 
             app_req.set_leader_commit(commit_index);
             int index = 0;
-            for (; index < LOG_ENTRY_BATCH && next_index[ctx.server_index] + index <= last_log_index; index++) {
+            for (; index < ctx.log_entry_batch && next_index[ctx.server_index] + index <= last_log_index; index++) {
                 uint32_t size;
                 log.read((char *)&size, sizeof(uint32_t));
                 char *entry_ptr = (char *)malloc(size);
@@ -54,10 +54,11 @@ void *log_replication_thread(void *arg) {
 }
 
 void *leader_main_thread(void *arg) {
+    struct RaftThreadContext ctx = *(struct RaftThreadContext *)arg;
     ofstream log("./log/raft.log", ios::out | ios::binary);
     while (true) {
         int i = 0;
-        for (; i < LOG_ENTRY_BATCH; i++) {
+        for (; i < ctx.log_entry_batch; i++) {
             string req = ordering_queue.pop();
             uint32_t size = req.size();
             log.write((char *)&size, sizeof(uint32_t));
@@ -145,10 +146,12 @@ Status PeerCommImpl::end_benchmarking(ServerContext *context, const google::prot
     return Status::OK;
 }
 
-void spawn_raft_threads(const Value &followers) {
+void spawn_raft_threads(const Value &followers, int batch_size) {
     /* spawn the leader main thread */
     pthread_t leader_main_tid;
-    pthread_create(&leader_main_tid, NULL, leader_main_thread, NULL);
+    struct RaftThreadContext *ctx = (struct RaftThreadContext *)calloc(1, sizeof(struct RaftThreadContext));
+    ctx[0].log_entry_batch = batch_size;
+    pthread_create(&leader_main_tid, NULL, leader_main_thread, &ctx[0]);
     pthread_detach(leader_main_tid);
 
     /* spawn log replication threads */
@@ -162,6 +165,7 @@ void spawn_raft_threads(const Value &followers) {
         match_index.emplace_back(0);
         ctxs[i].grpc_endpoint = followers[i].GetString();
         ctxs[i].server_index = i;
+        ctxs[i].log_entry_batch = batch_size;
         pthread_create(&repl_tids[i], NULL, log_replication_thread, &ctxs[i]);
         pthread_detach(repl_tids[i]);
     }

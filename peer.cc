@@ -85,6 +85,7 @@ void *block_formation_thread(void *arg) {
     Block block;
     string prev_block_hash = sha256(block.SerializeAsString());
     string serialized_block;
+    queue<string> request_queue;
 
     while (true) {
         if (is_leader) {
@@ -112,42 +113,50 @@ void *block_formation_thread(void *arg) {
             free(entry_ptr);
 
             LOG(DEBUG) << "[block_id = " << block_index << ", trans_id = " << trans_index << "]: added transaction to block.";
-            Endorsement *endorsement = block.add_transactions();
-            struct RecordVersion record_version = {
-                .version_blockid = block_index,
-                .version_transid = trans_index,
-            };
-
-            if (is_xov) {
-                /* validate */
-                if (!endorsement->ParseFromString(serialized_request)) {
-                    LOG(ERROR) << "block formation thread: error in deserialising endorsement.";
-                }
-
-                if (validate_transaction(record_version, endorsement)) {
-                    total_ops++;
-                }
-
-            } else {
-                /* execute */
-                TransactionProposal proposal;
-                if (!proposal.ParseFromString(serialized_request)) {
-                    LOG(ERROR) << "block formation thread: error in deserialising transaction proposal.";
-                }
-
-                if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-                    ycsb_get(proposal.keys(), endorsement);
-                } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-                    ycsb_put(proposal.keys(), proposal.values(), record_version, true, endorsement);
-                } else {
-                    smallbank(proposal.keys(), proposal.type(), true, record_version, endorsement);
-                }
-                total_ops++;
-            }
+            request_queue.push(serialized_request);
             trans_index++;
 
             if (trans_index >= max_block_size) {
                 /* cut the block */
+                uint64_t trans_index_ = 0;
+                while (request_queue.size()) {
+                    Endorsement *endorsement = block.add_transactions();
+                    struct RecordVersion record_version = {
+                        .version_blockid = block_index,
+                        .version_transid = trans_index_,
+                    };
+
+                    if (is_xov) {
+                        /* validate */
+                        if (!endorsement->ParseFromString(request_queue.front())) {
+                            LOG(ERROR) << "block formation thread: error in deserialising endorsement.";
+                        }
+
+                        if (validate_transaction(record_version, endorsement)) {
+                            total_ops++;
+                        }
+
+                    } else {
+                        /* execute */
+                        TransactionProposal proposal;
+                        if (!proposal.ParseFromString(request_queue.front())) {
+                            LOG(ERROR) << "block formation thread: error in deserialising transaction proposal.";
+                        }
+
+                        if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
+                            ycsb_get(proposal.keys(), endorsement);
+                        } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+                            ycsb_put(proposal.keys(), proposal.values(), record_version, true, endorsement);
+                        } else {
+                            smallbank(proposal.keys(), proposal.type(), true, record_version, endorsement);
+                        }
+                        total_ops++;
+                    }
+                    trans_index_++;
+                    request_queue.pop();
+                }
+
+                /* write the block to stable storage */
                 block.set_block_id(block_index);
                 block.set_prev_block_hash(prev_block_hash);  // write to disk and hash the block
                 serialized_block.clear();
@@ -220,7 +229,7 @@ void run_peer(const string &server_address) {
     /* spawn the raft threads on leader, block formation thread, and execution threads */
     unique_ptr<PeerComm::Stub> stub;
     if (is_leader) {
-        spawn_raft_threads(peer_config["sysconfig"]["followers"]);
+        spawn_raft_threads(peer_config["sysconfig"]["followers"], peer_config["arch"]["blocksize"].GetInt());
     } else {
         string leader_addr = peer_config["sysconfig"]["leader"].GetString();
         leader_channel = grpc::CreateChannel(leader_addr, grpc::InsecureChannelCredentials());

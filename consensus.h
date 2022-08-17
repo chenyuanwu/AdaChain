@@ -29,8 +29,6 @@
 #include "rapidjson/document.h"
 #include "smart_contracts.h"
 
-#define LOG_ENTRY_BATCH 1
-
 using namespace std;
 using namespace rapidjson;
 using grpc::Channel;
@@ -48,6 +46,7 @@ struct RaftThreadContext {
     string grpc_endpoint;
     int server_index;
     int majority;
+    int log_entry_batch;
 };
 
 template <typename T>
@@ -110,6 +109,6 @@ class PeerCommImpl final : public PeerComm::Service {
 
 void *log_replication_thread(void *arg);
 void *leader_main_thread(void *arg);
-void spawn_raft_threads(const Value &followers);
+void spawn_raft_threads(const Value &followers, int batch_size);
 
 #endif
