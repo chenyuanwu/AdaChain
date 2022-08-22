@@ -1,8 +1,8 @@
 {
     "arch": {
-        "blocksize": 1,
-        "early_execution": false,
-        "reorder": false
+        "blocksize": 50,
+        "early_execution": true,
+        "reorder": true
     },
     "sysconfig": {
         "num_execution_threads": 16,

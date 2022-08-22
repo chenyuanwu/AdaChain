@@ -190,175 +190,13 @@ void build_conflict_graph(const vector<Endorsement>& transactions, Graph& confli
     for (int i = 0; i < transactions.size(); i++) {
         conflict_graph.emplace_back();
         for (int j = 0; j < transactions.size(); j++) {
-            if (i != j && (read_bitmaps[i] & write_bitmaps[j]).any()) { // no self loop
+            if (i != j && (read_bitmaps[i] & write_bitmaps[j]).any()) {  // no self loop
                 // add an edge in conflict_graph from i to j
                 conflict_graph[i].out_edges.insert(j);
             }
         }
     }
 }
-
-template <class T1, class T2, class Comparator = less<T2>, class Hash = hash<T1>>
-class IndexedPriorityQueue {
-    // Storing indices of values using key
-    unordered_map<T1, long long int, Hash> m;
-
-    // Container
-    vector<pair<T1, T2>> v;
-
-    // Size
-    long long numberOfElement;
-
-    // Creating a instance of Comparator class
-    Comparator comp;
-
-    // Max Capacity
-    long long capacity = LLONG_MAX;
-
-    // Obtaining the index value from hash map
-    long long int getValueIndex(T1 key) {
-        if (m[key] == 0) {
-            return -1;
-        }
-        return v[m[key] - 1];
-    }
-
-    // heapify the container
-    void heapify(vector<pair<T1, T2>>& v,
-                 long long int heap_size,
-                 long long index) {
-        long long leftChild = 2 * index + 1,
-                  rightChild = 2 * index + 2,
-                  suitableNode = index;
-
-        if (leftChild < heap_size && comp(v[suitableNode].second,
-                                          v[leftChild].second)) {
-            suitableNode = leftChild;
-        }
-
-        if (rightChild < heap_size && comp(v[suitableNode].second,
-                                           v[rightChild].second)) {
-            suitableNode = rightChild;
-        }
-
-        if (suitableNode != index) {
-            // swap the value
-            pair<T1, T2> temp = v[index];
-            v[index] = v[suitableNode];
-            v[suitableNode] = temp;
-
-            // updating the map
-            m[v[index].first] = index + 1;
-            m[v[suitableNode].first] = suitableNode + 1;
-
-            // heapify other affected nodes
-            heapify(v, numberOfElement,
-                    suitableNode);
-        }
-    }
-
-   public:
-    IndexedPriorityQueue() {
-        numberOfElement = 0;
-        m.clear();
-        v.clear();
-    }
-
-    void push(T1 key, T2 value) {
-        if (numberOfElement == capacity) {
-            return;
-        }
-        if (m[key] != 0) {
-            return;
-        }
-
-        // Adding element
-        v.push_back(make_pair(key, value));
-        numberOfElement++;
-        m[key] = numberOfElement;
-
-        long long index = numberOfElement - 1;
-
-        // Comparing to parent node
-        while (index != 0 && comp(v[(index - 1) / 2].second,
-                                  v[index].second)) {
-            // swap the value
-            pair<T1, T2> temp = v[index];
-            v[index] = v[(index - 1) / 2];
-            v[(index - 1) / 2] = temp;
-
-            // updating the map
-            m[v[index].first] = index + 1;
-            m[v[(index - 1) / 2].first] = (index - 1) / 2 + 1;
-
-            // updating index in map
-            index = (index - 1) / 2;
-        }
-    }
-
-    void pop() {
-        if (numberOfElement == 0) {
-            return;
-        }
-
-        // Removing element
-        v.erase(v.begin());
-        numberOfElement--;
-        heapify(v, numberOfElement, 0);
-    }
-
-    pair<T1, T2> top() { return v[0]; }
-
-    long long int size() { return numberOfElement; }
-
-    bool empty() { return numberOfElement == 0; }
-
-    void changeAtKey(T1 key, T2 value) {
-        if (m[key] == 0) {
-            return;
-        }
-        long long index = m[key] - 1;
-        v[index].second = value;
-
-        // Comparing to child nodes
-        heapify(v, numberOfElement, index);
-
-        // Comparing to Parent Node
-        while (index != 0 && comp(v[(index - 1) / 2].second,
-                                  v[index].second)) {
-            // swap the value
-            pair<T1, T2> temp = v[index];
-            v[index] = v[(index - 1) / 2];
-            v[(index - 1) / 2] = temp;
-
-            // updating the map
-            m[v[index].first] = index + 1;
-            m[v[(index - 1) / 2].first] = (index - 1) / 2 + 1;
-
-            // updating index in map
-            index = (index - 1) / 2;
-        }
-    }
-
-    bool containsKey(T1 key) {
-        if (m[key] == 0) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    T2 getValue(T1 key) {
-        T2 value;
-        if (m[key] == 0) {
-            return value;
-        } else {
-            long long index = m[key] - 1;
-            value = v[index].second;
-            return value;
-        }
-    }
-};
 
 void xov_reorder(queue<string>& request_queue, Block& block) {
     Graph conflict_graph;
@@ -374,36 +212,50 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
     }
 
     build_conflict_graph(S, conflict_graph);  // step 1
+    // LOG(INFO) << "finished step 1.";
 
     CyclesSearch cycles_search;
     cycles_search.get_elementary_cycles(conflict_graph);  // step 2
+    // LOG(INFO) << "finished step 2 with " << cycles_search.cycles.size() << " cycles.";
 
-    IndexedPriorityQueue<int, int> transactions_in_cycles; // step 3
+    boost::heap::fibonacci_heap<heap_data> transactions_in_cycles;  // step 3
+    typedef typename boost::heap::fibonacci_heap<heap_data>::handle_type handle_t;
+    unordered_map<int, handle_t> transaction_to_handle;
     for (int i = 0; i < cycles_search.cycles.size(); i++) {
         for (int j = 0; j < cycles_search.cycles[i].size(); j++) {
             int t = cycles_search.cycles[i][j];
-            if (transactions_in_cycles.containsKey(t)) {
-                int count = transactions_in_cycles.getValue(t);
+            auto it = transaction_to_handle.find(t);
+            if (it != transaction_to_handle.end()) {
+                int count = (*(it->second)).payload;
                 count++;
-                transactions_in_cycles.changeAtKey(t, count);
+                heap_data f(t, count);
+                transactions_in_cycles.update(it->second, f);
             } else {
-                transactions_in_cycles.push(t, 1);                
+                heap_data f(t, 1);
+                handle_t handle = transactions_in_cycles.push(f);
+                transaction_to_handle[t] = handle;
             }
         }
     }
+    // LOG(INFO) << "finished step 3.";
 
     while (!cycles_search.cycles.empty()) {  // step 4
-        int t = transactions_in_cycles.top().first;
+        // LOG(INFO) << "now there exists " << cycles_search.cycles.size() << " cycles.";
+        int t = transactions_in_cycles.top().key;
+        int appear_count = transactions_in_cycles.top().payload;
+        transactions_in_cycles.pop();
+        // LOG(INFO) << "removed transaction " << t << ", which appeared in " << appear_count << " cycles.";
         S[t].set_aborted(true);
         for (auto c_it = cycles_search.cycles.begin(); c_it != cycles_search.cycles.end();) {
-            auto p = find(c_it->begin(), c_it->end(), t); 
+            auto p = find(c_it->begin(), c_it->end(), t);
             if (p != c_it->end()) {
                 c_it->erase(p);
                 for (auto it = c_it->begin(); it != c_it->end(); it++) {
                     int t_prime = *it;
-                    int count = transactions_in_cycles.getValue(t_prime);
+                    int count = (*transaction_to_handle[t_prime]).payload;
                     count--;
-                    transactions_in_cycles.changeAtKey(t_prime, count);
+                    heap_data f(t_prime, count);
+                    transactions_in_cycles.update(transaction_to_handle[t_prime], f);
                 }
                 c_it = cycles_search.cycles.erase(c_it);
             } else {
@@ -411,14 +263,16 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
             }
         }
     }
+    // LOG(INFO) << "finished step 4.";
 
-    vector<Endorsement> S_prime; // step 5
-    Graph conflict_graph_prime; // cycle-free conflict graph
+    vector<Endorsement> S_prime;  // step 5
+    Graph conflict_graph_prime;   // cycle-free conflict graph
     for (int i = 0; i < S.size(); i++) {
         if (!S[i].aborted()) {
             S_prime.push_back(S[i]);
         }
     }
+    // LOG(INFO) << "constructed S_prime, now S_prime has " << S_prime.size() << " transactions.";
     build_conflict_graph(S_prime, conflict_graph_prime);
 
     vector<int> in_degree(conflict_graph_prime.size(), 0);
@@ -436,7 +290,7 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
     while (Q.size()) {
         int u = Q.front();
         Q.pop();
-        Endorsement *endorsement = block.add_transactions(); // output u
+        Endorsement* endorsement = block.add_transactions();  // output u
         (*endorsement) = S_prime[u];
         for (auto v_it = conflict_graph_prime[u].out_edges.begin(); v_it != conflict_graph_prime[u].out_edges.end(); v_it++) {
             in_degree[*v_it] = in_degree[*v_it] - 1;
@@ -447,5 +301,7 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
     }
     if (block.transactions_size() != conflict_graph_prime.size()) {
         LOG(ERROR) << "cycle detected in topological sort.";
+    } else {
+        // LOG(INFO) << "successfully finished topological sort.";
     }
 }

@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <boost/dynamic_bitset.hpp>
+#include <boost/heap/fibonacci_heap.hpp>
 #include <limits>
 #include <map>
 #include <queue>
@@ -75,6 +76,17 @@ class CyclesSearch {
     vector<int> stack_;             // the stack variable in the paper
     Graph subgraph_;                // "A_K" in the paper
     vector<set<int>> blocked_map_;  // "B" in the paper
+};
+
+struct heap_data {
+    int key;
+    int payload;
+
+    heap_data(int i, int j) : key(i), payload(j) {}
+
+    bool operator<(heap_data const& rhs) const {
+        return payload < rhs.payload;
+    }
 };
 
 void xov_reorder(queue<string>& request_queue, Block& block);
