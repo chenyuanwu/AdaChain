@@ -41,6 +41,7 @@ message Endorsement {
     bytes transaction_id = 3; // derived from the client identifier and the nonce used by client
     uint64 endorser_id = 4;
     bytes endorser_signature = 5;
+    bool aborted = 6;
 }
 
 message TransactionProposal {

@@ -18,7 +18,7 @@ PROTOS_PATH = .
 
 all: peer client
 
-peer: peer.cc easylogging++.cc smart_contracts.o consensus.o blockchain.pb.o blockchain.grpc.pb.o
+peer: peer.cc easylogging++.cc graph.o smart_contracts.o consensus.o blockchain.pb.o blockchain.grpc.pb.o
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $^ $(LDFLAGS) -o $@
 
 client: client.cc easylogging++.cc blockchain.pb.o blockchain.grpc.pb.o

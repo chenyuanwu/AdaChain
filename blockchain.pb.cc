@@ -85,7 +85,8 @@ constexpr Endorsement::Endorsement(
   , write_set_()
   , transaction_id_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string)
   , endorser_signature_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string)
-  , endorser_id_(uint64_t{0u}){}
+  , endorser_id_(uint64_t{0u})
+  , aborted_(false){}
 struct EndorsementDefaultTypeInternal {
   constexpr EndorsementDefaultTypeInternal()
     : _instance(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized{}) {}
@@ -191,6 +192,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_blockchain_2eproto::offsets[] 
   PROTOBUF_FIELD_OFFSET(::Endorsement, transaction_id_),
   PROTOBUF_FIELD_OFFSET(::Endorsement, endorser_id_),
   PROTOBUF_FIELD_OFFSET(::Endorsement, endorser_signature_),
+  PROTOBUF_FIELD_OFFSET(::Endorsement, aborted_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::TransactionProposal, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -225,9 +227,9 @@ static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOB
   { 21, -1, -1, sizeof(::ReadItem)},
   { 30, -1, -1, sizeof(::WriteItem)},
   { 38, -1, -1, sizeof(::Endorsement)},
-  { 49, -1, -1, sizeof(::TransactionProposal)},
-  { 58, -1, -1, sizeof(::Request)},
-  { 66, -1, -1, sizeof(::Block)},
+  { 50, -1, -1, sizeof(::TransactionProposal)},
+  { 59, -1, -1, sizeof(::Request)},
+  { 67, -1, -1, sizeof(::Block)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
@@ -250,37 +252,38 @@ const char descriptor_table_protodef_blockchain_2eproto[] PROTOBUF_SECTION_VARIA
   "s\030\001 \001(\004\"J\n\010ReadItem\022\020\n\010read_key\030\001 \001(\014\022\025\n"
   "\rblock_seq_num\030\002 \001(\004\022\025\n\rtrans_seq_num\030\003 "
   "\001(\004\"3\n\tWriteItem\022\021\n\twrite_key\030\001 \001(\014\022\023\n\013w"
-  "rite_value\030\002 \001(\014\"\222\001\n\013Endorsement\022\033\n\010read"
+  "rite_value\030\002 \001(\014\"\243\001\n\013Endorsement\022\033\n\010read"
   "_set\030\001 \003(\0132\t.ReadItem\022\035\n\twrite_set\030\002 \003(\013"
   "2\n.WriteItem\022\026\n\016transaction_id\030\003 \001(\014\022\023\n\013"
   "endorser_id\030\004 \001(\004\022\032\n\022endorser_signature\030"
-  "\005 \001(\014\"\334\001\n\023TransactionProposal\022\'\n\004type\030\001 "
-  "\001(\0162\031.TransactionProposal.Type\022\014\n\004keys\030\002"
-  " \003(\t\022\016\n\006values\030\003 \003(\014\"~\n\004Type\022\007\n\003Get\020\000\022\007\n"
-  "\003Put\020\001\022\023\n\017TransactSavings\020\002\022\023\n\017DepositCh"
-  "ecking\020\003\022\017\n\013SendPayment\020\004\022\016\n\nWriteCheck\020"
-  "\005\022\016\n\nAmalgamate\020\006\022\t\n\005Query\020\007\"T\n\007Request\022"
-  "!\n\013endorsement\030\001 \001(\0132\014.Endorsement\022&\n\010pr"
-  "oposal\030\002 \001(\0132\024.TransactionProposal\"V\n\005Bl"
-  "ock\022\"\n\014transactions\030\001 \003(\0132\014.Endorsement\022"
-  "\020\n\010block_id\030\002 \001(\004\022\027\n\017prev_block_hash\030\003 \001"
-  "(\t2\373\002\n\010PeerComm\0223\n\016append_entries\022\016.Appe"
-  "ndRequest\032\017.AppendResponse\"\000\0222\n\014send_to_"
-  "peer\022\010.Request\032\026.google.protobuf.Empty\"\000"
-  "\022;\n\023send_to_peer_stream\022\010.Request\032\026.goog"
-  "le.protobuf.Empty\"\000(\001\022;\n\013prepopulate\022\024.T"
-  "ransactionProposal\032\024.PrepopulateResponse"
-  "\"\000\022F\n\022start_benchmarking\022\026.google.protob"
-  "uf.Empty\032\026.google.protobuf.Empty\"\000\022D\n\020en"
-  "d_benchmarking\022\026.google.protobuf.Empty\032\026"
-  ".google.protobuf.Empty\"\000b\006proto3"
+  "\005 \001(\014\022\017\n\007aborted\030\006 \001(\010\"\334\001\n\023TransactionPr"
+  "oposal\022\'\n\004type\030\001 \001(\0162\031.TransactionPropos"
+  "al.Type\022\014\n\004keys\030\002 \003(\t\022\016\n\006values\030\003 \003(\014\"~\n"
+  "\004Type\022\007\n\003Get\020\000\022\007\n\003Put\020\001\022\023\n\017TransactSavin"
+  "gs\020\002\022\023\n\017DepositChecking\020\003\022\017\n\013SendPayment"
+  "\020\004\022\016\n\nWriteCheck\020\005\022\016\n\nAmalgamate\020\006\022\t\n\005Qu"
+  "ery\020\007\"T\n\007Request\022!\n\013endorsement\030\001 \001(\0132\014."
+  "Endorsement\022&\n\010proposal\030\002 \001(\0132\024.Transact"
+  "ionProposal\"V\n\005Block\022\"\n\014transactions\030\001 \003"
+  "(\0132\014.Endorsement\022\020\n\010block_id\030\002 \001(\004\022\027\n\017pr"
+  "ev_block_hash\030\003 \001(\t2\373\002\n\010PeerComm\0223\n\016appe"
+  "nd_entries\022\016.AppendRequest\032\017.AppendRespo"
+  "nse\"\000\0222\n\014send_to_peer\022\010.Request\032\026.google"
+  ".protobuf.Empty\"\000\022;\n\023send_to_peer_stream"
+  "\022\010.Request\032\026.google.protobuf.Empty\"\000(\001\022;"
+  "\n\013prepopulate\022\024.TransactionProposal\032\024.Pr"
+  "epopulateResponse\"\000\022F\n\022start_benchmarkin"
+  "g\022\026.google.protobuf.Empty\032\026.google.proto"
+  "buf.Empty\"\000\022D\n\020end_benchmarking\022\026.google"
+  ".protobuf.Empty\032\026.google.protobuf.Empty\""
+  "\000b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_blockchain_2eproto_deps[1] = {
   &::descriptor_table_google_2fprotobuf_2fempty_2eproto,
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_blockchain_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_blockchain_2eproto = {
-  false, false, 1232, descriptor_table_protodef_blockchain_2eproto, "blockchain.proto", 
+  false, false, 1249, descriptor_table_protodef_blockchain_2eproto, "blockchain.proto", 
   &descriptor_table_blockchain_2eproto_once, descriptor_table_blockchain_2eproto_deps, 1, 9,
   schemas, file_default_instances, TableStruct_blockchain_2eproto::offsets,
   file_level_metadata_blockchain_2eproto, file_level_enum_descriptors_blockchain_2eproto, file_level_service_descriptors_blockchain_2eproto,
@@ -1267,14 +1270,19 @@ Endorsement::Endorsement(const Endorsement& from)
     endorser_signature_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_endorser_signature(), 
       GetArenaForAllocation());
   }
-  endorser_id_ = from.endorser_id_;
+  ::memcpy(&endorser_id_, &from.endorser_id_,
+    static_cast<size_t>(reinterpret_cast<char*>(&aborted_) -
+    reinterpret_cast<char*>(&endorser_id_)) + sizeof(aborted_));
   // @@protoc_insertion_point(copy_constructor:Endorsement)
 }
 
 void Endorsement::SharedCtor() {
 transaction_id_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 endorser_signature_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-endorser_id_ = uint64_t{0u};
+::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
+    reinterpret_cast<char*>(&endorser_id_) - reinterpret_cast<char*>(this)),
+    0, static_cast<size_t>(reinterpret_cast<char*>(&aborted_) -
+    reinterpret_cast<char*>(&endorser_id_)) + sizeof(aborted_));
 }
 
 Endorsement::~Endorsement() {
@@ -1310,7 +1318,9 @@ void Endorsement::Clear() {
   write_set_.Clear();
   transaction_id_.ClearToEmpty();
   endorser_signature_.ClearToEmpty();
-  endorser_id_ = uint64_t{0u};
+  ::memset(&endorser_id_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&aborted_) -
+      reinterpret_cast<char*>(&endorser_id_)) + sizeof(aborted_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -1368,6 +1378,14 @@ const char* Endorsement::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 42)) {
           auto str = _internal_mutable_endorser_signature();
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // bool aborted = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 48)) {
+          aborted_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -1435,6 +1453,12 @@ failure:
         5, this->_internal_endorser_signature(), target);
   }
 
+  // bool aborted = 6;
+  if (this->_internal_aborted() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteBoolToArray(6, this->_internal_aborted(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -1484,6 +1508,11 @@ size_t Endorsement::ByteSizeLong() const {
     total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64SizePlusOne(this->_internal_endorser_id());
   }
 
+  // bool aborted = 6;
+  if (this->_internal_aborted() != 0) {
+    total_size += 1 + 1;
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
 }
 
@@ -1517,6 +1546,9 @@ void Endorsement::MergeFrom(const Endorsement& from) {
   if (from._internal_endorser_id() != 0) {
     _internal_set_endorser_id(from._internal_endorser_id());
   }
+  if (from._internal_aborted() != 0) {
+    _internal_set_aborted(from._internal_aborted());
+  }
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
@@ -1548,7 +1580,12 @@ void Endorsement::InternalSwap(Endorsement* other) {
       &endorser_signature_, lhs_arena,
       &other->endorser_signature_, rhs_arena
   );
-  swap(endorser_id_, other->endorser_id_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(Endorsement, aborted_)
+      + sizeof(Endorsement::aborted_)
+      - PROTOBUF_FIELD_OFFSET(Endorsement, endorser_id_)>(
+          reinterpret_cast<char*>(&endorser_id_),
+          reinterpret_cast<char*>(&other->endorser_id_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata Endorsement::GetMetadata() const {

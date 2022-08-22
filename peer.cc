@@ -1,5 +1,6 @@
 #include "peer.h"
 
+#include "graph.h"
 #include "leveldb/db.h"
 #include "smart_contracts.h"
 
@@ -81,6 +82,7 @@ void *block_formation_thread(void *arg) {
     uint64_t trans_index = 0;
     size_t max_block_size = peer_config["arch"]["blocksize"].GetInt();  // number of transactions
     bool is_xov = peer_config["arch"]["early_execution"].GetBool();
+    bool reorder = peer_config["arch"]["reorder"].GetBool();
 
     Block block;
     string prev_block_hash = sha256(block.SerializeAsString());
@@ -118,42 +120,58 @@ void *block_formation_thread(void *arg) {
 
             if (trans_index >= max_block_size) {
                 /* cut the block */
-                uint64_t trans_index_ = 0;
-                while (request_queue.size()) {
-                    Endorsement *endorsement = block.add_transactions();
-                    struct RecordVersion record_version = {
-                        .version_blockid = block_index,
-                        .version_transid = trans_index_,
-                    };
-
+                if (reorder) {
                     if (is_xov) {
-                        /* validate */
-                        if (!endorsement->ParseFromString(request_queue.front())) {
-                            LOG(ERROR) << "block formation thread: error in deserialising endorsement.";
+                        xov_reorder(request_queue, block);
+                        for (uint64_t i = 0; i < block.transactions_size(); i++) {
+                            struct RecordVersion record_version = {
+                                .version_blockid = block_index,
+                                .version_transid = i,
+                            };
+                            if (validate_transaction(record_version, block.mutable_transactions(i))) {
+                                total_ops++;
+                            }
                         }
+                    } else {
+                    }
+                } else {
+                    uint64_t trans_index_ = 0;
+                    while (request_queue.size()) {
+                        Endorsement *endorsement = block.add_transactions();
+                        struct RecordVersion record_version = {
+                            .version_blockid = block_index,
+                            .version_transid = trans_index_,
+                        };
 
-                        if (validate_transaction(record_version, endorsement)) {
+                        if (is_xov) {
+                            /* validate */
+                            if (!endorsement->ParseFromString(request_queue.front())) {
+                                LOG(ERROR) << "block formation thread: error in deserialising endorsement.";
+                            }
+
+                            if (validate_transaction(record_version, endorsement)) {
+                                total_ops++;
+                            }
+
+                        } else {
+                            /* execute */
+                            TransactionProposal proposal;
+                            if (!proposal.ParseFromString(request_queue.front())) {
+                                LOG(ERROR) << "block formation thread: error in deserialising transaction proposal.";
+                            }
+
+                            if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
+                                ycsb_get(proposal.keys(), endorsement);
+                            } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+                                ycsb_put(proposal.keys(), proposal.values(), record_version, true, endorsement);
+                            } else {
+                                smallbank(proposal.keys(), proposal.type(), true, record_version, endorsement);
+                            }
                             total_ops++;
                         }
-
-                    } else {
-                        /* execute */
-                        TransactionProposal proposal;
-                        if (!proposal.ParseFromString(request_queue.front())) {
-                            LOG(ERROR) << "block formation thread: error in deserialising transaction proposal.";
-                        }
-
-                        if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-                            ycsb_get(proposal.keys(), endorsement);
-                        } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-                            ycsb_put(proposal.keys(), proposal.values(), record_version, true, endorsement);
-                        } else {
-                            smallbank(proposal.keys(), proposal.type(), true, record_version, endorsement);
-                        }
-                        total_ops++;
+                        trans_index_++;
+                        request_queue.pop();
                     }
-                    trans_index_++;
-                    request_queue.pop();
                 }
 
                 /* write the block to stable storage */

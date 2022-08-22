@@ -1013,6 +1013,7 @@ class Endorsement final :
     kTransactionIdFieldNumber = 3,
     kEndorserSignatureFieldNumber = 5,
     kEndorserIdFieldNumber = 4,
+    kAbortedFieldNumber = 6,
   };
   // repeated .ReadItem read_set = 1;
   int read_set_size() const;
@@ -1087,6 +1088,15 @@ class Endorsement final :
   void _internal_set_endorser_id(::PROTOBUF_NAMESPACE_ID::uint64 value);
   public:
 
+  // bool aborted = 6;
+  void clear_aborted();
+  bool aborted() const;
+  void set_aborted(bool value);
+  private:
+  bool _internal_aborted() const;
+  void _internal_set_aborted(bool value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Endorsement)
  private:
   class _Internal;
@@ -1099,6 +1109,7 @@ class Endorsement final :
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr transaction_id_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr endorser_signature_;
   ::PROTOBUF_NAMESPACE_ID::uint64 endorser_id_;
+  bool aborted_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_blockchain_2eproto;
 };
@@ -2204,6 +2215,26 @@ inline void Endorsement::set_allocated_endorser_signature(std::string* endorser_
   endorser_signature_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), endorser_signature,
       GetArenaForAllocation());
   // @@protoc_insertion_point(field_set_allocated:Endorsement.endorser_signature)
+}
+
+// bool aborted = 6;
+inline void Endorsement::clear_aborted() {
+  aborted_ = false;
+}
+inline bool Endorsement::_internal_aborted() const {
+  return aborted_;
+}
+inline bool Endorsement::aborted() const {
+  // @@protoc_insertion_point(field_get:Endorsement.aborted)
+  return _internal_aborted();
+}
+inline void Endorsement::_internal_set_aborted(bool value) {
+  
+  aborted_ = value;
+}
+inline void Endorsement::set_aborted(bool value) {
+  _internal_set_aborted(value);
+  // @@protoc_insertion_point(field_set:Endorsement.aborted)
 }
 
 // -------------------------------------------------------------------
