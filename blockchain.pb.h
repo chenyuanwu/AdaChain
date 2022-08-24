@@ -1278,6 +1278,7 @@ class TransactionProposal final :
   enum : int {
     kKeysFieldNumber = 2,
     kValuesFieldNumber = 3,
+    kExecutionDelayFieldNumber = 4,
     kTypeFieldNumber = 1,
   };
   // repeated string keys = 2;
@@ -1328,6 +1329,15 @@ class TransactionProposal final :
   std::string* _internal_add_values();
   public:
 
+  // uint64 execution_delay = 4;
+  void clear_execution_delay();
+  ::PROTOBUF_NAMESPACE_ID::uint64 execution_delay() const;
+  void set_execution_delay(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint64 _internal_execution_delay() const;
+  void _internal_set_execution_delay(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  public:
+
   // .TransactionProposal.Type type = 1;
   void clear_type();
   ::TransactionProposal_Type type() const;
@@ -1346,6 +1356,7 @@ class TransactionProposal final :
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> keys_;
   ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> values_;
+  ::PROTOBUF_NAMESPACE_ID::uint64 execution_delay_;
   int type_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_blockchain_2eproto;
@@ -2409,6 +2420,26 @@ inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
 TransactionProposal::mutable_values() {
   // @@protoc_insertion_point(field_mutable_list:TransactionProposal.values)
   return &values_;
+}
+
+// uint64 execution_delay = 4;
+inline void TransactionProposal::clear_execution_delay() {
+  execution_delay_ = uint64_t{0u};
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 TransactionProposal::_internal_execution_delay() const {
+  return execution_delay_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 TransactionProposal::execution_delay() const {
+  // @@protoc_insertion_point(field_get:TransactionProposal.execution_delay)
+  return _internal_execution_delay();
+}
+inline void TransactionProposal::_internal_set_execution_delay(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  
+  execution_delay_ = value;
+}
+inline void TransactionProposal::set_execution_delay(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  _internal_set_execution_delay(value);
+  // @@protoc_insertion_point(field_set:TransactionProposal.execution_delay)
 }
 
 // -------------------------------------------------------------------

@@ -54,6 +54,8 @@ struct CliThreadContext {
     int trans_per_interval;
     int interval;
     int num_keys;
+    int num_hot_keys;
+    int execution_delay;
     double hot_key_ratio;
     double write_ratio;
 };

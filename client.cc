@@ -49,7 +49,7 @@ void *client_thread(void *arg) {
     bernoulli_distribution is_hot(ctx.hot_key_ratio);
     bernoulli_distribution is_update(ctx.write_ratio);
     uniform_int_distribution<int> trans(0, 4);
-    int hot_keys_range = ctx.num_keys * 0.01;
+    int hot_keys_range = ctx.num_hot_keys;
     uniform_int_distribution<int> hot_key(0, hot_keys_range - 1);
     uniform_int_distribution<int> cold_key(hot_keys_range, ctx.num_keys - 1);
 
@@ -102,6 +102,7 @@ void *client_thread(void *arg) {
                     proposal->add_keys(to_string(cold_key(gen)));
                 }
             }
+            proposal->set_execution_delay(ctx.execution_delay);
 
             ClientContext context;
             google::protobuf::Empty rsp;
@@ -156,6 +157,8 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < num_peers; i++) {
         ctxs[i].peer_grpc_endpoint = peers[i];
         ctxs[i].num_keys = client_config["num_keys"].GetInt();
+        ctxs[i].num_hot_keys = client_config["num_hot_keys"].GetInt();
+        ctxs[i].execution_delay = client_config["execution_delay"].GetInt();
         ctxs[i].trans_per_interval = client_config["trans_per_interval"].GetInt() / num_peers;
         ctxs[i].interval = client_config["interval"].GetInt();
         ctxs[i].write_ratio = client_config["write_ratio"].GetDouble();

@@ -58,6 +58,7 @@ message TransactionProposal {
     Type type = 1;
     repeated string keys = 2;
     repeated bytes values = 3;
+    uint64 execution_delay = 4;
 }
 
 message Request {

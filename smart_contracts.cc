@@ -66,13 +66,17 @@ int kv_put(const string &key, const string &value, struct RecordVersion record_v
     return 0;
 }
 
-void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type type, bool expose_write, struct RecordVersion record_version,
-               Endorsement *endorsement) {
+void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type type, int execution_delay, bool expose_write,
+               struct RecordVersion record_version, Endorsement *endorsement) {
     if (type == TransactionProposal::Type::TransactionProposal_Type_TransactSavings) {
         string key = "saving_" + keys[0];
         string value = kv_get(key, endorsement);
         int balance = stoi(value);
         balance += 1000;
+
+        if (execution_delay > 0) {
+            usleep(execution_delay);
+        }
 
         kv_put(key, to_string(balance), record_version, expose_write, endorsement);
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_DepositChecking) {
@@ -81,6 +85,10 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         uint64_t balance = stoi(value);
         balance += 1000;
 
+        if (execution_delay > 0) {
+            usleep(execution_delay);
+        }
+
         kv_put(key, to_string(balance), record_version, expose_write, endorsement);
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_SendPayment) {
         string sender_key = "checking_" + keys[0];
@@ -88,8 +96,13 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
 
         string sender_value = kv_get(sender_key, endorsement);
         string receiver_value = kv_get(receiver_key, endorsement);
-        uint64_t sender_balance = stoi(sender_value); 
+        uint64_t sender_balance = stoi(sender_value);
         uint64_t receiver_balance = stoi(receiver_value);
+
+        if (execution_delay > 0) {
+            usleep(execution_delay);
+        }
+
         if (sender_balance >= 5) {
             sender_balance -= 5;
             receiver_balance += 5;
@@ -101,6 +114,11 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         string key = "checking_" + keys[0];
         string value = kv_get(key, endorsement);
         uint64_t balance = stoi(value);
+
+        if (execution_delay > 0) {
+            usleep(execution_delay);
+        }
+
         if (balance >= 100) {
             balance -= 100;
 
@@ -112,10 +130,14 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
 
         string checking_value = kv_get(checking_key, endorsement);
         string saving_value = kv_get(saving_key, endorsement);
-        uint64_t checking_balance = stoi(checking_value); 
+        uint64_t checking_balance = stoi(checking_value);
         uint64_t saving_balance = stoi(saving_value);
         checking_balance = checking_balance + saving_balance;
         saving_balance = 0;
+
+        if (execution_delay > 0) {
+            usleep(execution_delay);
+        }
 
         kv_put(checking_key, to_string(checking_balance), record_version, expose_write, endorsement);
         kv_put(saving_key, to_string(saving_balance), record_version, expose_write, endorsement);
@@ -125,5 +147,9 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
 
         string checking_value = kv_get(checking_key, endorsement);
         string saving_value = kv_get(saving_key, endorsement);
+
+        if (execution_delay > 0) {
+            usleep(execution_delay);
+        }
     }
 }

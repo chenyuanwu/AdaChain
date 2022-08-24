@@ -100,6 +100,7 @@ constexpr TransactionProposal::TransactionProposal(
   ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
   : keys_()
   , values_()
+  , execution_delay_(uint64_t{0u})
   , type_(0)
 {}
 struct TransactionProposalDefaultTypeInternal {
@@ -202,6 +203,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_blockchain_2eproto::offsets[] 
   PROTOBUF_FIELD_OFFSET(::TransactionProposal, type_),
   PROTOBUF_FIELD_OFFSET(::TransactionProposal, keys_),
   PROTOBUF_FIELD_OFFSET(::TransactionProposal, values_),
+  PROTOBUF_FIELD_OFFSET(::TransactionProposal, execution_delay_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::Request, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -228,8 +230,8 @@ static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOB
   { 30, -1, -1, sizeof(::WriteItem)},
   { 38, -1, -1, sizeof(::Endorsement)},
   { 50, -1, -1, sizeof(::TransactionProposal)},
-  { 59, -1, -1, sizeof(::Request)},
-  { 67, -1, -1, sizeof(::Block)},
+  { 60, -1, -1, sizeof(::Request)},
+  { 68, -1, -1, sizeof(::Block)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
@@ -256,34 +258,34 @@ const char descriptor_table_protodef_blockchain_2eproto[] PROTOBUF_SECTION_VARIA
   "_set\030\001 \003(\0132\t.ReadItem\022\035\n\twrite_set\030\002 \003(\013"
   "2\n.WriteItem\022\026\n\016transaction_id\030\003 \001(\014\022\023\n\013"
   "endorser_id\030\004 \001(\004\022\032\n\022endorser_signature\030"
-  "\005 \001(\014\022\017\n\007aborted\030\006 \001(\010\"\334\001\n\023TransactionPr"
+  "\005 \001(\014\022\017\n\007aborted\030\006 \001(\010\"\365\001\n\023TransactionPr"
   "oposal\022\'\n\004type\030\001 \001(\0162\031.TransactionPropos"
-  "al.Type\022\014\n\004keys\030\002 \003(\t\022\016\n\006values\030\003 \003(\014\"~\n"
-  "\004Type\022\007\n\003Get\020\000\022\007\n\003Put\020\001\022\023\n\017TransactSavin"
-  "gs\020\002\022\023\n\017DepositChecking\020\003\022\017\n\013SendPayment"
-  "\020\004\022\016\n\nWriteCheck\020\005\022\016\n\nAmalgamate\020\006\022\t\n\005Qu"
-  "ery\020\007\"T\n\007Request\022!\n\013endorsement\030\001 \001(\0132\014."
-  "Endorsement\022&\n\010proposal\030\002 \001(\0132\024.Transact"
-  "ionProposal\"V\n\005Block\022\"\n\014transactions\030\001 \003"
-  "(\0132\014.Endorsement\022\020\n\010block_id\030\002 \001(\004\022\027\n\017pr"
-  "ev_block_hash\030\003 \001(\t2\373\002\n\010PeerComm\0223\n\016appe"
-  "nd_entries\022\016.AppendRequest\032\017.AppendRespo"
-  "nse\"\000\0222\n\014send_to_peer\022\010.Request\032\026.google"
-  ".protobuf.Empty\"\000\022;\n\023send_to_peer_stream"
-  "\022\010.Request\032\026.google.protobuf.Empty\"\000(\001\022;"
-  "\n\013prepopulate\022\024.TransactionProposal\032\024.Pr"
-  "epopulateResponse\"\000\022F\n\022start_benchmarkin"
-  "g\022\026.google.protobuf.Empty\032\026.google.proto"
-  "buf.Empty\"\000\022D\n\020end_benchmarking\022\026.google"
-  ".protobuf.Empty\032\026.google.protobuf.Empty\""
-  "\000b\006proto3"
+  "al.Type\022\014\n\004keys\030\002 \003(\t\022\016\n\006values\030\003 \003(\014\022\027\n"
+  "\017execution_delay\030\004 \001(\004\"~\n\004Type\022\007\n\003Get\020\000\022"
+  "\007\n\003Put\020\001\022\023\n\017TransactSavings\020\002\022\023\n\017Deposit"
+  "Checking\020\003\022\017\n\013SendPayment\020\004\022\016\n\nWriteChec"
+  "k\020\005\022\016\n\nAmalgamate\020\006\022\t\n\005Query\020\007\"T\n\007Reques"
+  "t\022!\n\013endorsement\030\001 \001(\0132\014.Endorsement\022&\n\010"
+  "proposal\030\002 \001(\0132\024.TransactionProposal\"V\n\005"
+  "Block\022\"\n\014transactions\030\001 \003(\0132\014.Endorsemen"
+  "t\022\020\n\010block_id\030\002 \001(\004\022\027\n\017prev_block_hash\030\003"
+  " \001(\t2\373\002\n\010PeerComm\0223\n\016append_entries\022\016.Ap"
+  "pendRequest\032\017.AppendResponse\"\000\0222\n\014send_t"
+  "o_peer\022\010.Request\032\026.google.protobuf.Empty"
+  "\"\000\022;\n\023send_to_peer_stream\022\010.Request\032\026.go"
+  "ogle.protobuf.Empty\"\000(\001\022;\n\013prepopulate\022\024"
+  ".TransactionProposal\032\024.PrepopulateRespon"
+  "se\"\000\022F\n\022start_benchmarking\022\026.google.prot"
+  "obuf.Empty\032\026.google.protobuf.Empty\"\000\022D\n\020"
+  "end_benchmarking\022\026.google.protobuf.Empty"
+  "\032\026.google.protobuf.Empty\"\000b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_blockchain_2eproto_deps[1] = {
   &::descriptor_table_google_2fprotobuf_2fempty_2eproto,
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_blockchain_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_blockchain_2eproto = {
-  false, false, 1249, descriptor_table_protodef_blockchain_2eproto, "blockchain.proto", 
+  false, false, 1274, descriptor_table_protodef_blockchain_2eproto, "blockchain.proto", 
   &descriptor_table_blockchain_2eproto_once, descriptor_table_blockchain_2eproto_deps, 1, 9,
   schemas, file_default_instances, TableStruct_blockchain_2eproto::offsets,
   file_level_metadata_blockchain_2eproto, file_level_enum_descriptors_blockchain_2eproto, file_level_service_descriptors_blockchain_2eproto,
@@ -1616,12 +1618,17 @@ TransactionProposal::TransactionProposal(const TransactionProposal& from)
       keys_(from.keys_),
       values_(from.values_) {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  type_ = from.type_;
+  ::memcpy(&execution_delay_, &from.execution_delay_,
+    static_cast<size_t>(reinterpret_cast<char*>(&type_) -
+    reinterpret_cast<char*>(&execution_delay_)) + sizeof(type_));
   // @@protoc_insertion_point(copy_constructor:TransactionProposal)
 }
 
 void TransactionProposal::SharedCtor() {
-type_ = 0;
+::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
+    reinterpret_cast<char*>(&execution_delay_) - reinterpret_cast<char*>(this)),
+    0, static_cast<size_t>(reinterpret_cast<char*>(&type_) -
+    reinterpret_cast<char*>(&execution_delay_)) + sizeof(type_));
 }
 
 TransactionProposal::~TransactionProposal() {
@@ -1653,7 +1660,9 @@ void TransactionProposal::Clear() {
 
   keys_.Clear();
   values_.Clear();
-  type_ = 0;
+  ::memset(&execution_delay_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&type_) -
+      reinterpret_cast<char*>(&execution_delay_)) + sizeof(type_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -1698,6 +1707,14 @@ const char* TransactionProposal::_InternalParse(const char* ptr, ::PROTOBUF_NAME
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
           } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<26>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 execution_delay = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 32)) {
+          execution_delay_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
@@ -1753,6 +1770,12 @@ failure:
     target = stream->WriteBytes(3, s, target);
   }
 
+  // uint64 execution_delay = 4;
+  if (this->_internal_execution_delay() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt64ToArray(4, this->_internal_execution_delay(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -1785,6 +1808,11 @@ size_t TransactionProposal::ByteSizeLong() const {
       values_.Get(i));
   }
 
+  // uint64 execution_delay = 4;
+  if (this->_internal_execution_delay() != 0) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64SizePlusOne(this->_internal_execution_delay());
+  }
+
   // .TransactionProposal.Type type = 1;
   if (this->_internal_type() != 0) {
     total_size += 1 +
@@ -1815,6 +1843,9 @@ void TransactionProposal::MergeFrom(const TransactionProposal& from) {
 
   keys_.MergeFrom(from.keys_);
   values_.MergeFrom(from.values_);
+  if (from._internal_execution_delay() != 0) {
+    _internal_set_execution_delay(from._internal_execution_delay());
+  }
   if (from._internal_type() != 0) {
     _internal_set_type(from._internal_type());
   }
@@ -1837,7 +1868,12 @@ void TransactionProposal::InternalSwap(TransactionProposal* other) {
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   keys_.InternalSwap(&other->keys_);
   values_.InternalSwap(&other->values_);
-  swap(type_, other->type_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(TransactionProposal, type_)
+      + sizeof(TransactionProposal::type_)
+      - PROTOBUF_FIELD_OFFSET(TransactionProposal, execution_delay_)>(
+          reinterpret_cast<char*>(&execution_delay_),
+          reinterpret_cast<char*>(&other->execution_delay_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata TransactionProposal::GetMetadata() const {
