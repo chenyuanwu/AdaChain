@@ -125,12 +125,10 @@ void *block_formation_thread(void *arg) {
             if (trans_index >= max_block_size*2) {
                 if (reorder) {
                     if (is_xov) {
-                        //send request queue with transactions from block B1 and B2 and get reordered
-                        //block with size max_block_size*2
                         xov_reorder(request_queue, block);
-
-                        //
+                        //0-89 for 90 size                            
                         for (uint64_t i = 0; i < block.transactions_size(); i++) {
+                            //0-49 
                             if(i<max_block_size) {
                                 struct RecordVersion record_version = {
                                     .version_blockid = block_index,
@@ -139,11 +137,17 @@ void *block_formation_thread(void *arg) {
                                 if (validate_transaction(record_version, block.mutable_transactions(i))) {
                                     total_ops++;
                                 }
+                            //50-89 
                             } else {
                                 request_queue.push(block.transactions(i).SerializeAsString());
                             }
                         }
-                        block.mutable_transactions()->DeleteSubrange(max_block_size/2, block.transactions_size());
+
+                        //0-89 block 
+                        //0-49 recorded for B1
+                        //50-99 to be pushed back and then deleted
+                        
+                        block.mutable_transactions()->DeleteSubrange(max_block_size,block.transactions_size());
                     } else {
                     }
                 } else {
