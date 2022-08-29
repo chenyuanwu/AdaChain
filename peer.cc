@@ -146,9 +146,19 @@ void *block_formation_thread(void *arg) {
                         }
 
                         //Clearing the second half content of block 
-                        //Using block.mutable_transactions()->DeleteSubrange(i, j) 
-                        //i: max_block_size, j: block.transactions_size()
-                        block.mutable_transactions()->DeleteSubrange(max_block_size, block.transactions_size()-1);
+                        //Using block.mutable_transactions()->DeleteSubrange(i, j)
+                        /*
+                        void RepeatedPtrField::DeleteSubrange(
+                            int start,
+                            int num)
+
+                            Delete elements with indices in the range [[]start .
+                                     . start+num-1]. 
+                        Caution: implementation moves all elements with indices [[]start+num .. ]. Calling this routine inside a loop can cause quadratic behavior.
+                        */
+
+                        //start:max_block_size , j: request_queue.size()
+                        block.mutable_transactions()->DeleteSubrange(max_block_size, request_queue.size());
                     } else {
                     }
                 } else {
@@ -205,6 +215,8 @@ void *block_formation_thread(void *arg) {
                 prev_block_hash = sha256(block.SerializeAsString());
 
                 block_index++;
+                //tran_index will start from request_queue.size() since the request_queue is filled
+                //till there with transactions from Block B2
                 trans_index = request_queue.size();
                 
                 block.clear_block_id();
