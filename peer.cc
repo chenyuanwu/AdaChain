@@ -114,7 +114,7 @@ void *block_formation_thread(void *arg) {
             string serialized_request(entry_ptr, size);
             free(entry_ptr);
 
-            LOG(DEBUG) << "[block_id = " << block_index << ", trans_id = " << trans_index << "]: added transaction to block.";
+            //LOG(DEBUG) << "[block_id = " << block_index << ", trans_id = " << trans_index << "]: added transaction to block.";
             request_queue.push(serialized_request);
             trans_index++;
 
@@ -219,6 +219,7 @@ void *block_formation_thread(void *arg) {
                 //till there with transactions from Block B2
                 trans_index = request_queue.size();
                 
+                LOG(DEBUG) << "[block_id = " << block_index << ", trans_id = " << trans_index << "]: added transaction to block.";
                 block.clear_block_id();
                 block.clear_transactions();
             }
