@@ -118,20 +118,25 @@ void *block_formation_thread(void *arg) {
             request_queue.push(serialized_request);
             trans_index++;
 
-            if (trans_index >= max_block_size) {
+            if (trans_index >= max_block_size*2) {
                 /* cut the block */
                 if (reorder) {
                     if (is_xov) {
                         xov_reorder(request_queue, block);
                         for (uint64_t i = 0; i < block.transactions_size(); i++) {
-                            struct RecordVersion record_version = {
-                                .version_blockid = block_index,
-                                .version_transid = i,
-                            };
-                            if (validate_transaction(record_version, block.mutable_transactions(i))) {
-                                total_ops++;
+                            if(i<block.transactions_size()/2) {
+                                struct RecordVersion record_version = {
+                                    .version_blockid = block_index,
+                                    .version_transid = i,
+                                    };
+                                if (validate_transaction(record_version, block.mutable_transactions(i))) {
+                                    total_ops++;
+                                }
+                            } else {
+                                request_queue.push(block.transactions(i).SerializeAsString());
                             }
                         }
+                        block.mutable_transactions()->DeleteSubrange(max_block_size/2, max_block_size);
                     } else {
                     }
                 } else {
@@ -188,8 +193,8 @@ void *block_formation_thread(void *arg) {
                 prev_block_hash = sha256(block.SerializeAsString());
 
                 block_index++;
-                trans_index = 0;
-
+                trans_index = request_queue.size();
+                
                 block.clear_block_id();
                 block.clear_transactions();
             }
