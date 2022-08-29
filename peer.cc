@@ -118,13 +118,20 @@ void *block_formation_thread(void *arg) {
             request_queue.push(serialized_request);
             trans_index++;
 
+            /* cut the block */
+            //Block Pipelining - Wait for block B2 before reordering
+
+            //Waiting happens by waiting till request queue has transactions from 2 blocks 
             if (trans_index >= max_block_size*2) {
-                /* cut the block */
                 if (reorder) {
                     if (is_xov) {
+                        //send request queue with transactions from block B1 and B2 and get reordered
+                        //block with size max_block_size*2
                         xov_reorder(request_queue, block);
+
+                        //
                         for (uint64_t i = 0; i < block.transactions_size(); i++) {
-                            if(i<block.transactions_size()/2) {
+                            if(i<max_block_size) {
                                 struct RecordVersion record_version = {
                                     .version_blockid = block_index,
                                     .version_transid = i,
@@ -136,7 +143,7 @@ void *block_formation_thread(void *arg) {
                                 request_queue.push(block.transactions(i).SerializeAsString());
                             }
                         }
-                        block.mutable_transactions()->DeleteSubrange(max_block_size/2, max_block_size);
+                        block.mutable_transactions()->DeleteSubrange(max_block_size/2, block.transactions_size());
                     } else {
                     }
                 } else {
