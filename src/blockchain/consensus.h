@@ -49,42 +49,6 @@ struct RaftThreadContext {
     int log_entry_batch;
 };
 
-template <typename T>
-class Queue {
-   private:
-    queue<T> queue_;
-    pthread_mutex_t mutex;
-    sem_t full;
-
-   public:
-    Queue() {
-        pthread_mutex_init(&mutex, NULL);
-        sem_init(&full, 0, 0);
-    }
-
-    ~Queue() {
-        pthread_mutex_destroy(&mutex);
-        sem_destroy(&full);
-    }
-
-    void add(const T &request) {
-        pthread_mutex_lock(&mutex);
-        queue_.push(request);
-        pthread_mutex_unlock(&mutex);
-        sem_post(&full);
-    }
-
-    T pop() {
-        sem_wait(&full);
-        pthread_mutex_lock(&mutex);
-        T request = queue_.front();
-        queue_.pop();
-        pthread_mutex_unlock(&mutex);
-
-        return request;
-    }
-};
-
 class PeerCommImpl final : public PeerComm::Service {
    public:
     explicit PeerCommImpl() : log("./log/raft.log", ios::out | ios::binary) {}
@@ -100,6 +64,8 @@ class PeerCommImpl final : public PeerComm::Service {
     Status start_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) override;
 
     Status end_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) override;
+
+    Status start_new_episode(ServerContext *context, const Action *action, google::protobuf::Empty *response) override;
 
    private:
     ofstream log;

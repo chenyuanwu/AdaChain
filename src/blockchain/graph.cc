@@ -205,9 +205,10 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
         Endorsement endorsement;
         if (!endorsement.ParseFromString(request_queue.front())) {
             LOG(ERROR) << "block formation thread: error in deserialising endorsement.";
+        } else {
+            endorsement.set_aborted(false);
+            S.push_back(endorsement);
         }
-        endorsement.set_aborted(false);
-        S.push_back(endorsement);
         request_queue.pop();
     }
 
@@ -265,11 +266,14 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
     }
     // LOG(INFO) << "finished step 4.";
 
-    vector<Endorsement> S_prime;  // step 5
-    Graph conflict_graph_prime;   // cycle-free conflict graph
+    vector<Endorsement> S_prime;    // step 5
+    vector<Endorsement> S_aborted;  // record early aborted transactions
+    Graph conflict_graph_prime;     // cycle-free conflict graph
     for (int i = 0; i < S.size(); i++) {
         if (!S[i].aborted()) {
             S_prime.push_back(S[i]);
+        } else {
+            S_aborted.push_back(S[i]);
         }
     }
     // LOG(INFO) << "constructed S_prime, now S_prime has " << S_prime.size() << " transactions.";
@@ -303,5 +307,10 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
         LOG(ERROR) << "cycle detected in topological sort.";
     } else {
         // LOG(INFO) << "successfully finished topological sort.";
+    }
+
+    for (int i = 0; i < S_aborted.size(); i++) {
+        Endorsement* endorsement = block.add_transactions();
+        (*endorsement) = S_aborted[i];
     }
 }

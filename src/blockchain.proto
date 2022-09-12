@@ -8,6 +8,11 @@ service PeerComm {
     rpc prepopulate (TransactionProposal) returns (PrepopulateResponse) {}
     rpc start_benchmarking (google.protobuf.Empty) returns (google.protobuf.Empty) {}
     rpc end_benchmarking (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+    rpc start_new_episode (Action) returns (google.protobuf.Empty) {} 
+}
+
+service AgentComm {
+    rpc end_current_episode (Reward) returns (google.protobuf.Empty) {}
 }
 
 message AppendRequest {
@@ -71,4 +76,23 @@ message Block {
     uint64 block_id = 2;
     // hash value of the previous block
     string prev_block_hash = 3;
+}
+
+message Action {
+    uint64 blocksize = 1;
+    bool early_execution = 2;
+    bool reorder = 3;
+}
+
+message Reward {
+    double throughput = 1;
+}
+
+message Experience {
+    double write_ratio = 1;
+    double hot_key_ratio = 2;
+    double trans_arrival_rate = 3;
+    double execution_delay = 4;
+    Action action = 5;
+    Reward reward = 6;
 }

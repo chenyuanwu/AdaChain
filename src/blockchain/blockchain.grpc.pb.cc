@@ -27,6 +27,7 @@ static const char* PeerComm_method_names[] = {
   "/PeerComm/prepopulate",
   "/PeerComm/start_benchmarking",
   "/PeerComm/end_benchmarking",
+  "/PeerComm/start_new_episode",
 };
 
 std::unique_ptr< PeerComm::Stub> PeerComm::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -42,6 +43,7 @@ PeerComm::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, 
   , rpcmethod_prepopulate_(PeerComm_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_start_benchmarking_(PeerComm_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_end_benchmarking_(PeerComm_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_start_new_episode_(PeerComm_method_names[6], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status PeerComm::Stub::append_entries(::grpc::ClientContext* context, const ::AppendRequest& request, ::AppendResponse* response) {
@@ -175,6 +177,29 @@ void PeerComm::Stub::async::end_benchmarking(::grpc::ClientContext* context, con
   return result;
 }
 
+::grpc::Status PeerComm::Stub::start_new_episode(::grpc::ClientContext* context, const ::Action& request, ::google::protobuf::Empty* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::Action, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_start_new_episode_, context, request, response);
+}
+
+void PeerComm::Stub::async::start_new_episode(::grpc::ClientContext* context, const ::Action* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::Action, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_start_new_episode_, context, request, response, std::move(f));
+}
+
+void PeerComm::Stub::async::start_new_episode(::grpc::ClientContext* context, const ::Action* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_start_new_episode_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PeerComm::Stub::PrepareAsyncstart_new_episodeRaw(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::google::protobuf::Empty, ::Action, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_start_new_episode_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PeerComm::Stub::Asyncstart_new_episodeRaw(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncstart_new_episodeRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 PeerComm::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       PeerComm_method_names[0],
@@ -236,6 +261,16 @@ PeerComm::Service::Service() {
              ::google::protobuf::Empty* resp) {
                return service->end_benchmarking(ctx, req, resp);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      PeerComm_method_names[6],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< PeerComm::Service, ::Action, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](PeerComm::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::Action* req,
+             ::google::protobuf::Empty* resp) {
+               return service->start_new_episode(ctx, req, resp);
+             }, this)));
 }
 
 PeerComm::Service::~Service() {
@@ -277,6 +312,74 @@ PeerComm::Service::~Service() {
 }
 
 ::grpc::Status PeerComm::Service::end_benchmarking(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status PeerComm::Service::start_new_episode(::grpc::ServerContext* context, const ::Action* request, ::google::protobuf::Empty* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+
+static const char* AgentComm_method_names[] = {
+  "/AgentComm/end_current_episode",
+};
+
+std::unique_ptr< AgentComm::Stub> AgentComm::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
+  (void)options;
+  std::unique_ptr< AgentComm::Stub> stub(new AgentComm::Stub(channel, options));
+  return stub;
+}
+
+AgentComm::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options)
+  : channel_(channel), rpcmethod_end_current_episode_(AgentComm_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  {}
+
+::grpc::Status AgentComm::Stub::end_current_episode(::grpc::ClientContext* context, const ::Reward& request, ::google::protobuf::Empty* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::Reward, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_end_current_episode_, context, request, response);
+}
+
+void AgentComm::Stub::async::end_current_episode(::grpc::ClientContext* context, const ::Reward* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::Reward, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_end_current_episode_, context, request, response, std::move(f));
+}
+
+void AgentComm::Stub::async::end_current_episode(::grpc::ClientContext* context, const ::Reward* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_end_current_episode_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AgentComm::Stub::PrepareAsyncend_current_episodeRaw(::grpc::ClientContext* context, const ::Reward& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::google::protobuf::Empty, ::Reward, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_end_current_episode_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* AgentComm::Stub::Asyncend_current_episodeRaw(::grpc::ClientContext* context, const ::Reward& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncend_current_episodeRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+AgentComm::Service::Service() {
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      AgentComm_method_names[0],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< AgentComm::Service, ::Reward, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](AgentComm::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::Reward* req,
+             ::google::protobuf::Empty* resp) {
+               return service->end_current_episode(ctx, req, resp);
+             }, this)));
+}
+
+AgentComm::Service::~Service() {
+}
+
+::grpc::Status AgentComm::Service::end_current_episode(::grpc::ServerContext* context, const ::Reward* request, ::google::protobuf::Empty* response) {
   (void) context;
   (void) request;
   (void) response;

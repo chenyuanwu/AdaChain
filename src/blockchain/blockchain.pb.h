@@ -49,13 +49,16 @@ struct TableStruct_blockchain_2eproto {
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::AuxiliaryParseTableField aux[]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[9]
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[12]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata[];
   static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable serialization_table[];
   static const ::PROTOBUF_NAMESPACE_ID::uint32 offsets[];
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_blockchain_2eproto;
+class Action;
+struct ActionDefaultTypeInternal;
+extern ActionDefaultTypeInternal _Action_default_instance_;
 class AppendRequest;
 struct AppendRequestDefaultTypeInternal;
 extern AppendRequestDefaultTypeInternal _AppendRequest_default_instance_;
@@ -68,6 +71,9 @@ extern BlockDefaultTypeInternal _Block_default_instance_;
 class Endorsement;
 struct EndorsementDefaultTypeInternal;
 extern EndorsementDefaultTypeInternal _Endorsement_default_instance_;
+class Experience;
+struct ExperienceDefaultTypeInternal;
+extern ExperienceDefaultTypeInternal _Experience_default_instance_;
 class PrepopulateResponse;
 struct PrepopulateResponseDefaultTypeInternal;
 extern PrepopulateResponseDefaultTypeInternal _PrepopulateResponse_default_instance_;
@@ -77,6 +83,9 @@ extern ReadItemDefaultTypeInternal _ReadItem_default_instance_;
 class Request;
 struct RequestDefaultTypeInternal;
 extern RequestDefaultTypeInternal _Request_default_instance_;
+class Reward;
+struct RewardDefaultTypeInternal;
+extern RewardDefaultTypeInternal _Reward_default_instance_;
 class TransactionProposal;
 struct TransactionProposalDefaultTypeInternal;
 extern TransactionProposalDefaultTypeInternal _TransactionProposal_default_instance_;
@@ -84,13 +93,16 @@ class WriteItem;
 struct WriteItemDefaultTypeInternal;
 extern WriteItemDefaultTypeInternal _WriteItem_default_instance_;
 PROTOBUF_NAMESPACE_OPEN
+template<> ::Action* Arena::CreateMaybeMessage<::Action>(Arena*);
 template<> ::AppendRequest* Arena::CreateMaybeMessage<::AppendRequest>(Arena*);
 template<> ::AppendResponse* Arena::CreateMaybeMessage<::AppendResponse>(Arena*);
 template<> ::Block* Arena::CreateMaybeMessage<::Block>(Arena*);
 template<> ::Endorsement* Arena::CreateMaybeMessage<::Endorsement>(Arena*);
+template<> ::Experience* Arena::CreateMaybeMessage<::Experience>(Arena*);
 template<> ::PrepopulateResponse* Arena::CreateMaybeMessage<::PrepopulateResponse>(Arena*);
 template<> ::ReadItem* Arena::CreateMaybeMessage<::ReadItem>(Arena*);
 template<> ::Request* Arena::CreateMaybeMessage<::Request>(Arena*);
+template<> ::Reward* Arena::CreateMaybeMessage<::Reward>(Arena*);
 template<> ::TransactionProposal* Arena::CreateMaybeMessage<::TransactionProposal>(Arena*);
 template<> ::WriteItem* Arena::CreateMaybeMessage<::WriteItem>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
@@ -1712,6 +1724,530 @@ class Block final :
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_blockchain_2eproto;
 };
+// -------------------------------------------------------------------
+
+class Action final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Action) */ {
+ public:
+  inline Action() : Action(nullptr) {}
+  ~Action() override;
+  explicit constexpr Action(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  Action(const Action& from);
+  Action(Action&& from) noexcept
+    : Action() {
+    *this = ::std::move(from);
+  }
+
+  inline Action& operator=(const Action& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Action& operator=(Action&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Action& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Action* internal_default_instance() {
+    return reinterpret_cast<const Action*>(
+               &_Action_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    9;
+
+  friend void swap(Action& a, Action& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Action* other) {
+    if (other == this) return;
+    if (GetOwningArena() == other->GetOwningArena()) {
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Action* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline Action* New() const final {
+    return new Action();
+  }
+
+  Action* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<Action>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const Action& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom(const Action& from);
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to, const ::PROTOBUF_NAMESPACE_ID::Message& from);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Action* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Action";
+  }
+  protected:
+  explicit Action(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kBlocksizeFieldNumber = 1,
+    kEarlyExecutionFieldNumber = 2,
+    kReorderFieldNumber = 3,
+  };
+  // uint64 blocksize = 1;
+  void clear_blocksize();
+  ::PROTOBUF_NAMESPACE_ID::uint64 blocksize() const;
+  void set_blocksize(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint64 _internal_blocksize() const;
+  void _internal_set_blocksize(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  public:
+
+  // bool early_execution = 2;
+  void clear_early_execution();
+  bool early_execution() const;
+  void set_early_execution(bool value);
+  private:
+  bool _internal_early_execution() const;
+  void _internal_set_early_execution(bool value);
+  public:
+
+  // bool reorder = 3;
+  void clear_reorder();
+  bool reorder() const;
+  void set_reorder(bool value);
+  private:
+  bool _internal_reorder() const;
+  void _internal_set_reorder(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Action)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::uint64 blocksize_;
+  bool early_execution_;
+  bool reorder_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_blockchain_2eproto;
+};
+// -------------------------------------------------------------------
+
+class Reward final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Reward) */ {
+ public:
+  inline Reward() : Reward(nullptr) {}
+  ~Reward() override;
+  explicit constexpr Reward(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  Reward(const Reward& from);
+  Reward(Reward&& from) noexcept
+    : Reward() {
+    *this = ::std::move(from);
+  }
+
+  inline Reward& operator=(const Reward& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Reward& operator=(Reward&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Reward& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Reward* internal_default_instance() {
+    return reinterpret_cast<const Reward*>(
+               &_Reward_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    10;
+
+  friend void swap(Reward& a, Reward& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Reward* other) {
+    if (other == this) return;
+    if (GetOwningArena() == other->GetOwningArena()) {
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Reward* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline Reward* New() const final {
+    return new Reward();
+  }
+
+  Reward* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<Reward>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const Reward& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom(const Reward& from);
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to, const ::PROTOBUF_NAMESPACE_ID::Message& from);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Reward* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Reward";
+  }
+  protected:
+  explicit Reward(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kThroughputFieldNumber = 1,
+  };
+  // double throughput = 1;
+  void clear_throughput();
+  double throughput() const;
+  void set_throughput(double value);
+  private:
+  double _internal_throughput() const;
+  void _internal_set_throughput(double value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Reward)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  double throughput_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_blockchain_2eproto;
+};
+// -------------------------------------------------------------------
+
+class Experience final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Experience) */ {
+ public:
+  inline Experience() : Experience(nullptr) {}
+  ~Experience() override;
+  explicit constexpr Experience(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  Experience(const Experience& from);
+  Experience(Experience&& from) noexcept
+    : Experience() {
+    *this = ::std::move(from);
+  }
+
+  inline Experience& operator=(const Experience& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Experience& operator=(Experience&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Experience& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Experience* internal_default_instance() {
+    return reinterpret_cast<const Experience*>(
+               &_Experience_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    11;
+
+  friend void swap(Experience& a, Experience& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Experience* other) {
+    if (other == this) return;
+    if (GetOwningArena() == other->GetOwningArena()) {
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Experience* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline Experience* New() const final {
+    return new Experience();
+  }
+
+  Experience* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<Experience>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const Experience& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom(const Experience& from);
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to, const ::PROTOBUF_NAMESPACE_ID::Message& from);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Experience* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Experience";
+  }
+  protected:
+  explicit Experience(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kActionFieldNumber = 5,
+    kRewardFieldNumber = 6,
+    kWriteRatioFieldNumber = 1,
+    kHotKeyRatioFieldNumber = 2,
+    kTransArrivalRateFieldNumber = 3,
+    kExecutionDelayFieldNumber = 4,
+  };
+  // .Action action = 5;
+  bool has_action() const;
+  private:
+  bool _internal_has_action() const;
+  public:
+  void clear_action();
+  const ::Action& action() const;
+  PROTOBUF_MUST_USE_RESULT ::Action* release_action();
+  ::Action* mutable_action();
+  void set_allocated_action(::Action* action);
+  private:
+  const ::Action& _internal_action() const;
+  ::Action* _internal_mutable_action();
+  public:
+  void unsafe_arena_set_allocated_action(
+      ::Action* action);
+  ::Action* unsafe_arena_release_action();
+
+  // .Reward reward = 6;
+  bool has_reward() const;
+  private:
+  bool _internal_has_reward() const;
+  public:
+  void clear_reward();
+  const ::Reward& reward() const;
+  PROTOBUF_MUST_USE_RESULT ::Reward* release_reward();
+  ::Reward* mutable_reward();
+  void set_allocated_reward(::Reward* reward);
+  private:
+  const ::Reward& _internal_reward() const;
+  ::Reward* _internal_mutable_reward();
+  public:
+  void unsafe_arena_set_allocated_reward(
+      ::Reward* reward);
+  ::Reward* unsafe_arena_release_reward();
+
+  // double write_ratio = 1;
+  void clear_write_ratio();
+  double write_ratio() const;
+  void set_write_ratio(double value);
+  private:
+  double _internal_write_ratio() const;
+  void _internal_set_write_ratio(double value);
+  public:
+
+  // double hot_key_ratio = 2;
+  void clear_hot_key_ratio();
+  double hot_key_ratio() const;
+  void set_hot_key_ratio(double value);
+  private:
+  double _internal_hot_key_ratio() const;
+  void _internal_set_hot_key_ratio(double value);
+  public:
+
+  // double trans_arrival_rate = 3;
+  void clear_trans_arrival_rate();
+  double trans_arrival_rate() const;
+  void set_trans_arrival_rate(double value);
+  private:
+  double _internal_trans_arrival_rate() const;
+  void _internal_set_trans_arrival_rate(double value);
+  public:
+
+  // double execution_delay = 4;
+  void clear_execution_delay();
+  double execution_delay() const;
+  void set_execution_delay(double value);
+  private:
+  double _internal_execution_delay() const;
+  void _internal_set_execution_delay(double value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Experience)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::Action* action_;
+  ::Reward* reward_;
+  double write_ratio_;
+  double hot_key_ratio_;
+  double trans_arrival_rate_;
+  double execution_delay_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_blockchain_2eproto;
+};
 // ===================================================================
 
 
@@ -2736,9 +3272,367 @@ inline void Block::set_allocated_prev_block_hash(std::string* prev_block_hash) {
   // @@protoc_insertion_point(field_set_allocated:Block.prev_block_hash)
 }
 
+// -------------------------------------------------------------------
+
+// Action
+
+// uint64 blocksize = 1;
+inline void Action::clear_blocksize() {
+  blocksize_ = uint64_t{0u};
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 Action::_internal_blocksize() const {
+  return blocksize_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 Action::blocksize() const {
+  // @@protoc_insertion_point(field_get:Action.blocksize)
+  return _internal_blocksize();
+}
+inline void Action::_internal_set_blocksize(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  
+  blocksize_ = value;
+}
+inline void Action::set_blocksize(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  _internal_set_blocksize(value);
+  // @@protoc_insertion_point(field_set:Action.blocksize)
+}
+
+// bool early_execution = 2;
+inline void Action::clear_early_execution() {
+  early_execution_ = false;
+}
+inline bool Action::_internal_early_execution() const {
+  return early_execution_;
+}
+inline bool Action::early_execution() const {
+  // @@protoc_insertion_point(field_get:Action.early_execution)
+  return _internal_early_execution();
+}
+inline void Action::_internal_set_early_execution(bool value) {
+  
+  early_execution_ = value;
+}
+inline void Action::set_early_execution(bool value) {
+  _internal_set_early_execution(value);
+  // @@protoc_insertion_point(field_set:Action.early_execution)
+}
+
+// bool reorder = 3;
+inline void Action::clear_reorder() {
+  reorder_ = false;
+}
+inline bool Action::_internal_reorder() const {
+  return reorder_;
+}
+inline bool Action::reorder() const {
+  // @@protoc_insertion_point(field_get:Action.reorder)
+  return _internal_reorder();
+}
+inline void Action::_internal_set_reorder(bool value) {
+  
+  reorder_ = value;
+}
+inline void Action::set_reorder(bool value) {
+  _internal_set_reorder(value);
+  // @@protoc_insertion_point(field_set:Action.reorder)
+}
+
+// -------------------------------------------------------------------
+
+// Reward
+
+// double throughput = 1;
+inline void Reward::clear_throughput() {
+  throughput_ = 0;
+}
+inline double Reward::_internal_throughput() const {
+  return throughput_;
+}
+inline double Reward::throughput() const {
+  // @@protoc_insertion_point(field_get:Reward.throughput)
+  return _internal_throughput();
+}
+inline void Reward::_internal_set_throughput(double value) {
+  
+  throughput_ = value;
+}
+inline void Reward::set_throughput(double value) {
+  _internal_set_throughput(value);
+  // @@protoc_insertion_point(field_set:Reward.throughput)
+}
+
+// -------------------------------------------------------------------
+
+// Experience
+
+// double write_ratio = 1;
+inline void Experience::clear_write_ratio() {
+  write_ratio_ = 0;
+}
+inline double Experience::_internal_write_ratio() const {
+  return write_ratio_;
+}
+inline double Experience::write_ratio() const {
+  // @@protoc_insertion_point(field_get:Experience.write_ratio)
+  return _internal_write_ratio();
+}
+inline void Experience::_internal_set_write_ratio(double value) {
+  
+  write_ratio_ = value;
+}
+inline void Experience::set_write_ratio(double value) {
+  _internal_set_write_ratio(value);
+  // @@protoc_insertion_point(field_set:Experience.write_ratio)
+}
+
+// double hot_key_ratio = 2;
+inline void Experience::clear_hot_key_ratio() {
+  hot_key_ratio_ = 0;
+}
+inline double Experience::_internal_hot_key_ratio() const {
+  return hot_key_ratio_;
+}
+inline double Experience::hot_key_ratio() const {
+  // @@protoc_insertion_point(field_get:Experience.hot_key_ratio)
+  return _internal_hot_key_ratio();
+}
+inline void Experience::_internal_set_hot_key_ratio(double value) {
+  
+  hot_key_ratio_ = value;
+}
+inline void Experience::set_hot_key_ratio(double value) {
+  _internal_set_hot_key_ratio(value);
+  // @@protoc_insertion_point(field_set:Experience.hot_key_ratio)
+}
+
+// double trans_arrival_rate = 3;
+inline void Experience::clear_trans_arrival_rate() {
+  trans_arrival_rate_ = 0;
+}
+inline double Experience::_internal_trans_arrival_rate() const {
+  return trans_arrival_rate_;
+}
+inline double Experience::trans_arrival_rate() const {
+  // @@protoc_insertion_point(field_get:Experience.trans_arrival_rate)
+  return _internal_trans_arrival_rate();
+}
+inline void Experience::_internal_set_trans_arrival_rate(double value) {
+  
+  trans_arrival_rate_ = value;
+}
+inline void Experience::set_trans_arrival_rate(double value) {
+  _internal_set_trans_arrival_rate(value);
+  // @@protoc_insertion_point(field_set:Experience.trans_arrival_rate)
+}
+
+// double execution_delay = 4;
+inline void Experience::clear_execution_delay() {
+  execution_delay_ = 0;
+}
+inline double Experience::_internal_execution_delay() const {
+  return execution_delay_;
+}
+inline double Experience::execution_delay() const {
+  // @@protoc_insertion_point(field_get:Experience.execution_delay)
+  return _internal_execution_delay();
+}
+inline void Experience::_internal_set_execution_delay(double value) {
+  
+  execution_delay_ = value;
+}
+inline void Experience::set_execution_delay(double value) {
+  _internal_set_execution_delay(value);
+  // @@protoc_insertion_point(field_set:Experience.execution_delay)
+}
+
+// .Action action = 5;
+inline bool Experience::_internal_has_action() const {
+  return this != internal_default_instance() && action_ != nullptr;
+}
+inline bool Experience::has_action() const {
+  return _internal_has_action();
+}
+inline void Experience::clear_action() {
+  if (GetArenaForAllocation() == nullptr && action_ != nullptr) {
+    delete action_;
+  }
+  action_ = nullptr;
+}
+inline const ::Action& Experience::_internal_action() const {
+  const ::Action* p = action_;
+  return p != nullptr ? *p : reinterpret_cast<const ::Action&>(
+      ::_Action_default_instance_);
+}
+inline const ::Action& Experience::action() const {
+  // @@protoc_insertion_point(field_get:Experience.action)
+  return _internal_action();
+}
+inline void Experience::unsafe_arena_set_allocated_action(
+    ::Action* action) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(action_);
+  }
+  action_ = action;
+  if (action) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:Experience.action)
+}
+inline ::Action* Experience::release_action() {
+  
+  ::Action* temp = action_;
+  action_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::Action* Experience::unsafe_arena_release_action() {
+  // @@protoc_insertion_point(field_release:Experience.action)
+  
+  ::Action* temp = action_;
+  action_ = nullptr;
+  return temp;
+}
+inline ::Action* Experience::_internal_mutable_action() {
+  
+  if (action_ == nullptr) {
+    auto* p = CreateMaybeMessage<::Action>(GetArenaForAllocation());
+    action_ = p;
+  }
+  return action_;
+}
+inline ::Action* Experience::mutable_action() {
+  ::Action* _msg = _internal_mutable_action();
+  // @@protoc_insertion_point(field_mutable:Experience.action)
+  return _msg;
+}
+inline void Experience::set_allocated_action(::Action* action) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete action_;
+  }
+  if (action) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper<::Action>::GetOwningArena(action);
+    if (message_arena != submessage_arena) {
+      action = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, action, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  action_ = action;
+  // @@protoc_insertion_point(field_set_allocated:Experience.action)
+}
+
+// .Reward reward = 6;
+inline bool Experience::_internal_has_reward() const {
+  return this != internal_default_instance() && reward_ != nullptr;
+}
+inline bool Experience::has_reward() const {
+  return _internal_has_reward();
+}
+inline void Experience::clear_reward() {
+  if (GetArenaForAllocation() == nullptr && reward_ != nullptr) {
+    delete reward_;
+  }
+  reward_ = nullptr;
+}
+inline const ::Reward& Experience::_internal_reward() const {
+  const ::Reward* p = reward_;
+  return p != nullptr ? *p : reinterpret_cast<const ::Reward&>(
+      ::_Reward_default_instance_);
+}
+inline const ::Reward& Experience::reward() const {
+  // @@protoc_insertion_point(field_get:Experience.reward)
+  return _internal_reward();
+}
+inline void Experience::unsafe_arena_set_allocated_reward(
+    ::Reward* reward) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(reward_);
+  }
+  reward_ = reward;
+  if (reward) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:Experience.reward)
+}
+inline ::Reward* Experience::release_reward() {
+  
+  ::Reward* temp = reward_;
+  reward_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::Reward* Experience::unsafe_arena_release_reward() {
+  // @@protoc_insertion_point(field_release:Experience.reward)
+  
+  ::Reward* temp = reward_;
+  reward_ = nullptr;
+  return temp;
+}
+inline ::Reward* Experience::_internal_mutable_reward() {
+  
+  if (reward_ == nullptr) {
+    auto* p = CreateMaybeMessage<::Reward>(GetArenaForAllocation());
+    reward_ = p;
+  }
+  return reward_;
+}
+inline ::Reward* Experience::mutable_reward() {
+  ::Reward* _msg = _internal_mutable_reward();
+  // @@protoc_insertion_point(field_mutable:Experience.reward)
+  return _msg;
+}
+inline void Experience::set_allocated_reward(::Reward* reward) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reward_;
+  }
+  if (reward) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper<::Reward>::GetOwningArena(reward);
+    if (message_arena != submessage_arena) {
+      reward = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, reward, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  reward_ = reward;
+  // @@protoc_insertion_point(field_set_allocated:Experience.reward)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

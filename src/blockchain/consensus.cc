@@ -1,13 +1,11 @@
 #include "consensus.h"
 
+#include "common.h"
+
 atomic<unsigned long> commit_index(0);
 atomic<unsigned long> last_log_index(0);
 deque<atomic<unsigned long>> next_index;
 deque<atomic<unsigned long>> match_index;
-extern Queue<TransactionProposal> proposal_queue;
-extern Queue<string> ordering_queue;
-extern Queue<TransactionProposal> execution_queue;
-extern atomic<long> total_ops;
 
 void *log_replication_thread(void *arg) {
     struct RaftThreadContext ctx = *(struct RaftThreadContext *)arg;
@@ -49,6 +47,15 @@ void *log_replication_thread(void *arg) {
             next_index[ctx.server_index] += index;
             match_index[ctx.server_index] = next_index[ctx.server_index] - 1;
             // LOG(DEBUG) << "[server_index = " << ctx.server_index << "]match_index is " << match_index[ctx.server_index].load() << ".";
+        } else {
+            usleep(100000);
+            ClientContext context;
+            AppendRequest app_req;
+            AppendResponse app_rsp;
+
+            app_req.set_leader_commit(commit_index);
+
+            Status status = stub->append_entries(&context, app_req, &app_rsp);  // heartbeat
         }
     }
 }
@@ -57,15 +64,17 @@ void *leader_main_thread(void *arg) {
     struct RaftThreadContext ctx = *(struct RaftThreadContext *)arg;
     ofstream log("./log/raft.log", ios::out | ios::binary);
     while (true) {
-        int i = 0;
-        for (; i < ctx.log_entry_batch; i++) {
-            string req = ordering_queue.pop();
-            uint32_t size = req.size();
-            log.write((char *)&size, sizeof(uint32_t));
-            log.write(req.c_str(), size);
+        if (last_log_index < ep.T_n) {
+            int i = 0;
+            for (; i < ctx.log_entry_batch; i++) {
+                string req = ordering_queue.pop();
+                uint32_t size = req.size();
+                log.write((char *)&size, sizeof(uint32_t));
+                log.write(req.c_str(), size);
+            }
+            log.flush();
+            last_log_index += i;
         }
-        log.flush();
-        last_log_index += i;
     }
 }
 
@@ -78,7 +87,9 @@ Status PeerCommImpl::append_entries(ServerContext *context, const AppendRequest 
         log.write(request->log_entries(i).c_str(), size);
         last_log_index++;
     }
-    log.flush();
+    if (i != 0) {
+        log.flush();
+    }
 
     uint64_t leader_commit = request->leader_commit();
     if (leader_commit > commit_index) {
@@ -140,8 +151,27 @@ Status PeerCommImpl::start_benchmarking(ServerContext *context, const google::pr
 Status PeerCommImpl::end_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) {
     end = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
     uint64_t time = (end - start).count();
-    double throughput = ((double)total_ops.load() / time) * 1000;
+    double throughput = ((double)ep.total_ops.load() / time) * 1000;
     LOG(INFO) << "throughput = " << throughput << "tps.";
+
+    return Status::OK;
+}
+
+Status PeerCommImpl::start_new_episode(ServerContext *context, const Action *action, google::protobuf::Empty *response) {
+    // set the arch for the new episode
+    arch.max_block_size = action->blocksize();
+    arch.is_xov = action->early_execution();
+    arch.reorder = action->reorder();
+
+    // start the new episode
+    ep.episode++;
+    uint64_t B_n_delta = peer_config["sysconfig"]["trans_water_mark"].GetInt() / arch.max_block_size;
+    ep.B_n += B_n_delta;
+    ep.T_n += B_n_delta * arch.max_block_size;
+    ep.freeze = false;
+
+    ep.total_ops = 0;
+    ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
 
     return Status::OK;
 }

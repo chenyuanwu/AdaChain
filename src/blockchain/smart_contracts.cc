@@ -1,9 +1,7 @@
+#include "common.h"
 #include "smart_contracts.h"
 
 #include "leveldb/db.h"
-
-extern leveldb::DB *db;
-extern leveldb::Options options;
 
 void ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement) {
     kv_get(keys[0], endorsement);

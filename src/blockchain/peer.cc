@@ -1,11 +1,14 @@
 #include "peer.h"
 
+#include "common.h"
 #include "graph.h"
 #include "leveldb/db.h"
 #include "smart_contracts.h"
 
 INITIALIZE_EASYLOGGINGPP
 
+Architecture arch;
+Episode ep;
 Document peer_config;
 leveldb::DB *db;
 leveldb::Options options;
@@ -14,9 +17,7 @@ Queue<string> ordering_queue;
 Queue<TransactionProposal> execution_queue;
 shared_ptr<grpc::Channel> leader_channel;
 bool is_leader = false;
-atomic<long> total_ops = 0;
-extern deque<atomic<unsigned long>> match_index;
-extern atomic<unsigned long> commit_index;
+uint64_t block_index = 0;
 
 string sha256(const string str) {
     unsigned char hash[SHA256_DIGEST_LENGTH];
@@ -78,11 +79,7 @@ void *block_formation_thread(void *arg) {
 
     unsigned long last_applied = 0;
     int majority = (peer_config["sysconfig"]["followers"].Size() / 2) + 1;
-    uint64_t block_index = 0;
     uint64_t trans_index = 0;
-    size_t max_block_size = peer_config["arch"]["blocksize"].GetInt();  // number of transactions
-    bool is_xov = peer_config["arch"]["early_execution"].GetBool();
-    bool reorder = peer_config["arch"]["reorder"].GetBool();
 
     Block block;
     string prev_block_hash = sha256(block.SerializeAsString());
@@ -90,108 +87,119 @@ void *block_formation_thread(void *arg) {
     queue<string> request_queue;
 
     while (true) {
-        if (is_leader) {
-            int N = commit_index + 1;
-            int count = 0;
-            for (int i = 0; i < match_index.size(); i++) {
-                if (match_index[i] >= N) {
-                    count++;
+        if (block_index < ep.B_n) {
+            if (is_leader) {
+                int N = commit_index + 1;
+                int count = 0;
+                for (int i = 0; i < match_index.size(); i++) {
+                    if (match_index[i] >= N) {
+                        count++;
+                    }
+                }
+                if (count >= majority) {
+                    commit_index = N;
+                    // logger->debug("commit_index is updated to %v.", commit_index.load());
                 }
             }
-            if (count >= majority) {
-                commit_index = N;
-                // logger->debug("commit_index is updated to %v.", commit_index.load());
-            }
-        }
 
-        if (commit_index > last_applied) {
-            last_applied++;
+            if (commit_index > last_applied) {
+                last_applied++;
 
-            uint32_t size;
-            log.read((char *)&size, sizeof(uint32_t));
-            char *entry_ptr = (char *)malloc(size);
-            log.read(entry_ptr, size);
-            string serialized_request(entry_ptr, size);
-            free(entry_ptr);
+                uint32_t size;
+                log.read((char *)&size, sizeof(uint32_t));
+                char *entry_ptr = (char *)malloc(size);
+                log.read(entry_ptr, size);
+                string serialized_request(entry_ptr, size);
+                free(entry_ptr);
 
-            LOG(DEBUG) << "[block_id = " << block_index << ", trans_id = " << trans_index << "]: added transaction to block.";
-            request_queue.push(serialized_request);
-            trans_index++;
+                LOG(DEBUG) << "[block_id = " << block_index << ", trans_id = " << trans_index << "]: added transaction to block.";
+                request_queue.push(serialized_request);
+                trans_index++;
 
-            if (trans_index >= max_block_size) {
-                /* cut the block */
-                if (reorder) {
-                    if (is_xov) {
-                        xov_reorder(request_queue, block);
-                        for (uint64_t i = 0; i < block.transactions_size(); i++) {
-                            struct RecordVersion record_version = {
-                                .version_blockid = block_index,
-                                .version_transid = i,
-                            };
-                            if (validate_transaction(record_version, block.mutable_transactions(i))) {
-                                total_ops++;
+                if (trans_index >= arch.max_block_size) {
+                    /* cut the block */
+                    if (arch.reorder) {
+                        if (arch.is_xov) {
+                            xov_reorder(request_queue, block);
+                            for (uint64_t i = 0; i < block.transactions_size(); i++) {
+                                struct RecordVersion record_version = {
+                                    .version_blockid = block_index,
+                                    .version_transid = i,
+                                };
+                                if ((!block.mutable_transactions(i)->aborted()) &&
+                                    validate_transaction(record_version, block.mutable_transactions(i))) {
+                                    ep.total_ops++;
+                                    block.mutable_transactions(i)->set_aborted(false);
+                                } else {
+                                    block.mutable_transactions(i)->set_aborted(true);
+                                }
                             }
+                        } else {
                         }
                     } else {
-                    }
-                } else {
-                    uint64_t trans_index_ = 0;
-                    while (request_queue.size()) {
-                        Endorsement *endorsement = block.add_transactions();
-                        struct RecordVersion record_version = {
-                            .version_blockid = block_index,
-                            .version_transid = trans_index_,
-                        };
+                        uint64_t trans_index_ = 0;
+                        while (request_queue.size()) {
+                            Endorsement *endorsement = block.add_transactions();
+                            struct RecordVersion record_version = {
+                                .version_blockid = block_index,
+                                .version_transid = trans_index_,
+                            };
 
-                        if (is_xov) {
-                            /* validate */
-                            if (!endorsement->ParseFromString(request_queue.front())) {
-                                LOG(ERROR) << "block formation thread: error in deserialising endorsement.";
-                            }
-
-                            if (validate_transaction(record_version, endorsement)) {
-                                total_ops++;
-                            }
-
-                        } else {
-                            /* execute */
-                            TransactionProposal proposal;
-                            if (!proposal.ParseFromString(request_queue.front())) {
-                                LOG(ERROR) << "block formation thread: error in deserialising transaction proposal.";
-                            }
-
-                            if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-                                ycsb_get(proposal.keys(), endorsement);
-                            } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-                                ycsb_put(proposal.keys(), proposal.values(), record_version, true, endorsement);
+                            if (arch.is_xov) {
+                                /* validate */
+                                if (!endorsement->ParseFromString(request_queue.front())) {
+                                    LOG(ERROR) << "block formation thread: error in deserialising endorsement.";
+                                    block.mutable_transactions()->RemoveLast();
+                                } else {
+                                    if (validate_transaction(record_version, endorsement)) {
+                                        ep.total_ops++;
+                                        endorsement->set_aborted(false);
+                                    } else {
+                                        endorsement->set_aborted(true);
+                                    }
+                                }
                             } else {
-                                smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, endorsement);
+                                /* execute */
+                                TransactionProposal proposal;
+                                if (!proposal.ParseFromString(request_queue.front())) {
+                                    LOG(ERROR) << "block formation thread: error in deserialising transaction proposal.";
+                                    block.mutable_transactions()->RemoveLast();
+                                } else {
+                                    if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
+                                        ycsb_get(proposal.keys(), endorsement);
+                                    } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+                                        ycsb_put(proposal.keys(), proposal.values(), record_version, true, endorsement);
+                                    } else {
+                                        smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, endorsement);
+                                    }
+                                    ep.total_ops++;
+                                    endorsement->set_aborted(false);
+                                }
                             }
-                            total_ops++;
+                            trans_index_++;
+                            request_queue.pop();
                         }
-                        trans_index_++;
-                        request_queue.pop();
                     }
+
+                    /* write the block to stable storage */
+                    block.set_block_id(block_index);
+                    block.set_prev_block_hash(prev_block_hash);  // write to disk and hash the block
+                    serialized_block.clear();
+                    if (!block.SerializeToString(&serialized_block)) {
+                        LOG(ERROR) << "block formation thread: failed to serialize block.";
+                    }
+                    uint32_t size = serialized_block.size();
+                    block_store.write((char *)&size, sizeof(uint32_t));
+                    block_store.write(serialized_block.c_str(), size);
+                    block_store.flush();
+                    prev_block_hash = sha256(block.SerializeAsString());
+
+                    block_index++;
+                    trans_index = 0;
+
+                    block.clear_block_id();
+                    block.clear_transactions();
                 }
-
-                /* write the block to stable storage */
-                block.set_block_id(block_index);
-                block.set_prev_block_hash(prev_block_hash);  // write to disk and hash the block
-                serialized_block.clear();
-                if (!block.SerializeToString(&serialized_block)) {
-                    LOG(ERROR) << "block formation thread: failed to serialize block.";
-                }
-                uint32_t size = serialized_block.size();
-                block_store.write((char *)&size, sizeof(uint32_t));
-                block_store.write(serialized_block.c_str(), size);
-                block_store.flush();
-                prev_block_hash = sha256(block.SerializeAsString());
-
-                block_index++;
-                trans_index = 0;
-
-                block.clear_block_id();
-                block.clear_transactions();
             }
         }
     }
@@ -245,6 +253,9 @@ void run_peer(const string &server_address) {
     LOG(INFO) << "RPC server listening on " << server_address << ".";
 
     /* spawn the raft threads on leader, block formation thread, and execution threads */
+    ep.B_n = peer_config["sysconfig"]["trans_water_mark"].GetInt() / arch.max_block_size;
+    ep.T_n = ep.B_n.load() * arch.max_block_size;
+
     unique_ptr<PeerComm::Stub> stub;
     if (is_leader) {
         spawn_raft_threads(peer_config["sysconfig"]["followers"], peer_config["arch"]["blocksize"].GetInt());
@@ -279,24 +290,44 @@ void run_peer(const string &server_address) {
     }
 
     /* process transaction proposals from queue */
-    bool is_xov = peer_config["arch"]["early_execution"].GetBool();
+    bool is_cleaned = false;
     while (true) {
-        TransactionProposal proposal = proposal_queue.pop();
-        if (is_xov) {
-            execution_queue.add(proposal);
-        } else {
-            if (is_leader) {
-                ordering_queue.add(proposal.SerializeAsString());
+        if (block_index < ep.B_n) {
+            TransactionProposal proposal = proposal_queue.pop();
+            if (arch.is_xov) {
+                execution_queue.add(proposal);
             } else {
-                ClientContext context;
-                Request req;
-                google::protobuf::Empty rsp;
-                TransactionProposal *proposal_ = req.mutable_proposal();
-                *proposal_ = proposal;
-                Status status = stub->send_to_peer(&context, req, &rsp);
-                if (!status.ok()) {
-                    LOG(ERROR) << "grpc failed in run_peer.";
+                if (is_leader) {
+                    ordering_queue.add(proposal.SerializeAsString());
+                } else {
+                    ClientContext context;
+                    Request req;
+                    google::protobuf::Empty rsp;
+                    TransactionProposal *proposal_ = req.mutable_proposal();
+                    *proposal_ = proposal;
+                    Status status = stub->send_to_peer(&context, req, &rsp);
+                    if (!status.ok()) {
+                        LOG(ERROR) << "grpc failed in run_peer.";
+                    }
                 }
+            }
+            if (is_cleaned) {
+                is_cleaned = false;
+            }
+        } else {
+            if (!is_cleaned) {
+                ep.end = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+                uint64_t time = (ep.end - ep.start).count();
+                double throughput = ((double)ep.total_ops.load() / time) * 1000;
+
+                ep.freeze = true;
+                proposal_queue.clear();
+                ordering_queue.clear();
+                execution_queue.clear();
+
+                // TODO: notify learning agent the end of current episode
+
+                is_cleaned = true;
             }
         }
     }
@@ -334,6 +365,9 @@ int main(int argc, char *argv[]) {
     ifstream ifs(configfile);
     IStreamWrapper isw(ifs);
     peer_config.ParseStream(isw);
+    arch.max_block_size = peer_config["arch"]["blocksize"].GetInt();  // number of transactions
+    arch.is_xov = peer_config["arch"]["early_execution"].GetBool();
+    arch.reorder = peer_config["arch"]["reorder"].GetBool();
 
     el::Configurations conf("./config/logger.conf");
     el::Loggers::reconfigureLogger("default", conf);
