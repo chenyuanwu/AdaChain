@@ -72,9 +72,9 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
 void *block_formation_thread(void *arg) {
     LOG(INFO) << "Block formation thread is running.";
 
-    ifstream log("./log/raft.log", ios::in);
+    ifstream log("../../log/raft.log", ios::in);
     assert(log.is_open());
-    ofstream block_store("./log/blockchain.log", ios::out | ios::binary);
+    ofstream block_store("../../log/blockchain.log", ios::out | ios::binary);
     assert(block_store.is_open());
 
     unsigned long last_applied = 0;
@@ -165,6 +165,7 @@ void *block_formation_thread(void *arg) {
                                     LOG(ERROR) << "block formation thread: error in deserialising transaction proposal.";
                                     block.mutable_transactions()->RemoveLast();
                                 } else {
+                                    *(endorsement->mutable_received_ts()) = proposal.received_ts();
                                     if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
                                         ycsb_get(proposal.keys(), endorsement);
                                     } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
@@ -220,6 +221,9 @@ void *simulation_handler(void *arg) {
         TransactionProposal proposal = execution_queue.pop();
         Request req;
         Endorsement *endorsement = req.mutable_endorsement();
+        assert(proposal.has_received_ts());
+        *(endorsement->mutable_received_ts()) = proposal.received_ts();
+
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
             ycsb_get(proposal.keys(), endorsement);
         } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
@@ -289,6 +293,11 @@ void run_peer(const string &server_address) {
         pthread_detach(exec_tids[i]);
     }
 
+    /* setup the grpc client for learning agent */
+    unique_ptr<AgentComm::Stub> agent_stub;
+    agent_stub = AgentComm::NewStub(grpc::CreateChannel(peer_config["sysconfig"]["agent"].GetString(),
+                                                        grpc::InsecureChannelCredentials()));
+
     /* process transaction proposals from queue */
     bool is_cleaned = false;
     while (true) {
@@ -325,7 +334,15 @@ void run_peer(const string &server_address) {
                 ordering_queue.clear();
                 execution_queue.clear();
 
-                // TODO: notify learning agent the end of current episode
+                ClientContext context;  // notify learning agent the end of current episode
+                Reward reward;
+                google::protobuf::Empty rsp;
+                reward.set_is_leader(is_leader);
+                reward.set_throughput(throughput);
+                Status status = agent_stub->end_current_episode(&context, reward, &rsp);
+                if (!status.ok()) {
+                    LOG(ERROR) << "grpc failed in run_peer.";
+                }
 
                 is_cleaned = true;
             }
@@ -335,7 +352,7 @@ void run_peer(const string &server_address) {
 
 int main(int argc, char *argv[]) {
     int opt;
-    string configfile = "config/peer_config.json";
+    string configfile = "../../config/peer_config.json";
     string server_address;
     while ((opt = getopt(argc, argv, "hla:c:")) != -1) {
         switch (opt) {
@@ -369,17 +386,17 @@ int main(int argc, char *argv[]) {
     arch.is_xov = peer_config["arch"]["early_execution"].GetBool();
     arch.reorder = peer_config["arch"]["reorder"].GetBool();
 
-    el::Configurations conf("./config/logger.conf");
+    el::Configurations conf("../../config/logger.conf");
     el::Loggers::reconfigureLogger("default", conf);
 
-    std::filesystem::remove_all("./testdb");
+    std::filesystem::remove_all("../../testdb");
     options.create_if_missing = true;
     options.error_if_exists = true;
-    leveldb::Status s = leveldb::DB::Open(options, "./testdb", &db);
+    leveldb::Status s = leveldb::DB::Open(options, "../../testdb", &db);
     assert(s.ok());
 
-    std::filesystem::remove_all("./log");
-    std::filesystem::create_directory("./log");
+    std::filesystem::remove_all("../../log");
+    std::filesystem::create_directory("../../log");
 
     run_peer(server_address);
 

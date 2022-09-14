@@ -6,3 +6,7 @@ testdb/
 *.log
 client
 peer
+src/blockchain/*.o
+src/blockchain/client
+src/blockchain/peer
+src/learning/__pycache__

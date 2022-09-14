@@ -113,17 +113,17 @@ void *client_thread(void *arg) {
         }
     }
 
-    {
-        ClientContext context;
-        google::protobuf::Empty req;
-        google::protobuf::Empty rsp;
-        Status status = stub->end_benchmarking(&context, req, &rsp);
-        if (!status.ok()) {
-            LOG(ERROR) << "grpc failed in end_benchmarking.";
-        } else {
-            LOG(INFO) << "client thread stops benchmarking.";
-        }
-    }
+    // {
+    //     ClientContext context;
+    //     google::protobuf::Empty req;
+    //     google::protobuf::Empty rsp;
+    //     Status status = stub->end_benchmarking(&context, req, &rsp);
+    //     if (!status.ok()) {
+    //         LOG(ERROR) << "grpc failed in end_benchmarking.";
+    //     } else {
+    //         LOG(INFO) << "client thread stops benchmarking.";
+    //     }
+    // }
     return nullptr;
 }
 
@@ -174,16 +174,20 @@ int main(int argc, char *argv[]) {
         if (ret) {
             LOG(ERROR) << "pthread_setaffinity_np failed with '" << strerror(ret) << "'.";
         }
+        pthread_detach(client_tids[i]);
     }
 
     /* set a barrier here and then wait for benchmarking completion */
     pthread_barrier_wait(&prep_barrier);
-    sleep(15);
-    end_flag = true;
-    for (int i = 0; i < num_peers; i++) {
-        void *status;
-        pthread_join(client_tids[i], &status);
-    }
+    // sleep(15);
+    // end_flag = true;
+    // for (int i = 0; i < num_peers; i++) {
+    //     void *status;
+    //     pthread_join(client_tids[i], &status);
+    // }
+
+    while (true)
+        ;
 
     pthread_barrier_destroy(&prep_barrier);
 

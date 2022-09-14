@@ -1,15 +1,19 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#include <google/protobuf/util/time_util.h>
 #include <pthread.h>
+#include <sys/time.h>
 
 #include <atomic>
 #include <deque>
 
 #include "blockchain.grpc.pb.h"
 #include "leveldb/db.h"
+#include "rapidjson/document.h"
 
 using namespace std;
+using namespace rapidjson;
 
 extern Document peer_config;
 extern leveldb::DB *db;
@@ -92,5 +96,7 @@ class Queue {
 extern Queue<TransactionProposal> proposal_queue;
 extern Queue<string> ordering_queue;
 extern Queue<TransactionProposal> execution_queue;
+
+void set_timestamp(google::protobuf::Timestamp *ts);
 
 #endif

@@ -13,7 +13,7 @@ void *log_replication_thread(void *arg) {
     shared_ptr<grpc::Channel> channel = grpc::CreateChannel(ctx.grpc_endpoint, grpc::InsecureChannelCredentials());
     unique_ptr<PeerComm::Stub> stub(PeerComm::NewStub(channel));
 
-    ifstream log("./log/raft.log", ios::in);
+    ifstream log("../../log/raft.log", ios::in);
     assert(log.is_open());
 
     while (true) {
@@ -62,7 +62,7 @@ void *log_replication_thread(void *arg) {
 
 void *leader_main_thread(void *arg) {
     struct RaftThreadContext ctx = *(struct RaftThreadContext *)arg;
-    ofstream log("./log/raft.log", ios::out | ios::binary);
+    ofstream log("../../log/raft.log", ios::out | ios::binary);
     while (true) {
         if (last_log_index < ep.T_n) {
             int i = 0;
@@ -109,7 +109,13 @@ Status PeerCommImpl::send_to_peer(ServerContext *context, const Request *request
     if (request->has_endorsement()) {
         ordering_queue.add(request->endorsement().SerializeAsString());
     } else if (request->has_proposal()) {
-        proposal_queue.add(request->proposal());
+        if (!request->proposal().has_received_ts()) {
+            TransactionProposal proposal = request->proposal();
+            set_timestamp(proposal.mutable_received_ts());
+            proposal_queue.add(proposal);
+        } else {
+            proposal_queue.add(request->proposal());
+        }
     }
 
     return Status::OK;
@@ -122,7 +128,13 @@ Status PeerCommImpl::send_to_peer_stream(ServerContext *context, ServerReader<Re
         if (request.has_endorsement()) {
             ordering_queue.add(request.endorsement().SerializeAsString());
         } else if (request.has_proposal()) {
-            proposal_queue.add(request.proposal());
+            if (!request.proposal().has_received_ts()) {
+                TransactionProposal proposal = request.proposal();
+                set_timestamp(proposal.mutable_received_ts());
+                proposal_queue.add(proposal);
+            } else {
+                proposal_queue.add(request.proposal());
+            }
         }
     }
 
@@ -199,4 +211,12 @@ void spawn_raft_threads(const Value &followers, int batch_size) {
         pthread_create(&repl_tids[i], NULL, log_replication_thread, &ctxs[i]);
         pthread_detach(repl_tids[i]);
     }
+}
+
+void set_timestamp(google::protobuf::Timestamp *ts) {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+
+    ts->set_seconds(tv.tv_sec);
+    ts->set_nanos(tv.tv_usec * 1000);
 }

@@ -4,12 +4,16 @@
 #include "leveldb/db.h"
 
 void ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement) {
+    set_timestamp(endorsement->mutable_execution_start_ts());
     kv_get(keys[0], endorsement);
+    set_timestamp(endorsement->mutable_execution_end_ts());
 }
 
 void ycsb_put(const RepeatedPtrField<string> &keys, const RepeatedPtrField<string> &values, struct RecordVersion record_version,
               bool expose_write, Endorsement *endorsement) {
+    set_timestamp(endorsement->mutable_execution_start_ts());
     kv_put(keys[0], values[0], record_version, expose_write, endorsement);
+    set_timestamp(endorsement->mutable_execution_end_ts());
 }
 
 /* interface of versioned key value store over leveldb */
@@ -66,6 +70,7 @@ int kv_put(const string &key, const string &value, struct RecordVersion record_v
 
 void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type type, int execution_delay, bool expose_write,
                struct RecordVersion record_version, Endorsement *endorsement) {
+    set_timestamp(endorsement->mutable_execution_start_ts());
     if (type == TransactionProposal::Type::TransactionProposal_Type_TransactSavings) {
         string key = "saving_" + keys[0];
         string value = kv_get(key, endorsement);
@@ -150,4 +155,5 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
             usleep(execution_delay);
         }
     }
+    set_timestamp(endorsement->mutable_execution_end_ts());
 }

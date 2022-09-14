@@ -1,5 +1,6 @@
 syntax = "proto3";
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 service PeerComm {
     rpc append_entries (AppendRequest) returns (AppendResponse) {}
@@ -47,6 +48,9 @@ message Endorsement {
     uint64 endorser_id = 4;
     bytes endorser_signature = 5;
     bool aborted = 6;
+    google.protobuf.Timestamp received_ts = 7;
+    google.protobuf.Timestamp execution_start_ts = 8;
+    google.protobuf.Timestamp execution_end_ts = 9;
 }
 
 message TransactionProposal {
@@ -64,6 +68,7 @@ message TransactionProposal {
     repeated string keys = 2;
     repeated bytes values = 3;
     uint64 execution_delay = 4;
+    google.protobuf.Timestamp received_ts = 5;
 }
 
 message Request {
@@ -86,6 +91,7 @@ message Action {
 
 message Reward {
     double throughput = 1;
+    bool is_leader = 2;
 }
 
 message Experience {

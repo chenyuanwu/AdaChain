@@ -34,6 +34,7 @@
 #include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 #include <google/protobuf/empty.pb.h>
+#include <google/protobuf/timestamp.pb.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
 #define PROTOBUF_INTERNAL_EXPORT_blockchain_2eproto
@@ -1024,6 +1025,9 @@ class Endorsement final :
     kWriteSetFieldNumber = 2,
     kTransactionIdFieldNumber = 3,
     kEndorserSignatureFieldNumber = 5,
+    kReceivedTsFieldNumber = 7,
+    kExecutionStartTsFieldNumber = 8,
+    kExecutionEndTsFieldNumber = 9,
     kEndorserIdFieldNumber = 4,
     kAbortedFieldNumber = 6,
   };
@@ -1091,6 +1095,60 @@ class Endorsement final :
   std::string* _internal_mutable_endorser_signature();
   public:
 
+  // .google.protobuf.Timestamp received_ts = 7;
+  bool has_received_ts() const;
+  private:
+  bool _internal_has_received_ts() const;
+  public:
+  void clear_received_ts();
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& received_ts() const;
+  PROTOBUF_MUST_USE_RESULT ::PROTOBUF_NAMESPACE_ID::Timestamp* release_received_ts();
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* mutable_received_ts();
+  void set_allocated_received_ts(::PROTOBUF_NAMESPACE_ID::Timestamp* received_ts);
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& _internal_received_ts() const;
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _internal_mutable_received_ts();
+  public:
+  void unsafe_arena_set_allocated_received_ts(
+      ::PROTOBUF_NAMESPACE_ID::Timestamp* received_ts);
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* unsafe_arena_release_received_ts();
+
+  // .google.protobuf.Timestamp execution_start_ts = 8;
+  bool has_execution_start_ts() const;
+  private:
+  bool _internal_has_execution_start_ts() const;
+  public:
+  void clear_execution_start_ts();
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& execution_start_ts() const;
+  PROTOBUF_MUST_USE_RESULT ::PROTOBUF_NAMESPACE_ID::Timestamp* release_execution_start_ts();
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* mutable_execution_start_ts();
+  void set_allocated_execution_start_ts(::PROTOBUF_NAMESPACE_ID::Timestamp* execution_start_ts);
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& _internal_execution_start_ts() const;
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _internal_mutable_execution_start_ts();
+  public:
+  void unsafe_arena_set_allocated_execution_start_ts(
+      ::PROTOBUF_NAMESPACE_ID::Timestamp* execution_start_ts);
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* unsafe_arena_release_execution_start_ts();
+
+  // .google.protobuf.Timestamp execution_end_ts = 9;
+  bool has_execution_end_ts() const;
+  private:
+  bool _internal_has_execution_end_ts() const;
+  public:
+  void clear_execution_end_ts();
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& execution_end_ts() const;
+  PROTOBUF_MUST_USE_RESULT ::PROTOBUF_NAMESPACE_ID::Timestamp* release_execution_end_ts();
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* mutable_execution_end_ts();
+  void set_allocated_execution_end_ts(::PROTOBUF_NAMESPACE_ID::Timestamp* execution_end_ts);
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& _internal_execution_end_ts() const;
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _internal_mutable_execution_end_ts();
+  public:
+  void unsafe_arena_set_allocated_execution_end_ts(
+      ::PROTOBUF_NAMESPACE_ID::Timestamp* execution_end_ts);
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* unsafe_arena_release_execution_end_ts();
+
   // uint64 endorser_id = 4;
   void clear_endorser_id();
   ::PROTOBUF_NAMESPACE_ID::uint64 endorser_id() const;
@@ -1120,6 +1178,9 @@ class Endorsement final :
   ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::WriteItem > write_set_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr transaction_id_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr endorser_signature_;
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* received_ts_;
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* execution_start_ts_;
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* execution_end_ts_;
   ::PROTOBUF_NAMESPACE_ID::uint64 endorser_id_;
   bool aborted_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -1290,6 +1351,7 @@ class TransactionProposal final :
   enum : int {
     kKeysFieldNumber = 2,
     kValuesFieldNumber = 3,
+    kReceivedTsFieldNumber = 5,
     kExecutionDelayFieldNumber = 4,
     kTypeFieldNumber = 1,
   };
@@ -1341,6 +1403,24 @@ class TransactionProposal final :
   std::string* _internal_add_values();
   public:
 
+  // .google.protobuf.Timestamp received_ts = 5;
+  bool has_received_ts() const;
+  private:
+  bool _internal_has_received_ts() const;
+  public:
+  void clear_received_ts();
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& received_ts() const;
+  PROTOBUF_MUST_USE_RESULT ::PROTOBUF_NAMESPACE_ID::Timestamp* release_received_ts();
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* mutable_received_ts();
+  void set_allocated_received_ts(::PROTOBUF_NAMESPACE_ID::Timestamp* received_ts);
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& _internal_received_ts() const;
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _internal_mutable_received_ts();
+  public:
+  void unsafe_arena_set_allocated_received_ts(
+      ::PROTOBUF_NAMESPACE_ID::Timestamp* received_ts);
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* unsafe_arena_release_received_ts();
+
   // uint64 execution_delay = 4;
   void clear_execution_delay();
   ::PROTOBUF_NAMESPACE_ID::uint64 execution_delay() const;
@@ -1368,6 +1448,7 @@ class TransactionProposal final :
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> keys_;
   ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> values_;
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* received_ts_;
   ::PROTOBUF_NAMESPACE_ID::uint64 execution_delay_;
   int type_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -2011,6 +2092,7 @@ class Reward final :
 
   enum : int {
     kThroughputFieldNumber = 1,
+    kIsLeaderFieldNumber = 2,
   };
   // double throughput = 1;
   void clear_throughput();
@@ -2021,6 +2103,15 @@ class Reward final :
   void _internal_set_throughput(double value);
   public:
 
+  // bool is_leader = 2;
+  void clear_is_leader();
+  bool is_leader() const;
+  void set_is_leader(bool value);
+  private:
+  bool _internal_is_leader() const;
+  void _internal_set_is_leader(bool value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Reward)
  private:
   class _Internal;
@@ -2029,6 +2120,7 @@ class Reward final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   double throughput_;
+  bool is_leader_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_blockchain_2eproto;
 };
@@ -2784,6 +2876,264 @@ inline void Endorsement::set_aborted(bool value) {
   // @@protoc_insertion_point(field_set:Endorsement.aborted)
 }
 
+// .google.protobuf.Timestamp received_ts = 7;
+inline bool Endorsement::_internal_has_received_ts() const {
+  return this != internal_default_instance() && received_ts_ != nullptr;
+}
+inline bool Endorsement::has_received_ts() const {
+  return _internal_has_received_ts();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& Endorsement::_internal_received_ts() const {
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp* p = received_ts_;
+  return p != nullptr ? *p : reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Timestamp&>(
+      ::PROTOBUF_NAMESPACE_ID::_Timestamp_default_instance_);
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& Endorsement::received_ts() const {
+  // @@protoc_insertion_point(field_get:Endorsement.received_ts)
+  return _internal_received_ts();
+}
+inline void Endorsement::unsafe_arena_set_allocated_received_ts(
+    ::PROTOBUF_NAMESPACE_ID::Timestamp* received_ts) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(received_ts_);
+  }
+  received_ts_ = received_ts;
+  if (received_ts) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:Endorsement.received_ts)
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Endorsement::release_received_ts() {
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = received_ts_;
+  received_ts_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Endorsement::unsafe_arena_release_received_ts() {
+  // @@protoc_insertion_point(field_release:Endorsement.received_ts)
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = received_ts_;
+  received_ts_ = nullptr;
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Endorsement::_internal_mutable_received_ts() {
+  
+  if (received_ts_ == nullptr) {
+    auto* p = CreateMaybeMessage<::PROTOBUF_NAMESPACE_ID::Timestamp>(GetArenaForAllocation());
+    received_ts_ = p;
+  }
+  return received_ts_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Endorsement::mutable_received_ts() {
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _msg = _internal_mutable_received_ts();
+  // @@protoc_insertion_point(field_mutable:Endorsement.received_ts)
+  return _msg;
+}
+inline void Endorsement::set_allocated_received_ts(::PROTOBUF_NAMESPACE_ID::Timestamp* received_ts) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(received_ts_);
+  }
+  if (received_ts) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper<
+            ::PROTOBUF_NAMESPACE_ID::MessageLite>::GetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(received_ts));
+    if (message_arena != submessage_arena) {
+      received_ts = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, received_ts, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  received_ts_ = received_ts;
+  // @@protoc_insertion_point(field_set_allocated:Endorsement.received_ts)
+}
+
+// .google.protobuf.Timestamp execution_start_ts = 8;
+inline bool Endorsement::_internal_has_execution_start_ts() const {
+  return this != internal_default_instance() && execution_start_ts_ != nullptr;
+}
+inline bool Endorsement::has_execution_start_ts() const {
+  return _internal_has_execution_start_ts();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& Endorsement::_internal_execution_start_ts() const {
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp* p = execution_start_ts_;
+  return p != nullptr ? *p : reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Timestamp&>(
+      ::PROTOBUF_NAMESPACE_ID::_Timestamp_default_instance_);
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& Endorsement::execution_start_ts() const {
+  // @@protoc_insertion_point(field_get:Endorsement.execution_start_ts)
+  return _internal_execution_start_ts();
+}
+inline void Endorsement::unsafe_arena_set_allocated_execution_start_ts(
+    ::PROTOBUF_NAMESPACE_ID::Timestamp* execution_start_ts) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(execution_start_ts_);
+  }
+  execution_start_ts_ = execution_start_ts;
+  if (execution_start_ts) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:Endorsement.execution_start_ts)
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Endorsement::release_execution_start_ts() {
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = execution_start_ts_;
+  execution_start_ts_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Endorsement::unsafe_arena_release_execution_start_ts() {
+  // @@protoc_insertion_point(field_release:Endorsement.execution_start_ts)
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = execution_start_ts_;
+  execution_start_ts_ = nullptr;
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Endorsement::_internal_mutable_execution_start_ts() {
+  
+  if (execution_start_ts_ == nullptr) {
+    auto* p = CreateMaybeMessage<::PROTOBUF_NAMESPACE_ID::Timestamp>(GetArenaForAllocation());
+    execution_start_ts_ = p;
+  }
+  return execution_start_ts_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Endorsement::mutable_execution_start_ts() {
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _msg = _internal_mutable_execution_start_ts();
+  // @@protoc_insertion_point(field_mutable:Endorsement.execution_start_ts)
+  return _msg;
+}
+inline void Endorsement::set_allocated_execution_start_ts(::PROTOBUF_NAMESPACE_ID::Timestamp* execution_start_ts) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(execution_start_ts_);
+  }
+  if (execution_start_ts) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper<
+            ::PROTOBUF_NAMESPACE_ID::MessageLite>::GetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(execution_start_ts));
+    if (message_arena != submessage_arena) {
+      execution_start_ts = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, execution_start_ts, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  execution_start_ts_ = execution_start_ts;
+  // @@protoc_insertion_point(field_set_allocated:Endorsement.execution_start_ts)
+}
+
+// .google.protobuf.Timestamp execution_end_ts = 9;
+inline bool Endorsement::_internal_has_execution_end_ts() const {
+  return this != internal_default_instance() && execution_end_ts_ != nullptr;
+}
+inline bool Endorsement::has_execution_end_ts() const {
+  return _internal_has_execution_end_ts();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& Endorsement::_internal_execution_end_ts() const {
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp* p = execution_end_ts_;
+  return p != nullptr ? *p : reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Timestamp&>(
+      ::PROTOBUF_NAMESPACE_ID::_Timestamp_default_instance_);
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& Endorsement::execution_end_ts() const {
+  // @@protoc_insertion_point(field_get:Endorsement.execution_end_ts)
+  return _internal_execution_end_ts();
+}
+inline void Endorsement::unsafe_arena_set_allocated_execution_end_ts(
+    ::PROTOBUF_NAMESPACE_ID::Timestamp* execution_end_ts) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(execution_end_ts_);
+  }
+  execution_end_ts_ = execution_end_ts;
+  if (execution_end_ts) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:Endorsement.execution_end_ts)
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Endorsement::release_execution_end_ts() {
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = execution_end_ts_;
+  execution_end_ts_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Endorsement::unsafe_arena_release_execution_end_ts() {
+  // @@protoc_insertion_point(field_release:Endorsement.execution_end_ts)
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = execution_end_ts_;
+  execution_end_ts_ = nullptr;
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Endorsement::_internal_mutable_execution_end_ts() {
+  
+  if (execution_end_ts_ == nullptr) {
+    auto* p = CreateMaybeMessage<::PROTOBUF_NAMESPACE_ID::Timestamp>(GetArenaForAllocation());
+    execution_end_ts_ = p;
+  }
+  return execution_end_ts_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* Endorsement::mutable_execution_end_ts() {
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _msg = _internal_mutable_execution_end_ts();
+  // @@protoc_insertion_point(field_mutable:Endorsement.execution_end_ts)
+  return _msg;
+}
+inline void Endorsement::set_allocated_execution_end_ts(::PROTOBUF_NAMESPACE_ID::Timestamp* execution_end_ts) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(execution_end_ts_);
+  }
+  if (execution_end_ts) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper<
+            ::PROTOBUF_NAMESPACE_ID::MessageLite>::GetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(execution_end_ts));
+    if (message_arena != submessage_arena) {
+      execution_end_ts = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, execution_end_ts, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  execution_end_ts_ = execution_end_ts;
+  // @@protoc_insertion_point(field_set_allocated:Endorsement.execution_end_ts)
+}
+
 // -------------------------------------------------------------------
 
 // TransactionProposal
@@ -2976,6 +3326,92 @@ inline void TransactionProposal::_internal_set_execution_delay(::PROTOBUF_NAMESP
 inline void TransactionProposal::set_execution_delay(::PROTOBUF_NAMESPACE_ID::uint64 value) {
   _internal_set_execution_delay(value);
   // @@protoc_insertion_point(field_set:TransactionProposal.execution_delay)
+}
+
+// .google.protobuf.Timestamp received_ts = 5;
+inline bool TransactionProposal::_internal_has_received_ts() const {
+  return this != internal_default_instance() && received_ts_ != nullptr;
+}
+inline bool TransactionProposal::has_received_ts() const {
+  return _internal_has_received_ts();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& TransactionProposal::_internal_received_ts() const {
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp* p = received_ts_;
+  return p != nullptr ? *p : reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Timestamp&>(
+      ::PROTOBUF_NAMESPACE_ID::_Timestamp_default_instance_);
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& TransactionProposal::received_ts() const {
+  // @@protoc_insertion_point(field_get:TransactionProposal.received_ts)
+  return _internal_received_ts();
+}
+inline void TransactionProposal::unsafe_arena_set_allocated_received_ts(
+    ::PROTOBUF_NAMESPACE_ID::Timestamp* received_ts) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(received_ts_);
+  }
+  received_ts_ = received_ts;
+  if (received_ts) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:TransactionProposal.received_ts)
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* TransactionProposal::release_received_ts() {
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = received_ts_;
+  received_ts_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* TransactionProposal::unsafe_arena_release_received_ts() {
+  // @@protoc_insertion_point(field_release:TransactionProposal.received_ts)
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = received_ts_;
+  received_ts_ = nullptr;
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* TransactionProposal::_internal_mutable_received_ts() {
+  
+  if (received_ts_ == nullptr) {
+    auto* p = CreateMaybeMessage<::PROTOBUF_NAMESPACE_ID::Timestamp>(GetArenaForAllocation());
+    received_ts_ = p;
+  }
+  return received_ts_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* TransactionProposal::mutable_received_ts() {
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _msg = _internal_mutable_received_ts();
+  // @@protoc_insertion_point(field_mutable:TransactionProposal.received_ts)
+  return _msg;
+}
+inline void TransactionProposal::set_allocated_received_ts(::PROTOBUF_NAMESPACE_ID::Timestamp* received_ts) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(received_ts_);
+  }
+  if (received_ts) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper<
+            ::PROTOBUF_NAMESPACE_ID::MessageLite>::GetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(received_ts));
+    if (message_arena != submessage_arena) {
+      received_ts = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, received_ts, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  received_ts_ = received_ts;
+  // @@protoc_insertion_point(field_set_allocated:TransactionProposal.received_ts)
 }
 
 // -------------------------------------------------------------------
@@ -3358,6 +3794,26 @@ inline void Reward::_internal_set_throughput(double value) {
 inline void Reward::set_throughput(double value) {
   _internal_set_throughput(value);
   // @@protoc_insertion_point(field_set:Reward.throughput)
+}
+
+// bool is_leader = 2;
+inline void Reward::clear_is_leader() {
+  is_leader_ = false;
+}
+inline bool Reward::_internal_is_leader() const {
+  return is_leader_;
+}
+inline bool Reward::is_leader() const {
+  // @@protoc_insertion_point(field_get:Reward.is_leader)
+  return _internal_is_leader();
+}
+inline void Reward::_internal_set_is_leader(bool value) {
+  
+  is_leader_ = value;
+}
+inline void Reward::set_is_leader(bool value) {
+  _internal_set_is_leader(value);
+  // @@protoc_insertion_point(field_set:Reward.is_leader)
 }
 
 // -------------------------------------------------------------------
