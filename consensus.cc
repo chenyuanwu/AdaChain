@@ -141,7 +141,9 @@ Status PeerCommImpl::end_benchmarking(ServerContext *context, const google::prot
     end = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
     uint64_t time = (end - start).count();
     double throughput = ((double)total_ops.load() / time) * 1000;
+    double readwriteratio = (int)read.load() / ((int)read.load() + (int)write.load()); 
     LOG(INFO) << "throughput = " << throughput << "tps.";
+    LOG(INFO) << "Read write ratio: R/(R+W) = " << readwriteratio;
 
     return Status::OK;
 }
