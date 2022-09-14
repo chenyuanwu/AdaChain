@@ -8,6 +8,10 @@ extern Queue<TransactionProposal> proposal_queue;
 extern Queue<string> ordering_queue;
 extern Queue<TransactionProposal> execution_queue;
 extern atomic<long> total_ops;
+extern atomic<long> readn;
+extern atomic<long> writen;
+
+
 
 void *log_replication_thread(void *arg) {
     struct RaftThreadContext ctx = *(struct RaftThreadContext *)arg;
@@ -141,7 +145,7 @@ Status PeerCommImpl::end_benchmarking(ServerContext *context, const google::prot
     end = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
     uint64_t time = (end - start).count();
     double throughput = ((double)total_ops.load() / time) * 1000;
-    double readwriteratio = (int)read.load() / ((int)read.load() + (int)write.load()); 
+    double readwriteratio = (double)readn.load() / ((double)readn.load() + (double)writen.load()); 
     LOG(INFO) << "throughput = " << throughput << "tps.";
     LOG(INFO) << "Read write ratio: R/(R+W) = " << readwriteratio;
 

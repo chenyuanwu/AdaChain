@@ -15,8 +15,8 @@ Queue<TransactionProposal> execution_queue;
 shared_ptr<grpc::Channel> leader_channel;
 bool is_leader = false;
 atomic<long> total_ops = 0;
-atomic<long> read = 0;
-atomuic<long> write = 0 ;
+atomic<long> readn = 0;
+atomic<long> writen = 0;
 extern deque<atomic<unsigned long>> match_index;
 extern atomic<unsigned long> commit_index;
 
@@ -141,15 +141,15 @@ void *block_formation_thread(void *arg) {
                                 if (validate_transaction(record_version, block.mutable_transactions(i))) {
                                     total_ops++;
                                     //counts the reads and writes in every transaction(i) in each block
-                                    if( block.mutable_transactions(i)->write_set_size()) != 0 
+                                    if(( block.mutable_transactions(i)->write_set_size()) != 0) 
                                     {
                                         //transaction is a write transaction
-                                        write++;
+                                        writen++;
                                     }
                                     else
                                     {
                                         //transaction is a read only transaction
-                                        read++;
+                                        readn++;
                                     }
                                     LOG(INFO) << "BLOCK ID: "<< block_index << ",transid: " << i << ",READ: " << block.mutable_transactions(i)->read_set_size() << ",WRITE RATIO: " << block.mutable_transactions(i)->write_set_size();
                                 }
@@ -194,17 +194,17 @@ void *block_formation_thread(void *arg) {
                             if (validate_transaction(record_version, endorsement)) {
                                 total_ops++;
                                   //counts the reads and writes in every transaction(i) in each block
-                                    if( block.mutable_transactions(i)->write_set_size()) != 0 
+                                    if(( endorsement->write_set_size()) != 0) 
                                     {
                                         //transaction is a write transaction
-                                        write++;
+                                        writen++;
                                     }
                                     else
                                     {
                                         //transaction is a read only transaction
-                                        read++;
+                                        readn++;
                                     }
-                                    LOG(INFO) << "BLOCK ID: "<< block_index << ",transid: " << i << ",READ: " << block.mutable_transactions(i)->read_set_size() << ",WRITE RATIO: " << block.mutable_transactions(i)->write_set_size();
+                                    LOG(INFO) << "BLOCK ID: "<< block_index << ",READ: " << endorsement->read_set_size() << ",WRITE RATIO: " << endorsement->write_set_size();
                             }
 
                         } else {
@@ -223,17 +223,17 @@ void *block_formation_thread(void *arg) {
                             }
                             total_ops++;
                               //counts the reads and writes in every transaction(i) in each block
-                                    if( block.mutable_transactions(i)->write_set_size()) != 0 
+                                    if(( endorsement->write_set_size()) != 0) 
                                     {
                                         //transaction is a write transaction
-                                        write++;
+                                        writen++;
                                     }
                                     else
                                     {
                                         //transaction is a read only transaction
-                                        read++;
+                                        readn++;
                                     }
-                                    LOG(INFO) << "BLOCK ID: "<< block_index << ",transid: " << i << ",READ: " << block.mutable_transactions(i)->read_set_size() << ",WRITE RATIO: " << block.mutable_transactions(i)->write_set_size();
+                                    LOG(INFO) << "BLOCK ID: "<< block_index << ",READ: " << endorsement->read_set_size() << ",WRITE RATIO: " << endorsement->write_set_size();
                         }
                         trans_index_++;
                         request_queue.pop();
