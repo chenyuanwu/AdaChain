@@ -85,6 +85,7 @@ void *block_formation_thread(void *arg) {
     size_t max_block_size = peer_config["arch"]["blocksize"].GetInt();  // number of transactions
     bool is_xov = peer_config["arch"]["early_execution"].GetBool();
     bool reorder = peer_config["arch"]["reorder"].GetBool();
+    size_t block_pipe_num = peer_config["arch"]["block_pipe_num"].GetInt();  // number of blocks reordered together before the block cutting 
 
     Block block;
     string prev_block_hash = sha256(block.SerializeAsString());
@@ -125,7 +126,10 @@ void *block_formation_thread(void *arg) {
 
             //Waiting happens by waiting till request queue has transactions from 2 blocks
             /* TODO: change 2 to a parameter in config file*/ 
-            if (trans_index >= max_block_size*2) {
+            
+            //block_pipe_num
+            if (trans_index >= max_block_size*block_pipe_num) {
+            //if (trans_index >= max_block_size*2) {
                 if (reorder) {
                     if (is_xov) {
                         xov_reorder(request_queue, block);
@@ -151,7 +155,7 @@ void *block_formation_thread(void *arg) {
                                         //transaction is a read only transaction
                                         readn++;
                                     }
-                                    LOG(INFO) << "BLOCK ID: "<< block_index << ",transid: " << i << ",READ: " << block.mutable_transactions(i)->read_set_size() << ",WRITE RATIO: " << block.mutable_transactions(i)->write_set_size();
+                                    //LOG(INFO) << "BLOCK ID1: "<< block_index << ",transid: " << i << ",READ: " << block.mutable_transactions(i)->read_set_size() << ",WRITE RATIO: " << block.mutable_transactions(i)->write_set_size();
                                 }
                             //push the remaining transactions back into request_queue 
                             } else {
@@ -204,7 +208,7 @@ void *block_formation_thread(void *arg) {
                                         //transaction is a read only transaction
                                         readn++;
                                     }
-                                    LOG(INFO) << "BLOCK ID: "<< block_index << ",READ: " << endorsement->read_set_size() << ",WRITE RATIO: " << endorsement->write_set_size();
+                                    //LOG(INFO) << "BLOCK ID2: "<< block_index << ",READ: " << endorsement->read_set_size() << ",WRITE RATIO: " << endorsement->write_set_size();
                             }
 
                         } else {
@@ -233,7 +237,7 @@ void *block_formation_thread(void *arg) {
                                         //transaction is a read only transaction
                                         readn++;
                                     }
-                                    LOG(INFO) << "BLOCK ID: "<< block_index << ",READ: " << endorsement->read_set_size() << ",WRITE RATIO: " << endorsement->write_set_size();
+                                    //LOG(INFO) << "BLOCK ID3: "<< block_index << ",READ: " << endorsement->read_set_size() << ",WRITE RATIO: " << endorsement->write_set_size();
                         }
                         trans_index_++;
                         request_queue.pop();
