@@ -156,6 +156,7 @@ Status PeerCommImpl::prepopulate(ServerContext *context, const TransactionPropos
 Status PeerCommImpl::start_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) {
     LOG(INFO) << "starts benchmarking.";
     start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+    ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
 
     return Status::OK;
 }
@@ -181,6 +182,8 @@ Status PeerCommImpl::start_new_episode(ServerContext *context, const Action *act
     ep.B_n += B_n_delta;
     ep.T_n += B_n_delta * arch.max_block_size;
     ep.freeze = false;
+
+    LOG(INFO) << "Episode " << ep.episode << " starts.";
 
     ep.total_ops = 0;
     ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());

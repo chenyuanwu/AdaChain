@@ -109,6 +109,7 @@ void *client_thread(void *arg) {
             Status status = stub->send_to_peer(&context, req, &rsp);
             if (!status.ok()) {
                 LOG(ERROR) << "grpc failed in send_to_peer.";
+                exit(1);
             }
         }
     }
@@ -128,8 +129,8 @@ void *client_thread(void *arg) {
 }
 
 int main(int argc, char *argv[]) {
-    string peer_configfile = "config/peer_config.json";
-    string client_configfile = "config/client_config.json";
+    string peer_configfile = "../../config/peer_config.json";
+    string client_configfile = "../../config/client_config.json";
 
     ifstream ifs(peer_configfile);
     IStreamWrapper isw(ifs);
@@ -139,7 +140,7 @@ int main(int argc, char *argv[]) {
     IStreamWrapper isw_(ifs_);
     client_config.ParseStream(isw_);
 
-    el::Configurations conf("./config/logger.conf");
+    el::Configurations conf("../../config/logger.conf");
     el::Loggers::reconfigureLogger("default", conf);
 
     vector<string> peers;

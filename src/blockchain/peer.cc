@@ -329,6 +329,8 @@ void run_peer(const string &server_address) {
                 uint64_t time = (ep.end - ep.start).count();
                 double throughput = ((double)ep.total_ops.load() / time) * 1000;
 
+                LOG(INFO) << "Episode " << ep.episode << " ends: duration = " << time / 1000.0 << "s, throughput = " << throughput << "tps.";
+
                 ep.freeze = true;
                 proposal_queue.clear();
                 ordering_queue.clear();
@@ -342,6 +344,7 @@ void run_peer(const string &server_address) {
                 Status status = agent_stub->end_current_episode(&context, reward, &rsp);
                 if (!status.ok()) {
                     LOG(ERROR) << "grpc failed in run_peer.";
+                    exit(1);
                 }
 
                 is_cleaned = true;

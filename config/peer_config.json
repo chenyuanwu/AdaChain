@@ -2,7 +2,7 @@
     "arch": {
         "blocksize": 50,
         "early_execution": true,
-        "reorder": true
+        "reorder": false
     },
     "sysconfig": {
         "trans_water_mark": 10000,
