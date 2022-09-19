@@ -93,7 +93,7 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000):
         """ Retrain """
         assert (len(experiences_X) == len(experiences_y))
         if len(experiences_X) > 0:
-            training_start = time.time(())
+            training_start = time.time()
             bootstrapped_idx = np.random.choice(len(experiences_X), len(experiences_X), replace=True)
             training_X = np.vstack(experiences_X)[bootstrapped_idx, :]
             training_y = np.array(experiences_y)[bootstrapped_idx]
@@ -101,7 +101,7 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000):
             training_overhead = round(time.time() - training_start, 6)
 
             # save the latest experience to csv file
-            csv_writer.writerow(experiences_X[-1].tolist() + [experiences_y[-1]] + [time_records[-1]])
+            csv_writer.writerow(experiences_X[-1].tolist() + [experiences_y[-1]] + time_records[-1])
             data_store.flush()
         else:
             training_overhead = 0
@@ -153,7 +153,7 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000):
 
         """ Select the best action according to the predictor (M_theta) """
         if len(experiences_X) > 0:
-            inference_start = 0
+            inference_start = time.time()
             enumeration_matrix[:, 0:4] = np.array([write_ratio, hot_key_ratio, trans_arrival_rate, execution_delay])
             prediction = rf.predict(enumeration_matrix)
             best_index = np.argmax(prediction)
@@ -207,7 +207,7 @@ if __name__ == '__main__':
             channels.append(channel)
             stubs.append(stub)
 
-        run_agent(peer_config, stubs, 10)
+        run_agent(peer_config, stubs, 100)
     finally:
         for channel in channels:
             channel.close()
