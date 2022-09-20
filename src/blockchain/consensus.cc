@@ -13,7 +13,7 @@ void *log_replication_thread(void *arg) {
     shared_ptr<grpc::Channel> channel = grpc::CreateChannel(ctx.grpc_endpoint, grpc::InsecureChannelCredentials());
     unique_ptr<PeerComm::Stub> stub(PeerComm::NewStub(channel));
 
-    ifstream log("../../log/raft.log", ios::in);
+    ifstream log(string(peer_config["sysconfig"]["log_dir"].GetString()) + "/raft.log", ios::in);
     assert(log.is_open());
 
     while (true) {
@@ -62,7 +62,7 @@ void *log_replication_thread(void *arg) {
 
 void *leader_main_thread(void *arg) {
     struct RaftThreadContext ctx = *(struct RaftThreadContext *)arg;
-    ofstream log("../../log/raft.log", ios::out | ios::binary);
+    ofstream log(string(peer_config["sysconfig"]["log_dir"].GetString()) + "/raft.log", ios::out | ios::binary);
     while (true) {
         if (last_log_index < ep.T_n) {
             int i = 0;

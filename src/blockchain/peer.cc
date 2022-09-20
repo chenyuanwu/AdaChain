@@ -73,9 +73,9 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
 void *block_formation_thread(void *arg) {
     LOG(INFO) << "Block formation thread is running.";
 
-    ifstream log("../../log/raft.log", ios::in);
+    ifstream log(string(peer_config["sysconfig"]["log_dir"].GetString()) + "/raft.log", ios::in);
     assert(log.is_open());
-    ofstream block_store("../../log/blockchain.log", ios::out | ios::binary);
+    ofstream block_store(string(peer_config["sysconfig"]["log_dir"].GetString()) + "/blockchain.log", ios::out | ios::binary);
     assert(block_store.is_open());
 
     unsigned long last_applied = 0;
@@ -253,7 +253,7 @@ void *simulation_handler(void *arg) {
 
 void run_peer(const string &server_address) {
     /* start the gRPC server to accept requests */
-    PeerCommImpl service;
+    PeerCommImpl service(peer_config["sysconfig"]["log_dir"].GetString());
     ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
     builder.RegisterService(&service);
@@ -397,14 +397,14 @@ int main(int argc, char *argv[]) {
     el::Configurations conf("../../config/logger.conf");
     el::Loggers::reconfigureLogger("default", conf);
 
-    std::filesystem::remove_all("../../testdb");
+    std::filesystem::remove_all(peer_config["sysconfig"]["leveldb_dir"].GetString());
     options.create_if_missing = true;
     options.error_if_exists = true;
-    leveldb::Status s = leveldb::DB::Open(options, "../../testdb", &db);
+    leveldb::Status s = leveldb::DB::Open(options, peer_config["sysconfig"]["leveldb_dir"].GetString(), &db);
     assert(s.ok());
 
-    std::filesystem::remove_all("../../log");
-    std::filesystem::create_directory("../../log");
+    std::filesystem::remove_all(peer_config["sysconfig"]["log_dir"].GetString());
+    std::filesystem::create_directory(peer_config["sysconfig"]["log_dir"].GetString());
 
     run_peer(server_address);
 

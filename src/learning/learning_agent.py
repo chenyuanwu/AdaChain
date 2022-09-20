@@ -59,7 +59,7 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000):
     csv_writer.writerow(['write_ratio', 'hot_key_ratio', 'trans_arrival_rate',
                         'execution_delay (us)', 'blocksize', 'early_execution', 'reorder', 'throughput',
                          'feature_extraction_overhead (s)', 'training_overhead (s)', 'inference_overhead (s)', 'episode_duration (s)'])
-    block_store = open('../../log/blockchain.log', 'rb')
+    block_store = open(peer_config['sysconfig']['log_dir'] + '/blockchain.log', 'rb')
 
     # set the enumeration matrix as input to the predictor
     rf = RandomForestRegressor()

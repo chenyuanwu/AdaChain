@@ -5,6 +5,8 @@
         "reorder": false
     },
     "sysconfig": {
+        "leveldb_dir": "/mydata/testdb",
+        "log_dir": "/mydata/log",
         "trans_water_mark": 10000,
         "num_execution_threads": 16,
         "leader": "10.10.1.2:50052",
