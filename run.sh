@@ -30,3 +30,6 @@ make clean
 make
 
 ./peer -l -a 10.10.1.2:50052
+./peer -a 10.10.1.3:50052
+./peer -a 10.10.1.4:50052
+./client
