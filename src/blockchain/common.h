@@ -1,6 +1,8 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#include <google/protobuf/message.h>
+#include <google/protobuf/text_format.h>
 #include <google/protobuf/util/time_util.h>
 #include <pthread.h>
 #include <sys/time.h>
@@ -18,6 +20,7 @@ using namespace rapidjson;
 extern Document peer_config;
 extern leveldb::DB *db;
 extern leveldb::Options options;
+extern atomic<unsigned long> last_log_index;
 extern deque<atomic<unsigned long>> match_index;
 extern atomic<unsigned long> commit_index;
 

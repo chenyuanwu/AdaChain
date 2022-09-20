@@ -203,8 +203,9 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
     vector<Endorsement> S;  // the index represents the transaction id
     while (request_queue.size()) {
         Endorsement endorsement;
-        if (!endorsement.ParseFromString(request_queue.front())) {
-            LOG(ERROR) << "block formation thread: error in deserialising endorsement.";
+        if (!endorsement.ParseFromString(request_queue.front()) ||
+            !endorsement.GetReflection()->GetUnknownFields(endorsement).empty()) {
+            LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
         } else {
             endorsement.set_aborted(false);
             S.push_back(endorsement);

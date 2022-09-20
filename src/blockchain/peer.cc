@@ -18,6 +18,7 @@ Queue<TransactionProposal> execution_queue;
 shared_ptr<grpc::Channel> leader_channel;
 bool is_leader = false;
 uint64_t block_index = 0;
+uint64_t transaction_count = 0;
 
 string sha256(const string str) {
     unsigned char hash[SHA256_DIGEST_LENGTH];
@@ -115,6 +116,7 @@ void *block_formation_thread(void *arg) {
                 LOG(DEBUG) << "[block_id = " << block_index << ", trans_id = " << trans_index << "]: added transaction to block.";
                 request_queue.push(serialized_request);
                 trans_index++;
+                transaction_count++;
 
                 if (trans_index >= arch.max_block_size) {
                     /* cut the block */
@@ -147,8 +149,9 @@ void *block_formation_thread(void *arg) {
 
                             if (arch.is_xov) {
                                 /* validate */
-                                if (!endorsement->ParseFromString(request_queue.front())) {
-                                    LOG(ERROR) << "block formation thread: error in deserialising endorsement.";
+                                if (!endorsement->ParseFromString(request_queue.front()) ||
+                                    !endorsement->GetReflection()->GetUnknownFields(*endorsement).empty()) {
+                                    LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
                                     block.mutable_transactions()->RemoveLast();
                                 } else {
                                     if (validate_transaction(record_version, endorsement)) {
@@ -161,8 +164,9 @@ void *block_formation_thread(void *arg) {
                             } else {
                                 /* execute */
                                 TransactionProposal proposal;
-                                if (!proposal.ParseFromString(request_queue.front())) {
-                                    LOG(ERROR) << "block formation thread: error in deserialising transaction proposal.";
+                                if (!proposal.ParseFromString(request_queue.front()) ||
+                                    !proposal.GetReflection()->GetUnknownFields(proposal).empty()) {
+                                    LOG(WARNING) << "block formation thread: error in deserialising transaction proposal.";
                                     block.mutable_transactions()->RemoveLast();
                                 } else {
                                     *(endorsement->mutable_received_ts()) = proposal.received_ts();
@@ -329,7 +333,8 @@ void run_peer(const string &server_address) {
                 uint64_t time = (ep.end - ep.start).count();
                 double throughput = ((double)ep.total_ops.load() / time) * 1000;
 
-                LOG(INFO) << "Episode " << ep.episode << " ends: duration = " << time / 1000.0 << "s, throughput = " << throughput << "tps.";
+                LOG(INFO) << "Episode " << ep.episode << " ends: duration = " << time / 1000.0 << "s, throughput = " << throughput << "tps, "
+                          << "trans_count(T_n) = " << transaction_count << ", last_log_index = " << last_log_index << ".";
 
                 ep.freeze = true;
                 proposal_queue.clear();

@@ -25,7 +25,7 @@ void *log_replication_thread(void *arg) {
 
             app_req.set_leader_commit(commit_index);
             int index = 0;
-            for (; index < ctx.log_entry_batch && next_index[ctx.server_index] + index <= last_log_index; index++) {
+            for (; index < arch.max_block_size && next_index[ctx.server_index] + index <= last_log_index; index++) {
                 uint32_t size;
                 log.read((char *)&size, sizeof(uint32_t));
                 char *entry_ptr = (char *)malloc(size);
@@ -66,7 +66,7 @@ void *leader_main_thread(void *arg) {
     while (true) {
         if (last_log_index < ep.T_n) {
             int i = 0;
-            for (; i < ctx.log_entry_batch; i++) {
+            for (; i < arch.max_block_size; i++) {
                 string req = ordering_queue.pop();
                 uint32_t size = req.size();
                 log.write((char *)&size, sizeof(uint32_t));
@@ -183,7 +183,8 @@ Status PeerCommImpl::start_new_episode(ServerContext *context, const Action *act
     ep.T_n += B_n_delta * arch.max_block_size;
     ep.freeze = false;
 
-    LOG(INFO) << "Episode " << ep.episode << " starts.";
+    LOG(INFO) << "Episode " << ep.episode << " starts: blocksize = " << arch.max_block_size << ", early_execution = "
+              << arch.is_xov << ", reorder = " << arch.reorder << ", B_n = " << ep.B_n << ", T_n = " << ep.T_n << ".";
 
     ep.total_ops = 0;
     ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
