@@ -275,7 +275,7 @@ void *block_formation_thread(void *arg) {
 void *simulation_handler(void *arg) {
     struct ExecThreadContext ctx = *(struct ExecThreadContext *)arg;
     int thread_index = ctx.thread_index;
-
+    bool early_abort = false;
     unique_ptr<PeerComm::Stub> stub;
     if (!is_leader) {
         stub = PeerComm::NewStub(leader_channel);
@@ -285,8 +285,16 @@ void *simulation_handler(void *arg) {
         TransactionProposal proposal = execution_queue.pop();
         Request req;
         Endorsement *endorsement = req.mutable_endorsement();
+        //for every read T5 performs, we can check whether the read value is still up-to-date.
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
+            struct RecordVersion r_record_version;
+            kv_get(proposal.keys(), nullptr, &r_record_version);
             ycsb_get(proposal.keys(), endorsement);
+            if (endorsement->read_set(read_id).block_seq_num() != r_record_version.version_blockid) {
+                LOG(INFO) << "EARLY ABORT";
+                early_abort = true;
+                break;
+            }
         } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
             ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
         } else {
@@ -303,6 +311,11 @@ void *simulation_handler(void *arg) {
                 LOG(ERROR) << "grpc failed in simulation handler.";
             }
         }
+    }
+
+    if (early_abort)
+    {
+       proposal_queue.add(proposal); 
     }
 
     return nullptr;
