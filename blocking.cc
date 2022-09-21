@@ -289,6 +289,8 @@ void *simulation_handler(void *arg) {
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
             struct RecordVersion r_record_version;
             kv_get(proposal.keys(0), endorsement, &r_record_version);
+            LOG(INFO) << "ENTERED SIMULATION HANDLER GET";
+
             //ycsb_get(proposal.keys(), endorsement);
             if (endorsement->read_set(endorsement->read_set_size()-1).block_seq_num() != r_record_version.version_blockid) {
                 LOG(INFO) << "EARLY ABORT";
@@ -296,14 +298,20 @@ void *simulation_handler(void *arg) {
                 break;
             }
         } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+            LOG(INFO) << "ENTERED SIMULATION HANDLER PUT";
             ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
         } else {
+            LOG(INFO) << "ENTERED SIMULATION HANDLER SMALLBANK";
             smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement);
         }
 
         if (is_leader) {
+            LOG(INFO) << "ENTERED LEADER";
+
             ordering_queue.add(endorsement->SerializeAsString());
         } else {
+            LOG(INFO) << "ENTERED peer";
+
             ClientContext context;
             google::protobuf::Empty rsp;
             Status status = stub->send_to_peer(&context, req, &rsp);
@@ -311,6 +319,8 @@ void *simulation_handler(void *arg) {
                 LOG(ERROR) << "grpc failed in simulation handler.";
             }
         }
+          LOG(INFO) << "leaving simulation handler";
+
     }
 
     /*
