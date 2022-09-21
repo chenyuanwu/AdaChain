@@ -288,8 +288,8 @@ void *simulation_handler(void *arg) {
         //for every read T5 performs, we can check whether the read value is still up-to-date.
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
             struct RecordVersion r_record_version;
-            kv_get(proposal.keys(0), nullptr, &r_record_version);
-            ycsb_get(proposal.keys(), endorsement);
+            kv_get(proposal.keys(0), endorsement, &r_record_version);
+            //ycsb_get(proposal.keys(), endorsement);
             if (endorsement->read_set(endorsement->read_set_size()-1).block_seq_num() != r_record_version.version_blockid) {
                 LOG(INFO) << "EARLY ABORT";
                 early_abort = true;
