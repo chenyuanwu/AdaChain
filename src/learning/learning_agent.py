@@ -156,10 +156,14 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000):
             inference_start = time.time()
             enumeration_matrix[:, 0:4] = np.array([write_ratio, hot_key_ratio, trans_arrival_rate, execution_delay])
             prediction = rf.predict(enumeration_matrix)
-            best_index = np.argmax(prediction)
-            best_blocksize = enumeration_matrix[best_index, 4]
-            best_early_execution = enumeration_matrix[best_index, 5]
-            best_reorder = enumeration_matrix[best_index, 6]
+            # best_index = np.argmax(prediction)
+            while True:
+                best_index = np.random.choice(np.flatnonzero(np.isclose(prediction, prediction.max())), replace=True)
+                best_blocksize = enumeration_matrix[best_index, 4]
+                best_early_execution = enumeration_matrix[best_index, 5]
+                best_reorder = enumeration_matrix[best_index, 6]
+                if not (best_reorder == 1):
+                    break
             experiences_X.append(enumeration_matrix[best_index, :])
             inference_overhead = round(time.time() - inference_start, 6)
         else:
