@@ -41,7 +41,7 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
 
     for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
         struct RecordVersion r_record_version;
-        kv_get(transaction->read_set(read_id).read_key(), nullptr, &r_record_version);
+        kv_get(transaction->read_set(read_id).read_key(), nullptr, &r_record_version, 0);
 
         // logger->debug("read_key = %v\nstored_read_version = [block_id = %v, trans_id = %v]\n"
         //           "current_key_version = [block_id = %v, trans_id = %v]",
