@@ -34,7 +34,7 @@ struct RecordVersion {
 bool ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement, long long last_block_id=-1);
 void ycsb_put(const RepeatedPtrField<string> &keys, const RepeatedPtrField<string> &values, struct RecordVersion record_version,
               bool expose_write, Endorsement *endorsement = nullptr);
-string kv_get(const string &key, Endorsement *endorsement = nullptr, struct RecordVersion *record_version, uint64_t &last_block_id);
+string kv_get(const string &key, Endorsement *endorsement, struct RecordVersion *record_version, uint64_t &last_block_id);
 int kv_put(const string &key, const string &value, struct RecordVersion record_version, bool expose_write,
            Endorsement *endorsement = nullptr);
 bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type type, int execution_delay, bool expose_write,
