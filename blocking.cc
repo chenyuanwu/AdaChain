@@ -179,8 +179,8 @@ void *block_formation_thread(void *arg) {
                         */
 
                         //start:max_block_size , j: request_queue.size()
-                      
-                        block.mutable_transactions()->DeleteSubrange(max_block_size, request_queue.size());
+                        if(block_pipe_num>1){block.mutable_transactions()->DeleteSubrange(max_block_size, request_queue.size());}
+                            
                     } else {
                     }
                 } else {
