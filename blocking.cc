@@ -293,6 +293,7 @@ void *simulation_handler(void *arg) {
             ycsb_get(proposal.keys(), endorsement, last_block_id);
             if(!ycsb_get && last_block_id!=0) {
                 //early_abort;
+                proposal_queue.push(proposal);
                 LOG(INFO) << "EARLY ABORT";
                 return nullptr;
             }
@@ -302,6 +303,7 @@ void *simulation_handler(void *arg) {
             smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id);
             if(!smallbank && last_block_id!=0) {
                 //early_abort;
+                proposal_queue.push(proposal);
                 LOG(INFO) << "EARLY ABORT";
                 return nullptr;
             }
