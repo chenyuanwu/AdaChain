@@ -15,7 +15,7 @@ bool ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement, lo
 }
 
 void ycsb_put(const RepeatedPtrField<string> &keys, const RepeatedPtrField<string> &values, struct RecordVersion record_version,
-              bool expose_write, Endorsement *endorsement, uint64 height) {
+              bool expose_write, Endorsement *endorsement) {
     kv_put(keys[0], values[0], record_version, expose_write, endorsement);
 }
 
