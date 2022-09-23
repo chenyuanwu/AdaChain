@@ -31,7 +31,7 @@ struct RecordVersion {
     uint64_t version_transid;
 };
 
-bool ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement, long long last_block_id);
+bool ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement, long long last_block_id=-1);
 void ycsb_put(const RepeatedPtrField<string> &keys, const RepeatedPtrField<string> &values, struct RecordVersion record_version,
               bool expose_write, Endorsement *endorsement = nullptr);
 string kv_get(const string &key, Endorsement *endorsement = nullptr, struct RecordVersion *record_version = nullptr, long long last_block_id = -1);
