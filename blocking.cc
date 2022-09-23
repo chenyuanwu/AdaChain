@@ -17,7 +17,7 @@ bool is_leader = false;
 atomic<long> total_ops = 0;
 atomic<long> readn = 0;
 atomic<long> writen = 0;
-atomic<long long> last_block_id = 0;
+atomic<long long> last_block_id;
 extern deque<atomic<unsigned long>> match_index;
 extern atomic<unsigned long> commit_index;
 
@@ -291,7 +291,7 @@ void *simulation_handler(void *arg) {
         Endorsement *endorsement = req.mutable_endorsement();
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
             ycsb_get(proposal.keys(), endorsement, last_block_id);
-            if(!ycsb_get) {
+            if(!ycsb_get && last_block_id!=0) {
                 //early_abort;
                 LOG(INFO) << "EARLY ABORT";
                 return nullptr;
@@ -300,7 +300,7 @@ void *simulation_handler(void *arg) {
             ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
         } else {
             smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id);
-            if(!smallbank) {
+            if(!smallbank && last_block_id!=0) {
                 //early_abort;
                 LOG(INFO) << "EARLY ABORT";
                 return nullptr;
