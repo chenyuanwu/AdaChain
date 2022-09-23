@@ -181,11 +181,11 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         string saving_key = "saving_" + keys[0];
         uint64_t block_id = 0;
 
-        string checking_value = kv_get(checking_key, endorsement);
+        string checking_value = kv_get(checking_key, endorsement, nullptr, block_id);
         if(block_id > last_block_id) {
             return false;
         }
-        string saving_value = kv_get(saving_key, endorsement);
+        string saving_value = kv_get(saving_key, endorsement, nullptr, block_id);
         if(block_id > last_block_id) {
             return false;
         }
