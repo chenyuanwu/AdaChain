@@ -5,17 +5,22 @@
 extern leveldb::DB *db;
 extern leveldb::Options options;
 
-void ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement) {
-    kv_get(keys[0], endorsement);
+bool ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement, long long last_block_id) {
+    uint64_t block_id = 0;
+    kv_get(keys[0], endorsement, nullptr, block_id);
+    if(block_id > last_block_id){
+        return false;
+    }
+    return true;
 }
 
 void ycsb_put(const RepeatedPtrField<string> &keys, const RepeatedPtrField<string> &values, struct RecordVersion record_version,
-              bool expose_write, Endorsement *endorsement) {
-    kv_put(keys[0], values[0], record_version, expose_write, endorsement);
+              bool expose_write, Endorsement *endorsement, uint64 height) {
+    kv_put(keys[0], values[0], record_version, expose_write, endorsement, height);
 }
 
 /* interface of versioned key value store over leveldb */
-string kv_get(const string &key, Endorsement *endorsement, struct RecordVersion *record_version) {
+string kv_get(const string &key, Endorsement *endorsement, struct RecordVersion *record_version, uint64_t &block_id) {
     string value;
     leveldb::Status s = db->Get(leveldb::ReadOptions(), key, &value);
 
@@ -23,6 +28,8 @@ string kv_get(const string &key, Endorsement *endorsement, struct RecordVersion 
     uint64_t read_version_transid = 0;
     memcpy(&read_version_blockid, value.c_str(), sizeof(uint64_t));
     memcpy(&read_version_transid, value.c_str() + sizeof(uint64_t), sizeof(uint64_t));
+
+    block_id = read_version_blockid;    
 
     if (endorsement != nullptr) {
         ReadItem *read_item = endorsement->add_read_set();
@@ -66,11 +73,14 @@ int kv_put(const string &key, const string &value, struct RecordVersion record_v
     return 0;
 }
 
-void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type type, int execution_delay, bool expose_write,
-               struct RecordVersion record_version, Endorsement *endorsement) {
+bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type type, int execution_delay, bool expose_write,
+               struct RecordVersion record_version, Endorsement *endorsement, long long last_block_id) {
     if (type == TransactionProposal::Type::TransactionProposal_Type_TransactSavings) {
         string key = "saving_" + keys[0];
-        string value = kv_get(key, endorsement);
+        string value = kv_get(key, endorsement, nullptr, block_id);
+        if(block_id > last_block_id) {
+            return false;
+        }
         int balance = stoi(value);
         balance += 1000;
 
@@ -81,7 +91,10 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         kv_put(key, to_string(balance), record_version, expose_write, endorsement);
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_DepositChecking) {
         string key = "checking_" + keys[0];
-        string value = kv_get(key, endorsement);
+        string value = kv_get(key, endorsement, nullptr, block_id);
+        if(block_id > last_block_id){
+            return false;
+        }
         uint64_t balance = stoi(value);
         balance += 1000;
 
@@ -94,8 +107,14 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         string sender_key = "checking_" + keys[0];
         string receiver_key = "checking_" + keys[1];
 
-        string sender_value = kv_get(sender_key, endorsement);
-        string receiver_value = kv_get(receiver_key, endorsement);
+        string sender_value = kv_get(sender_key, endorsement,  nullptr, block_id);
+        if(block_id > last_block_id){
+            return false;
+        }
+        string receiver_value = kv_get(receiver_key, endorsement, nullptr, block_id);
+        if(block_id > last_block_id){
+            return false;
+        }
         uint64_t sender_balance = stoi(sender_value);
         uint64_t receiver_balance = stoi(receiver_value);
 
@@ -112,7 +131,10 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         }
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_WriteCheck) {
         string key = "checking_" + keys[0];
-        string value = kv_get(key, endorsement);
+        string value = kv_get(key, endorsement, nullptr, block_id);
+        if(block_id > last_block_id) {
+            return false;
+        }
         uint64_t balance = stoi(value);
 
         if (execution_delay > 0) {
@@ -128,8 +150,14 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         string checking_key = "checking_" + keys[0];
         string saving_key = "saving_" + keys[0];
 
-        string checking_value = kv_get(checking_key, endorsement);
-        string saving_value = kv_get(saving_key, endorsement);
+        string checking_value = kv_get(checking_key, endorsement, nullptr, block_id);
+        if(block_id > last_block_id) {
+            return false;
+        }
+        string saving_value = kv_get(saving_key, endorsement, nullptr, block_id);
+        if(block_id > last_block_id) {
+            return false;
+        }
         uint64_t checking_balance = stoi(checking_value);
         uint64_t saving_balance = stoi(saving_value);
         checking_balance = checking_balance + saving_balance;
@@ -146,10 +174,17 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         string saving_key = "saving_" + keys[0];
 
         string checking_value = kv_get(checking_key, endorsement);
+        if(block_id > last_block_id) {
+            return false;
+        }
         string saving_value = kv_get(saving_key, endorsement);
+        if(block_id > last_block_id) {
+            return false;
+        }
 
         if (execution_delay > 0) {
             usleep(execution_delay);
         }
     }
+    return true;
 }

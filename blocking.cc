@@ -17,6 +17,7 @@ bool is_leader = false;
 atomic<long> total_ops = 0;
 atomic<long> readn = 0;
 atomic<long> writen = 0;
+atomic<long long> last_block_id = 0;
 extern deque<atomic<unsigned long>> match_index;
 extern atomic<unsigned long> commit_index;
 
@@ -246,6 +247,7 @@ void *block_formation_thread(void *arg) {
 
                 /* write the block to stable storage */
                 block.set_block_id(block_index);
+                uint64_t last_block_id = block_index;
                 block.set_prev_block_hash(prev_block_hash);  // write to disk and hash the block
                 serialized_block.clear();
                 if (!block.SerializeToString(&serialized_block)) {
@@ -262,7 +264,7 @@ void *block_formation_thread(void *arg) {
                 //till there with transactions from Block B2
                 trans_index = request_queue.size();
                 
-                LOG(DEBUG) << "[block_id = " << block_index << ", trans_id = " << trans_index << "]: added transaction to block.";
+                //LOG(DEBUG) << "[block_id = " << block_index << ", trans_id = " << trans_index << "]: added transaction to block.";
                 block.clear_block_id();
                 block.clear_transactions();
             }
@@ -275,7 +277,7 @@ void *block_formation_thread(void *arg) {
 void *simulation_handler(void *arg) {
     struct ExecThreadContext ctx = *(struct ExecThreadContext *)arg;
     int thread_index = ctx.thread_index;
-    bool early_abort = false;
+
     unique_ptr<PeerComm::Stub> stub;
     if (!is_leader) {
         stub = PeerComm::NewStub(leader_channel);
@@ -285,33 +287,27 @@ void *simulation_handler(void *arg) {
         TransactionProposal proposal = execution_queue.pop();
         Request req;
         Endorsement *endorsement = req.mutable_endorsement();
-        //for every read T5 performs, we can check whether the read value is still up-to-date.
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-            struct RecordVersion r_record_version;
-            kv_get(proposal.keys(0), endorsement, &r_record_version);
-            LOG(INFO) << "ENTERED SIMULATION HANDLER GET";
-
-            //ycsb_get(proposal.keys(), endorsement);
-            if (endorsement->read_set(endorsement->read_set_size()-1).block_seq_num() != r_record_version.version_blockid) {
+            ycsb_get(proposal.keys(), endorsement, last_block_id);
+            if(!ycsb_get) {
+                //early_abort;
                 LOG(INFO) << "EARLY ABORT";
-                early_abort = true;
-                break;
+                return nullptr;
             }
         } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-            LOG(INFO) << "ENTERED SIMULATION HANDLER PUT";
             ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
         } else {
-            LOG(INFO) << "ENTERED SIMULATION HANDLER SMALLBANK";
-            smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement);
+            smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id);
+            if(!smallbank) {
+                //early_abort;
+                LOG(INFO) << "EARLY ABORT";
+                return nullptr;
+            }
         }
 
         if (is_leader) {
-            LOG(INFO) << "ENTERED LEADER";
-
             ordering_queue.add(endorsement->SerializeAsString());
         } else {
-            LOG(INFO) << "ENTERED peer";
-
             ClientContext context;
             google::protobuf::Empty rsp;
             Status status = stub->send_to_peer(&context, req, &rsp);
@@ -319,19 +315,7 @@ void *simulation_handler(void *arg) {
                 LOG(ERROR) << "grpc failed in simulation handler.";
             }
         }
-          LOG(INFO) << "leaving simulation handler";
-
     }
-
-    /*
-    if (early_abort)
-    {
-       if (is_leader) {
-       execution_queue.add(proposal); 
-       }
-    }
-    */
-
 
     return nullptr;
 }

@@ -31,12 +31,12 @@ struct RecordVersion {
     uint64_t version_transid;
 };
 
-void ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement);
+bool ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement, long long last_block_id);
 void ycsb_put(const RepeatedPtrField<string> &keys, const RepeatedPtrField<string> &values, struct RecordVersion record_version,
               bool expose_write, Endorsement *endorsement = nullptr);
-string kv_get(const string &key, Endorsement *endorsement = nullptr, struct RecordVersion *record_version = nullptr);
+string kv_get(const string &key, Endorsement *endorsement = nullptr, struct RecordVersion *record_version = nullptr, long long last_block_id = -1);
 int kv_put(const string &key, const string &value, struct RecordVersion record_version, bool expose_write,
            Endorsement *endorsement = nullptr);
-void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type type, int execution_delay, bool expose_write,
-               struct RecordVersion record_version, Endorsement *endorsement = nullptr);
+bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type type, int execution_delay, bool expose_write,
+               struct RecordVersion record_version, Endorsement *endorsement = nullptr, long long last_block_id);
 #endif
