@@ -77,6 +77,7 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
                struct RecordVersion record_version, Endorsement *endorsement, long long last_block_id) {
     if (type == TransactionProposal::Type::TransactionProposal_Type_TransactSavings) {
         string key = "saving_" + keys[0];
+        uint64_t block_id = 0;
         string value = kv_get(key, endorsement, nullptr, block_id);
         if(block_id > last_block_id) {
             return false;
@@ -90,6 +91,7 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
 
         kv_put(key, to_string(balance), record_version, expose_write, endorsement);
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_DepositChecking) {
+        uint64_t block_id = 0;
         string key = "checking_" + keys[0];
         string value = kv_get(key, endorsement, nullptr, block_id);
         if(block_id > last_block_id){
@@ -106,11 +108,13 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_SendPayment) {
         string sender_key = "checking_" + keys[0];
         string receiver_key = "checking_" + keys[1];
+        uint64_t block_id = 0;
 
         string sender_value = kv_get(sender_key, endorsement,  nullptr, block_id);
         if(block_id > last_block_id){
             return false;
         }
+        
         string receiver_value = kv_get(receiver_key, endorsement, nullptr, block_id);
         if(block_id > last_block_id){
             return false;
@@ -131,6 +135,8 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         }
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_WriteCheck) {
         string key = "checking_" + keys[0];
+        uint64_t block_id = 0;
+
         string value = kv_get(key, endorsement, nullptr, block_id);
         if(block_id > last_block_id) {
             return false;
@@ -149,6 +155,7 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_Amalgamate) {
         string checking_key = "checking_" + keys[0];
         string saving_key = "saving_" + keys[0];
+        uint64_t block_id = 0;
 
         string checking_value = kv_get(checking_key, endorsement, nullptr, block_id);
         if(block_id > last_block_id) {
@@ -172,6 +179,7 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_Query) {
         string checking_key = "checking_" + keys[0];
         string saving_key = "saving_" + keys[0];
+        uint64_t block_id = 0;
 
         string checking_value = kv_get(checking_key, endorsement);
         if(block_id > last_block_id) {
