@@ -10,8 +10,10 @@ import grpc
 import blockchain_pb2
 import blockchain_pb2_grpc
 import numpy as np
+import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 
+start_gain_experiences = False
 experiences_X = []
 experiences_y = []
 num_finished_peers = 0
@@ -28,7 +30,7 @@ class AgentCommServicer(blockchain_pb2_grpc.AgentCommServicer):
         global experiences_y
         global num_finished_peers
 
-        if request.is_leader and len(experiences_X):
+        if request.is_leader and start_gain_experiences:
             experiences_y.append(request.throughput)
 
         with episode_cv:
@@ -42,11 +44,29 @@ class AgentCommServicer(blockchain_pb2_grpc.AgentCommServicer):
 def start_new_episode(stub, action):
     response = stub.start_new_episode(action)
 
+def seed_model_and_experience(seed_file, model, experiences_window):
+    global experiences_X
+    global experiences_y
+    df = pd.read_csv(seed_file)
+    df.rename(columns=str.strip, inplace=True)
+    df_X = df.loc[:, 'write_ratio':'reorder'][-experiences_window:]
+    df_y = df['throughput'][-experiences_window:]
 
-def run_agent(peer_config, peer_comm_stubs, num_episodes=1000):
+    bootstrapped_idx = np.random.choice(len(df_X), len(df_X), replace=True)
+    training_X = df_X.values[bootstrapped_idx, :]
+    training_y = df_y.values[bootstrapped_idx]
+    model.fit(training_X, training_y)
+
+    for i in range(len(training_X)):
+        experiences_X.append(df_X.values[i])
+        experiences_y.append(df_y.values[i])
+
+
+def run_agent(peer_config, peer_comm_stubs, num_episodes=1000, experiences_window=40):
     global experiences_X
     global experiences_y
     global num_finished_peers
+    global start_gain_experiences
     """ Init """
     num_peers = len(peer_config['sysconfig']['followers']) + 1
     t = futures.ThreadPoolExecutor(max_workers=num_peers)
@@ -63,6 +83,8 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000):
 
     # set the enumeration matrix as input to the predictor
     rf = RandomForestRegressor()
+    seed_model_and_experience('ts_episode_100_6.csv', rf, experiences_window)
+    # optimal_action_predicted = []
     blocksizes = [1] + list(range(10, 200, 10)) + list(range(200, 1000, 50))
     early_execution = [False, True]
     reorder = [False, True]
@@ -92,7 +114,10 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000):
 
         """ Retrain """
         assert (len(experiences_X) == len(experiences_y))
-        if len(experiences_X) > 0:
+        if len(experiences_X) > experiences_window:
+            experiences_X.pop(0)
+            experiences_y.pop(0)
+        if start_gain_experiences:
             training_start = time.time()
             bootstrapped_idx = np.random.choice(len(experiences_X), len(experiences_X), replace=True)
             training_X = np.vstack(experiences_X)[bootstrapped_idx, :]
@@ -166,6 +191,7 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000):
                     break
             experiences_X.append(enumeration_matrix[best_index, :])
             inference_overhead = round(time.time() - inference_start, 6)
+            # optimal_action_predicted.append(prediction[2])
         else:
             best_blocksize = initial_blocksize
             best_early_execution = initial_early_execution
@@ -173,6 +199,8 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000):
             experiences_X.append(np.array([write_ratio, hot_key_ratio, trans_arrival_rate, execution_delay,
                                            best_blocksize, best_early_execution, best_reorder]))
             inference_overhead = 0
+            # optimal_action_predicted.append(0)
+        start_gain_experiences = True
 
         # notify all peers about the action
         action = blockchain_pb2.Action(blocksize=int(best_blocksize),
@@ -211,7 +239,7 @@ if __name__ == '__main__':
             channels.append(channel)
             stubs.append(stub)
 
-        run_agent(peer_config, stubs, 100)
+        run_agent(peer_config, stubs, 200, 100)
     finally:
         for channel in channels:
             channel.close()
