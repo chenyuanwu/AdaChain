@@ -40,7 +40,8 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
     bool is_valid = true;
     uint64_t blockid = 0;
     
-
+    //for every transaction we check whether the version-number of the read value still matches
+    //the one in the current state.
     for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
         struct RecordVersion r_record_version;
         kv_get(transaction->read_set(read_id).read_key(), nullptr, &r_record_version, blockid);
@@ -276,7 +277,19 @@ void *block_formation_thread(void *arg) {
     return nullptr;
 }
 
+//exploit the available version-numbers to implement a lock-free concurrency control mechanism 
+//protecting the current state. To do so, in Fabric++
+//1) we first remove the read-write lock, that was  sequentializing simulation and validation phase - already been done in our program where pthreads run concurrently in run_peer
+//2) we have to inspect the version-number of every read value and test whether it is still up-to-date
+//3) if a read value is not up-to-date, we have to abort the transaction and inform client to send the proposal again
+
+
+//simulation_handler executes transactions from transaction proposals 
+
+//At the start of the simulation phase, we first identify the block-ID of the last block that made it into the ledger
+//This is stored as a global variable last_block_id and changes(atomically) everytime a new block is added to the ledger
 void *simulation_handler(void *arg) {
+    LOG(INFO) << "simulation handler thread started.";
     struct ExecThreadContext ctx = *(struct ExecThreadContext *)arg;
     int thread_index = ctx.thread_index;
 
@@ -289,12 +302,16 @@ void *simulation_handler(void *arg) {
         TransactionProposal proposal = execution_queue.pop();
         Request req;
         Endorsement *endorsement = req.mutable_endorsement();
+        LOG(INFO) << "simulation handler thread: received transaction proposal.";
+ 
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
             ycsb_get(proposal.keys(), endorsement, last_block_id);
+            //corner case of last_block_id = 0 which means this is the first transaction
             if(!ycsb_get && last_block_id!=0) {
                 //early_abort;
                 proposal_queue.add(proposal);
                 LOG(INFO) << "EARLY ABORT";
+                endorsement->set_aborted(true);
                 return nullptr;
             }
         } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
@@ -305,6 +322,7 @@ void *simulation_handler(void *arg) {
                 //early_abort;
                 proposal_queue.add(proposal);
                 LOG(INFO) << "EARLY ABORT";
+                endorsement->set_aborted(true);
                 return nullptr;
             }
         }
@@ -344,6 +362,7 @@ void run_peer(const string &server_address) {
     }
 
     pthread_t block_form_tid;
+    //this - block_formation_thread
     pthread_create(&block_form_tid, NULL, block_formation_thread, NULL);
     pthread_detach(block_form_tid);
 
@@ -352,6 +371,7 @@ void run_peer(const string &server_address) {
     struct ExecThreadContext *ctxs = (struct ExecThreadContext *)calloc(num_exec_threads, sizeof(struct ExecThreadContext));
     for (int i = 0; i < num_exec_threads; i++) {
         ctxs[i].thread_index = i;
+        //this - simulation_handler
         pthread_create(&exec_tids[i], NULL, simulation_handler, &ctxs[i]);
 
         /* stick thread to a core for better performance */

@@ -57,6 +57,7 @@ void *log_replication_thread(void *arg) {
     }
 }
 
+//Leader takes commands from clients and appends them to its log as new entries
 void *leader_main_thread(void *arg) {
     struct RaftThreadContext ctx = *(struct RaftThreadContext *)arg;
     ofstream log("./log/raft.log", ios::out | ios::binary);
