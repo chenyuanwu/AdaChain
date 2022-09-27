@@ -289,7 +289,7 @@ void *block_formation_thread(void *arg) {
 //At the start of the simulation phase, we first identify the block-ID of the last block that made it into the ledger
 //This is stored as a global variable last_block_id and changes(atomically) everytime a new block is added to the ledger
 void *simulation_handler(void *arg) {
-    LOG(INFO) << "simulation handler thread started.";
+    LOG(DEBUG) << "simulation handler thread started.";
     struct ExecThreadContext ctx = *(struct ExecThreadContext *)arg;
     int thread_index = ctx.thread_index;
 
@@ -302,7 +302,7 @@ void *simulation_handler(void *arg) {
         TransactionProposal proposal = execution_queue.pop();
         Request req;
         Endorsement *endorsement = req.mutable_endorsement();
-        LOG(INFO) << "simulation handler thread: received transaction proposal.";
+        LOG(DEBUG) << "simulation handler thread: received transaction proposal.";
  
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
             ycsb_get(proposal.keys(), endorsement, last_block_id);
@@ -335,8 +335,7 @@ void *simulation_handler(void *arg) {
         for (int read_id = 0; read_id < endorsement->read_set_size(); read_id++) {
         struct RecordVersion r_record_version;
         if (endorsement->read_set(read_id).block_seq_num() >= last_block_id)
-            is_valid = false;
-            LOG(INFO) << "EARLY ABORT";
+            LOG(DEBUG) << "EARLY ABORT";
             endorsement->set_aborted(true);
             break;
             return nullptr;
