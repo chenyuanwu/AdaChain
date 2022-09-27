@@ -306,26 +306,43 @@ void *simulation_handler(void *arg) {
  
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
             ycsb_get(proposal.keys(), endorsement, last_block_id);
+            //ycsb_get(proposal.keys(), endorsement, last_block_id);
             //corner case of last_block_id = 0 which means this is the first transaction
-            if(!ycsb_get && last_block_id!=0) {
-                //early_abort;
-                proposal_queue.add(proposal);
-                LOG(INFO) << "EARLY ABORT";
-                endorsement->set_aborted(true);
-                return nullptr;
-            }
+            // if(!ycsb_get && last_block_id!=0) {
+            //     //early_abort;
+            //     proposal_queue.add(proposal);
+            //     LOG(INFO) << "EARLY ABORT";
+            //     endorsement->set_aborted(true);
+            //     return nullptr;
+            // }
         } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
             ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
         } else {
             smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id);
-            if(!smallbank && last_block_id!=0) {
-                //early_abort;
-                proposal_queue.add(proposal);
-                LOG(INFO) << "EARLY ABORT";
-                endorsement->set_aborted(true);
-                return nullptr;
-            }
+            // if(!smallbank && last_block_id!=0) {
+            //     //early_abort;
+            //     proposal_queue.add(proposal);
+            //     LOG(INFO) << "EARLY ABORT";
+            //     endorsement->set_aborted(true);
+            //     return nullptr;
+            // }
         }
+
+//*****************
+       //if more than one transactions in one proposal then
+        //for all read of the read set of endorsement check if the version number is smaller than last_block_id, if not early abort
+        uint64_t blockid = 0;
+        for (int read_id = 0; read_id < endorsement->read_set_size(); read_id++) {
+        struct RecordVersion r_record_version;
+        if (endorsement->read_set(read_id).block_seq_num() >= last_block_id)
+            is_valid = false;
+            LOG(INFO) << "EARLY ABORT";
+            endorsement->set_aborted(true);
+            break;
+            return nullptr;
+        }
+//*****************/
+
 
         if (is_leader) {
             ordering_queue.add(endorsement->SerializeAsString());
