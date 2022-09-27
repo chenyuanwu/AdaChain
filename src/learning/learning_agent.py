@@ -83,7 +83,7 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000, experiences_windo
 
     # set the enumeration matrix as input to the predictor
     rf = RandomForestRegressor()
-    seed_model_and_experience('ts_episode_100_6.csv', rf, experiences_window)
+    # seed_model_and_experience('ts_episode_100_6.csv', rf, experiences_window)
     # optimal_action_predicted = []
     blocksizes = [1] + list(range(10, 200, 10)) + list(range(200, 1000, 50))
     early_execution = [False, True]
@@ -187,7 +187,7 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000, experiences_windo
                 best_blocksize = enumeration_matrix[best_index, 4]
                 best_early_execution = enumeration_matrix[best_index, 5]
                 best_reorder = enumeration_matrix[best_index, 6]
-                if not (best_reorder == 1):
+                if not ((best_reorder == 1 and best_blocksize > 50) or (best_reorder == 1 and best_early_execution == 0)):
                     break
             experiences_X.append(enumeration_matrix[best_index, :])
             inference_overhead = round(time.time() - inference_start, 6)
@@ -239,7 +239,7 @@ if __name__ == '__main__':
             channels.append(channel)
             stubs.append(stub)
 
-        run_agent(peer_config, stubs, 200, 100)
+        run_agent(peer_config, stubs, 100, 100)
     finally:
         for channel in channels:
             channel.close()

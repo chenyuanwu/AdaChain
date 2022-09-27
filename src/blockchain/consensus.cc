@@ -47,8 +47,8 @@ void *log_replication_thread(void *arg) {
             next_index[ctx.server_index] += index;
             match_index[ctx.server_index] = next_index[ctx.server_index] - 1;
             // LOG(DEBUG) << "[server_index = " << ctx.server_index << "]match_index is " << match_index[ctx.server_index].load() << ".";
-        } else {
-            usleep(100000);
+        } else if (last_log_index) {
+            usleep(1000);
             ClientContext context;
             AppendRequest app_req;
             AppendResponse app_rsp;
