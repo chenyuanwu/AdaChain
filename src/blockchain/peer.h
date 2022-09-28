@@ -49,4 +49,54 @@ struct ExecThreadContext {
     int thread_index;
 };
 
+class OXIIHelper {
+   private:
+    set<uint64_t> C;
+    pthread_mutex_t mutex;
+
+   public:
+    set<uint64_t> W;
+    vector<Endorsement> endorsements;
+
+    OXIIHelper() {
+        pthread_mutex_init(&mutex, NULL);
+    }
+
+    ~OXIIHelper() {
+        pthread_mutex_destroy(&mutex);
+    }
+
+    void C_add(uint64_t trans_id) {
+        pthread_mutex_lock(&mutex);
+        C.insert(trans_id);
+        pthread_mutex_unlock(&mutex);
+    }
+
+    void C_clear() {
+        pthread_mutex_lock(&mutex);
+        C.clear();
+        pthread_mutex_unlock(&mutex);
+    }
+
+    bool C_find(uint64_t trans_id) {
+        bool find = false;
+        pthread_mutex_lock(&mutex);
+        if (C.find(trans_id) != C.end()) {
+            find = true;
+        }
+        pthread_mutex_unlock(&mutex);
+
+        return find;
+    }
+
+    size_t C_size() {
+        size_t size;
+        pthread_mutex_lock(&mutex);
+        size = C.size();
+        pthread_mutex_unlock(&mutex);
+
+        return size;
+    }
+};
+
 #endif

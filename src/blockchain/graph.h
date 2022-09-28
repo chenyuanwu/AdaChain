@@ -31,6 +31,7 @@ struct Vertex {
     Vertex() : valid(true), index(-1), lowlink(-1) {}
     bool valid;
     set<int> out_edges;
+    set<int> in_edges;
     // We sometimes wish to consider a subgraph of a graph. A subgraph would have
     // a subset of the vertices from the graph and a subset of the edges.
     // When considering this vertex within a subgraph, subgraph_edges stores
@@ -90,5 +91,6 @@ struct heap_data {
 };
 
 void xov_reorder(queue<string>& request_queue, Block& block);
+void build_conflict_graph_oxii(queue<string>& request_queue, vector<TransactionProposal>& proposals, Graph& conflict_graph);
 
 #endif

@@ -15,6 +15,7 @@ leveldb::Options options;
 Queue<TransactionProposal> proposal_queue;
 Queue<string> ordering_queue;
 Queue<TransactionProposal> execution_queue;
+OXIIHelper oxii_helper;
 shared_ptr<grpc::Channel> leader_channel;
 bool is_leader = false;
 uint64_t block_index = 0;
@@ -137,6 +138,46 @@ void *block_formation_thread(void *arg) {
                                 }
                             }
                         } else {
+                            vector<TransactionProposal> proposals;
+                            Graph conflict_graph;
+                            build_conflict_graph_oxii(request_queue, proposals, conflict_graph);  // TODO: add id in TransactionProposal
+
+                            oxii_helper.W.clear();
+                            oxii_helper.C_clear();
+                            oxii_helper.endorsements.clear();
+                            for (int i = 0; i < proposals.size(); i++) {
+                                oxii_helper.W.insert(i);
+                                oxii_helper.endorsements.emplace_back();
+                            }
+
+                            while (!oxii_helper.W.empty()) {
+                                for (auto it = oxii_helper.W.begin(); it != oxii_helper.W.end();) {
+                                    uint64_t proposal_id = *it;
+                                    bool all_pred_in_c = true;
+
+                                    for (auto pred_it = conflict_graph[proposal_id].in_edges.begin();
+                                         pred_it != conflict_graph[proposal_id].in_edges.end(); pred_it++) {
+                                        if (!oxii_helper.C_find(*pred_it)) {
+                                            all_pred_in_c = false;
+                                            break;
+                                        }
+                                    }
+
+                                    if (all_pred_in_c) {
+                                        it = oxii_helper.W.erase(it);
+                                        // Trigger parallel execution        
+
+
+
+                                    } else {
+                                        it++;
+                                    }
+                                }
+
+                            }
+
+
+
                         }
                     } else {
                         uint64_t trans_index_ = 0;
