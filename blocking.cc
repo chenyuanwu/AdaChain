@@ -146,7 +146,8 @@ void *block_formation_thread(void *arg) {
                                     .version_blockid = block_index,
                                     .version_transid = i,
                                     };
-                                if (validate_transaction(record_version, block.mutable_transactions(i))) {
+                                if ((!block.mutable_transactions(i)->aborted()) && validate_transaction(record_version, block.mutable_transactions(i)))
+                                {
                                     total_ops++;
                                     //counts the reads and writes in every transaction(i) in each block
                                     if(( block.mutable_transactions(i)->write_set_size()) != 0) 
@@ -159,7 +160,11 @@ void *block_formation_thread(void *arg) {
                                         //transaction is a read only transaction
                                         readn++;
                                     }
-                                    //LOG(INFO) << "BLOCK ID1: "<< block_index << ",transid: " << i << ",READ: " << block.mutable_transactions(i)->read_set_size() << ",WRITE RATIO: " << block.mutable_transactions(i)->write_set_size();
+                                    block.mutable_transactions(i)->set_aborted(false);
+                                }
+                                else
+                                {
+                                    block.mutable_transactions(i)->set_aborted(true);
                                 }
                             //push the remaining transactions back into request_queue 
                             } else {
@@ -195,25 +200,28 @@ void *block_formation_thread(void *arg) {
 
                         if (is_xov) {
                             /* validate */
-                            if (!endorsement->ParseFromString(request_queue.front())) {
-                                LOG(ERROR) << "block formation thread: error in deserialising endorsement.";
-                            }
-
-                            if (validate_transaction(record_version, endorsement)) {
-                                total_ops++;
-                                  //counts the reads and writes in every transaction(i) in each block
-                                    if(( endorsement->write_set_size()) != 0) 
-                                    {
-                                        //transaction is a write transaction
-                                        writen++;
-                                    }
-                                    else
-                                    {
-                                        //transaction is a read only transaction
-                                        readn++;
-                                    }
-                                    //LOG(INFO) << "BLOCK ID2: "<< block_index << ",READ: " << endorsement->read_set_size() << ",WRITE RATIO: " << endorsement->write_set_size();
-                            }
+                             if (!endorsement->ParseFromString(request_queue.front()) ||
+                                    !endorsement->GetReflection()->GetUnknownFields(*endorsement).empty()) {
+                                    LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
+                                    block.mutable_transactions()->RemoveLast();
+                                    } else {
+                                        if (validate_transaction(record_version, endorsement)) {
+                                            total_ops++;
+                                            if(( endorsement->write_set_size()) != 0) 
+                                            {
+                                                //transaction is a write transaction
+                                                writen++;
+                                            }
+                                            else
+                                            {
+                                                //transaction is a read only transaction
+                                                readn++;
+                                            }
+                                            endorsement->set_aborted(false);
+                                        } else {
+                                            endorsement->set_aborted(true);
+                                        }
+                                    } 
 
                         } else {
                             /* execute */
@@ -230,6 +238,7 @@ void *block_formation_thread(void *arg) {
                                 smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, endorsement);
                             }
                             total_ops++;
+                            endorsement->set_aborted(false);
                               //counts the reads and writes in every transaction(i) in each block
                                     if(( endorsement->write_set_size()) != 0) 
                                     {
@@ -311,14 +320,24 @@ void *simulation_handler(void *arg) {
                 endorsement->set_aborted(true);
                 return nullptr;
             }
+            else
+            {
+                endorsement->set_aborted(true);
+            }
         } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
             ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
+            endorsement->set_aborted(false);
+
         } else {
             smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id);
             if(!smallbank && last_block_id!=0) {
                 LOG(INFO) << "EARLY ABORT";
                 endorsement->set_aborted(true);
                 return nullptr;
+            }
+            else
+            {
+                endorsement->set_aborted(false);
             }
         }
         if (is_leader) {

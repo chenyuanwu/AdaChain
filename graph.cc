@@ -149,7 +149,7 @@ bool CyclesSearch::circuit(int vertex) {
     return found;
 }
 
-void build_conflict_graph(const vector<Endorsement>& transactions, Graph& conflict_graph) {
+void build_conflict_graph_xov(const vector<Endorsement>& transactions, Graph& conflict_graph) {
     unordered_map<string, int> key_to_bitmap_idx;  // track the length of bitmap
     int bitmap_idx = 0;
     for (int i = 0; i < transactions.size(); i++) {
@@ -203,15 +203,17 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
     vector<Endorsement> S;  // the index represents the transaction id
     while (request_queue.size()) {
         Endorsement endorsement;
-        if (!endorsement.ParseFromString(request_queue.front())) {
-            LOG(ERROR) << "block formation thread: error in deserialising endorsement.";
+        if (!endorsement.ParseFromString(request_queue.front()) ||
+            !endorsement.GetReflection()->GetUnknownFields(endorsement).empty()) {
+            LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
+        } else {
+            endorsement.set_aborted(false);
+            S.push_back(endorsement);
         }
-        endorsement.set_aborted(false);
-        S.push_back(endorsement);
         request_queue.pop();
     }
 
-    build_conflict_graph(S, conflict_graph);  // step 1
+    build_conflict_graph_xov(S, conflict_graph);  // step 1
     // LOG(INFO) << "finished step 1.";
 
     CyclesSearch cycles_search;
@@ -265,15 +267,18 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
     }
     // LOG(INFO) << "finished step 4.";
 
-    vector<Endorsement> S_prime;  // step 5
-    Graph conflict_graph_prime;   // cycle-free conflict graph
+    vector<Endorsement> S_prime;    // step 5
+    vector<Endorsement> S_aborted;  // record early aborted transactions
+    Graph conflict_graph_prime;     // cycle-free conflict graph
     for (int i = 0; i < S.size(); i++) {
         if (!S[i].aborted()) {
             S_prime.push_back(S[i]);
+        } else {
+            S_aborted.push_back(S[i]);
         }
     }
     // LOG(INFO) << "constructed S_prime, now S_prime has " << S_prime.size() << " transactions.";
-    build_conflict_graph(S_prime, conflict_graph_prime);
+    build_conflict_graph_xov(S_prime, conflict_graph_prime);
 
     vector<int> in_degree(conflict_graph_prime.size(), 0);
     queue<int> Q;
@@ -303,5 +308,79 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
         LOG(ERROR) << "cycle detected in topological sort.";
     } else {
         // LOG(INFO) << "successfully finished topological sort.";
+    }
+
+    for (int i = 0; i < S_aborted.size(); i++) {
+        Endorsement* endorsement = block.add_transactions();
+        (*endorsement) = S_aborted[i];
+    }
+}
+
+void build_conflict_graph_oxii(queue<string>& request_queue, vector<TransactionProposal>& proposals, Graph& conflict_graph) {
+    // the index in proposals represents the transaction propoal id
+    while (request_queue.size()) {
+        TransactionProposal proposal;
+        if (!proposal.ParseFromString(request_queue.front()) ||
+            !proposal.GetReflection()->GetUnknownFields(proposal).empty()) {
+            LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
+        } else {
+            proposals.push_back(proposal);
+        }
+        request_queue.pop();
+    }
+
+    unordered_map<string, int> key_to_bitmap_idx;  // track the length of bitmap
+    int bitmap_idx = 0;
+    for (int i = 0; i < proposals.size(); i++) {
+        for (int key_id = 0; key_id < proposals[i].keys_size(); key_id++) {
+            string key = proposals[i].keys(key_id);
+            if (key_to_bitmap_idx.find(key) == key_to_bitmap_idx.end()) {
+                key_to_bitmap_idx[key] = bitmap_idx++;
+            }
+        }
+    }
+
+    vector<boost::dynamic_bitset<>> read_bitmaps;  // construct the bitmaps
+    vector<boost::dynamic_bitset<>> write_bitmaps;
+    for (int i = 0; i < proposals.size(); i++) {
+        boost::dynamic_bitset<> read_bitmap(bitmap_idx);
+        boost::dynamic_bitset<> write_bitmap(bitmap_idx);
+        if (proposals[i].type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
+            string read_key = proposals[i].keys(0);
+            int bitmap_idx = key_to_bitmap_idx[read_key];
+            read_bitmap[bitmap_idx] = 1;
+        } else if (proposals[i].type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+            string write_key = proposals[i].keys(0);
+            int bitmap_idx = key_to_bitmap_idx[write_key];
+            write_bitmap[bitmap_idx] = 1;
+        } else if (proposals[i].type() == TransactionProposal::Type::TransactionProposal_Type_Query) {
+            // read only transaction in smallbank
+            for (int key_id = 0; key_id < proposals[i].keys_size(); key_id++) {
+                string read_key = proposals[i].keys(key_id);
+                int bitmap_idx = key_to_bitmap_idx[read_key];
+                read_bitmap[bitmap_idx] = 1;
+            }
+        } else {
+            // update transaction in smallbank
+            for (int key_id = 0; key_id < proposals[i].keys_size(); key_id++) {
+                string key = proposals[i].keys(key_id);
+                int bitmap_idx = key_to_bitmap_idx[key];
+                read_bitmap[bitmap_idx] = 1;
+                write_bitmap[bitmap_idx] = 1;
+            }
+        }
+        read_bitmaps.push_back(read_bitmap);
+        write_bitmaps.push_back(write_bitmap);
+    }
+
+    conflict_graph.resize(proposals.size());
+    for (int i = 0; i < proposals.size(); i++) {
+        for (int j = i + 1; j < proposals.size(); j++) {  // only from early transaction (in arrival order) to later transaction
+            if ((read_bitmaps[i] & write_bitmaps[j]).any() || (write_bitmaps[i] & read_bitmaps[j]).any() ||
+                (write_bitmaps[i] & write_bitmaps[j]).any()) {
+                // add an edge in conflict_graph from i to j
+                conflict_graph[j].in_edges.insert(i);  // use in_edges instead of out_edges
+            }
+        }
     }
 }
