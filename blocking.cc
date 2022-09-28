@@ -17,7 +17,7 @@ bool is_leader = false;
 atomic<long> total_ops = 0;
 atomic<long> readn = 0;
 atomic<long> writen = 0;
-atomic<long long> last_block_id;
+atomic<long long> last_block_id = 0;
 extern deque<atomic<unsigned long>> match_index;
 extern atomic<unsigned long> commit_index;
 
