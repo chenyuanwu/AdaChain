@@ -134,6 +134,7 @@ void *block_formation_thread(void *arg) {
             //block_pipe_num
             if (trans_index >= max_block_size*block_pipe_num) {
             //if (trans_index >= max_block_size*2) {
+                //arch - xov, reorder 
                 if (reorder) {
                     if (is_xov) {
                         xov_reorder(request_queue, block);
@@ -190,7 +191,8 @@ void *block_formation_thread(void *arg) {
                             
                     } else {
                     }
-                } else {
+                } 
+                else {
                     uint64_t trans_index_ = 0;
                     while (request_queue.size()) {
                         Endorsement *endorsement = block.add_transactions();
@@ -198,7 +200,7 @@ void *block_formation_thread(void *arg) {
                             .version_blockid = block_index,
                             .version_transid = trans_index_,
                         };
-
+                        //arch - xov, no reorder
                         if (is_xov) {
                             /* validate */
                              if (!endorsement->ParseFromString(request_queue.front()) ||
@@ -225,7 +227,9 @@ void *block_formation_thread(void *arg) {
                                         }
                                     } 
 
-                        } else {
+                        } 
+                        //arch - ox, no reorder
+                        else {
                             /* execute */
                             TransactionProposal proposal;
                             if (!proposal.ParseFromString(request_queue.front())) {
@@ -260,6 +264,8 @@ void *block_formation_thread(void *arg) {
                 }
 
                 /* write the block to stable storage */
+                //print the block id version number 
+                endorsement->read_set().block_seq_num();
                 block.set_block_id(block_index);
                 uint64_t last_block_id = block_index;
                 block.set_prev_block_hash(prev_block_hash);  // write to disk and hash the block
