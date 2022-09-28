@@ -265,7 +265,7 @@ void *block_formation_thread(void *arg) {
 
                 /* write the block to stable storage */
                 //print the block id version number 
-                endorsement->read_set().block_seq_num();
+                LOG(INFO) << "BLOCK ID: "<< block_index << ",READ: " << readn << ",WRITE RATIO: " << writen;
                 block.set_block_id(block_index);
                 uint64_t last_block_id = block_index;
                 block.set_prev_block_hash(prev_block_hash);  // write to disk and hash the block
