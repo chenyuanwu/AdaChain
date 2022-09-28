@@ -140,7 +140,7 @@ void *block_formation_thread(void *arg) {
                         } else {
                             vector<TransactionProposal> proposals;
                             Graph conflict_graph;
-                            build_conflict_graph_oxii(request_queue, proposals, conflict_graph);  // TODO: add id in TransactionProposal
+                            build_conflict_graph_oxii(request_queue, proposals, conflict_graph);
 
                             oxii_helper.W.clear();
                             oxii_helper.C_clear();
@@ -165,19 +165,20 @@ void *block_formation_thread(void *arg) {
 
                                     if (all_pred_in_c) {
                                         it = oxii_helper.W.erase(it);
-                                        // Trigger parallel execution        
-
-
-
+                                        execution_queue.add(proposals[proposal_id]);
                                     } else {
                                         it++;
                                     }
                                 }
-
                             }
 
+                            while (oxii_helper.C_size() != proposals.size())
+                                ;
 
-
+                            for (int i = 0; i < oxii_helper.endorsements.size(); i++) {
+                                Endorsement *endorsement = block.add_transactions();
+                                (*endorsement) = oxii_helper.endorsements[i];
+                            }
                         }
                     } else {
                         uint64_t trans_index_ = 0;
@@ -264,28 +265,50 @@ void *simulation_handler(void *arg) {
 
     while (true) {
         TransactionProposal proposal = execution_queue.pop();
-        Request req;
-        Endorsement *endorsement = req.mutable_endorsement();
-        assert(proposal.has_received_ts());
-        *(endorsement->mutable_received_ts()) = proposal.received_ts();
+        if (arch.is_xov) {
+            Request req;
+            Endorsement *endorsement = req.mutable_endorsement();
+            assert(proposal.has_received_ts());
+            *(endorsement->mutable_received_ts()) = proposal.received_ts();
 
-        if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-            ycsb_get(proposal.keys(), endorsement);
-        } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-            ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
-        } else {
-            smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement);
-        }
-
-        if (is_leader) {
-            ordering_queue.add(endorsement->SerializeAsString());
-        } else {
-            ClientContext context;
-            google::protobuf::Empty rsp;
-            Status status = stub->send_to_peer(&context, req, &rsp);
-            if (!status.ok()) {
-                LOG(ERROR) << "grpc failed in simulation handler.";
+            if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
+                ycsb_get(proposal.keys(), endorsement);
+            } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+                ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
+            } else {
+                smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement);
             }
+
+            if (is_leader) {
+                ordering_queue.add(endorsement->SerializeAsString());
+            } else {
+                ClientContext context;
+                google::protobuf::Empty rsp;
+                Status status = stub->send_to_peer(&context, req, &rsp);
+                if (!status.ok()) {
+                    LOG(ERROR) << "grpc failed in simulation handler.";
+                }
+            }
+        } else if (arch.reorder) {
+            uint64_t proposal_id = proposal.id();
+            Endorsement endorsement;
+            struct RecordVersion record_version = {
+                .version_blockid = block_index,
+                .version_transid = proposal_id,
+            };
+
+            *(endorsement.mutable_received_ts()) = proposal.received_ts();
+            if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
+                ycsb_get(proposal.keys(), &endorsement);
+            } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+                ycsb_put(proposal.keys(), proposal.values(), record_version, true, &endorsement);
+            } else {
+                smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, &endorsement);
+            }
+            ep.total_ops++;
+            endorsement.set_aborted(false);
+
+            oxii_helper.C_add(proposal_id, endorsement);
         }
     }
 

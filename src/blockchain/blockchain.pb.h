@@ -1353,6 +1353,7 @@ class TransactionProposal final :
     kValuesFieldNumber = 3,
     kReceivedTsFieldNumber = 5,
     kExecutionDelayFieldNumber = 4,
+    kIdFieldNumber = 6,
     kTypeFieldNumber = 1,
   };
   // repeated string keys = 2;
@@ -1430,6 +1431,15 @@ class TransactionProposal final :
   void _internal_set_execution_delay(::PROTOBUF_NAMESPACE_ID::uint64 value);
   public:
 
+  // uint64 id = 6;
+  void clear_id();
+  ::PROTOBUF_NAMESPACE_ID::uint64 id() const;
+  void set_id(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint64 _internal_id() const;
+  void _internal_set_id(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  public:
+
   // .TransactionProposal.Type type = 1;
   void clear_type();
   ::TransactionProposal_Type type() const;
@@ -1450,6 +1460,7 @@ class TransactionProposal final :
   ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> values_;
   ::PROTOBUF_NAMESPACE_ID::Timestamp* received_ts_;
   ::PROTOBUF_NAMESPACE_ID::uint64 execution_delay_;
+  ::PROTOBUF_NAMESPACE_ID::uint64 id_;
   int type_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_blockchain_2eproto;
@@ -3412,6 +3423,26 @@ inline void TransactionProposal::set_allocated_received_ts(::PROTOBUF_NAMESPACE_
   }
   received_ts_ = received_ts;
   // @@protoc_insertion_point(field_set_allocated:TransactionProposal.received_ts)
+}
+
+// uint64 id = 6;
+inline void TransactionProposal::clear_id() {
+  id_ = uint64_t{0u};
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 TransactionProposal::_internal_id() const {
+  return id_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 TransactionProposal::id() const {
+  // @@protoc_insertion_point(field_get:TransactionProposal.id)
+  return _internal_id();
+}
+inline void TransactionProposal::_internal_set_id(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  
+  id_ = value;
+}
+inline void TransactionProposal::set_id(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  _internal_set_id(value);
+  // @@protoc_insertion_point(field_set:TransactionProposal.id)
 }
 
 // -------------------------------------------------------------------

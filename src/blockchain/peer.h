@@ -66,9 +66,10 @@ class OXIIHelper {
         pthread_mutex_destroy(&mutex);
     }
 
-    void C_add(uint64_t trans_id) {
+    void C_add(uint64_t trans_id, Endorsement& endorsement) {
         pthread_mutex_lock(&mutex);
         C.insert(trans_id);
+        endorsements[trans_id] = endorsement;
         pthread_mutex_unlock(&mutex);
     }
 

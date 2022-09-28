@@ -105,6 +105,7 @@ constexpr TransactionProposal::TransactionProposal(
   , values_()
   , received_ts_(nullptr)
   , execution_delay_(uint64_t{0u})
+  , id_(uint64_t{0u})
   , type_(0)
 {}
 struct TransactionProposalDefaultTypeInternal {
@@ -256,6 +257,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_blockchain_2eproto::offsets[] 
   PROTOBUF_FIELD_OFFSET(::TransactionProposal, values_),
   PROTOBUF_FIELD_OFFSET(::TransactionProposal, execution_delay_),
   PROTOBUF_FIELD_OFFSET(::TransactionProposal, received_ts_),
+  PROTOBUF_FIELD_OFFSET(::TransactionProposal, id_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::Request, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -311,11 +313,11 @@ static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOB
   { 30, -1, -1, sizeof(::WriteItem)},
   { 38, -1, -1, sizeof(::Endorsement)},
   { 53, -1, -1, sizeof(::TransactionProposal)},
-  { 64, -1, -1, sizeof(::Request)},
-  { 72, -1, -1, sizeof(::Block)},
-  { 81, -1, -1, sizeof(::Action)},
-  { 90, -1, -1, sizeof(::Reward)},
-  { 98, -1, -1, sizeof(::Experience)},
+  { 65, -1, -1, sizeof(::Request)},
+  { 73, -1, -1, sizeof(::Block)},
+  { 82, -1, -1, sizeof(::Action)},
+  { 91, -1, -1, sizeof(::Reward)},
+  { 99, -1, -1, sizeof(::Experience)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
@@ -350,39 +352,39 @@ const char descriptor_table_protodef_blockchain_2eproto[] PROTOBUF_SECTION_VARIA
   "oogle.protobuf.Timestamp\0226\n\022execution_st"
   "art_ts\030\010 \001(\0132\032.google.protobuf.Timestamp"
   "\0224\n\020execution_end_ts\030\t \001(\0132\032.google.prot"
-  "obuf.Timestamp\"\246\002\n\023TransactionProposal\022\'"
+  "obuf.Timestamp\"\262\002\n\023TransactionProposal\022\'"
   "\n\004type\030\001 \001(\0162\031.TransactionProposal.Type\022"
   "\014\n\004keys\030\002 \003(\t\022\016\n\006values\030\003 \003(\014\022\027\n\017executi"
   "on_delay\030\004 \001(\004\022/\n\013received_ts\030\005 \001(\0132\032.go"
-  "ogle.protobuf.Timestamp\"~\n\004Type\022\007\n\003Get\020\000"
-  "\022\007\n\003Put\020\001\022\023\n\017TransactSavings\020\002\022\023\n\017Deposi"
-  "tChecking\020\003\022\017\n\013SendPayment\020\004\022\016\n\nWriteChe"
-  "ck\020\005\022\016\n\nAmalgamate\020\006\022\t\n\005Query\020\007\"T\n\007Reque"
-  "st\022!\n\013endorsement\030\001 \001(\0132\014.Endorsement\022&\n"
-  "\010proposal\030\002 \001(\0132\024.TransactionProposal\"V\n"
-  "\005Block\022\"\n\014transactions\030\001 \003(\0132\014.Endorseme"
-  "nt\022\020\n\010block_id\030\002 \001(\004\022\027\n\017prev_block_hash\030"
-  "\003 \001(\t\"E\n\006Action\022\021\n\tblocksize\030\001 \001(\004\022\027\n\017ea"
-  "rly_execution\030\002 \001(\010\022\017\n\007reorder\030\003 \001(\010\"/\n\006"
-  "Reward\022\022\n\nthroughput\030\001 \001(\001\022\021\n\tis_leader\030"
-  "\002 \001(\010\"\237\001\n\nExperience\022\023\n\013write_ratio\030\001 \001("
-  "\001\022\025\n\rhot_key_ratio\030\002 \001(\001\022\032\n\022trans_arriva"
-  "l_rate\030\003 \001(\001\022\027\n\017execution_delay\030\004 \001(\001\022\027\n"
-  "\006action\030\005 \001(\0132\007.Action\022\027\n\006reward\030\006 \001(\0132\007"
-  ".Reward2\263\003\n\010PeerComm\0223\n\016append_entries\022\016"
-  ".AppendRequest\032\017.AppendResponse\"\000\0222\n\014sen"
-  "d_to_peer\022\010.Request\032\026.google.protobuf.Em"
-  "pty\"\000\022;\n\023send_to_peer_stream\022\010.Request\032\026"
-  ".google.protobuf.Empty\"\000(\001\022;\n\013prepopulat"
-  "e\022\024.TransactionProposal\032\024.PrepopulateRes"
-  "ponse\"\000\022F\n\022start_benchmarking\022\026.google.p"
-  "rotobuf.Empty\032\026.google.protobuf.Empty\"\000\022"
-  "D\n\020end_benchmarking\022\026.google.protobuf.Em"
-  "pty\032\026.google.protobuf.Empty\"\000\0226\n\021start_n"
-  "ew_episode\022\007.Action\032\026.google.protobuf.Em"
-  "pty\"\0002E\n\tAgentComm\0228\n\023end_current_episod"
-  "e\022\007.Reward\032\026.google.protobuf.Empty\"\000b\006pr"
-  "oto3"
+  "ogle.protobuf.Timestamp\022\n\n\002id\030\006 \001(\004\"~\n\004T"
+  "ype\022\007\n\003Get\020\000\022\007\n\003Put\020\001\022\023\n\017TransactSavings"
+  "\020\002\022\023\n\017DepositChecking\020\003\022\017\n\013SendPayment\020\004"
+  "\022\016\n\nWriteCheck\020\005\022\016\n\nAmalgamate\020\006\022\t\n\005Quer"
+  "y\020\007\"T\n\007Request\022!\n\013endorsement\030\001 \001(\0132\014.En"
+  "dorsement\022&\n\010proposal\030\002 \001(\0132\024.Transactio"
+  "nProposal\"V\n\005Block\022\"\n\014transactions\030\001 \003(\013"
+  "2\014.Endorsement\022\020\n\010block_id\030\002 \001(\004\022\027\n\017prev"
+  "_block_hash\030\003 \001(\t\"E\n\006Action\022\021\n\tblocksize"
+  "\030\001 \001(\004\022\027\n\017early_execution\030\002 \001(\010\022\017\n\007reord"
+  "er\030\003 \001(\010\"/\n\006Reward\022\022\n\nthroughput\030\001 \001(\001\022\021"
+  "\n\tis_leader\030\002 \001(\010\"\237\001\n\nExperience\022\023\n\013writ"
+  "e_ratio\030\001 \001(\001\022\025\n\rhot_key_ratio\030\002 \001(\001\022\032\n\022"
+  "trans_arrival_rate\030\003 \001(\001\022\027\n\017execution_de"
+  "lay\030\004 \001(\001\022\027\n\006action\030\005 \001(\0132\007.Action\022\027\n\006re"
+  "ward\030\006 \001(\0132\007.Reward2\263\003\n\010PeerComm\0223\n\016appe"
+  "nd_entries\022\016.AppendRequest\032\017.AppendRespo"
+  "nse\"\000\0222\n\014send_to_peer\022\010.Request\032\026.google"
+  ".protobuf.Empty\"\000\022;\n\023send_to_peer_stream"
+  "\022\010.Request\032\026.google.protobuf.Empty\"\000(\001\022;"
+  "\n\013prepopulate\022\024.TransactionProposal\032\024.Pr"
+  "epopulateResponse\"\000\022F\n\022start_benchmarkin"
+  "g\022\026.google.protobuf.Empty\032\026.google.proto"
+  "buf.Empty\"\000\022D\n\020end_benchmarking\022\026.google"
+  ".protobuf.Empty\032\026.google.protobuf.Empty\""
+  "\000\0226\n\021start_new_episode\022\007.Action\032\026.google"
+  ".protobuf.Empty\"\0002E\n\tAgentComm\0228\n\023end_cu"
+  "rrent_episode\022\007.Reward\032\026.google.protobuf"
+  ".Empty\"\000b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_blockchain_2eproto_deps[2] = {
   &::descriptor_table_google_2fprotobuf_2fempty_2eproto,
@@ -390,7 +392,7 @@ static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_blockchain_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_blockchain_2eproto = {
-  false, false, 1924, descriptor_table_protodef_blockchain_2eproto, "blockchain.proto", 
+  false, false, 1936, descriptor_table_protodef_blockchain_2eproto, "blockchain.proto", 
   &descriptor_table_blockchain_2eproto_once, descriptor_table_blockchain_2eproto_deps, 2, 12,
   schemas, file_default_instances, TableStruct_blockchain_2eproto::offsets,
   file_level_metadata_blockchain_2eproto, file_level_enum_descriptors_blockchain_2eproto, file_level_service_descriptors_blockchain_2eproto,
@@ -1993,6 +1995,14 @@ const char* TransactionProposal::_InternalParse(const char* ptr, ::PROTOBUF_NAME
         } else
           goto handle_unusual;
         continue;
+      // uint64 id = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 48)) {
+          id_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
       default:
         goto handle_unusual;
     }  // switch
@@ -2059,6 +2069,12 @@ failure:
         5, _Internal::received_ts(this), target, stream);
   }
 
+  // uint64 id = 6;
+  if (this->_internal_id() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt64ToArray(6, this->_internal_id(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -2103,6 +2119,11 @@ size_t TransactionProposal::ByteSizeLong() const {
     total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64SizePlusOne(this->_internal_execution_delay());
   }
 
+  // uint64 id = 6;
+  if (this->_internal_id() != 0) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64SizePlusOne(this->_internal_id());
+  }
+
   // .TransactionProposal.Type type = 1;
   if (this->_internal_type() != 0) {
     total_size += 1 +
@@ -2138,6 +2159,9 @@ void TransactionProposal::MergeFrom(const TransactionProposal& from) {
   }
   if (from._internal_execution_delay() != 0) {
     _internal_set_execution_delay(from._internal_execution_delay());
+  }
+  if (from._internal_id() != 0) {
+    _internal_set_id(from._internal_id());
   }
   if (from._internal_type() != 0) {
     _internal_set_type(from._internal_type());

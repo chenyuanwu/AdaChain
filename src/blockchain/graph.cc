@@ -317,13 +317,14 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
 }
 
 void build_conflict_graph_oxii(queue<string>& request_queue, vector<TransactionProposal>& proposals, Graph& conflict_graph) {
-    // the index in proposals represents the transaction propoal id
+    int index = 0; // the index in proposals represents the transaction propoal id
     while (request_queue.size()) {
         TransactionProposal proposal;
         if (!proposal.ParseFromString(request_queue.front()) ||
             !proposal.GetReflection()->GetUnknownFields(proposal).empty()) {
             LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
         } else {
+            proposal.set_id(index++);
             proposals.push_back(proposal);
         }
         request_queue.pop();

@@ -69,6 +69,7 @@ message TransactionProposal {
     repeated bytes values = 3;
     uint64 execution_delay = 4;
     google.protobuf.Timestamp received_ts = 5;
+    uint64 id = 6;
 }
 
 message Request {
