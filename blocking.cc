@@ -265,7 +265,6 @@ void *block_formation_thread(void *arg) {
 
                 /* write the block to stable storage */
                 //print the block id version number 
-                uint64_t last_block_id = block_index;
                 block.set_block_id(block_index);
                 block.set_prev_block_hash(prev_block_hash);  // write to disk and hash the block
                 serialized_block.clear();
@@ -277,6 +276,7 @@ void *block_formation_thread(void *arg) {
                 block_store.write(serialized_block.c_str(), size);
                 block_store.flush();
                 prev_block_hash = sha256(block.SerializeAsString());
+                last_block_id = block_index;
 
                 block_index++;
                 //tran_index will start from request_queue.size() since the request_queue is filled
