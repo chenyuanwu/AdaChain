@@ -149,6 +149,7 @@ void *block_formation_thread(void *arg) {
                                 if ((!block.mutable_transactions(i)->aborted()) && validate_transaction(record_version, block.mutable_transactions(i)))
                                 {
                                     total_ops++;
+                                    LOG(INFO) << "TOTAL OPS changed in reoder xov" << total_ops;
                                     //counts the reads and writes in every transaction(i) in each block
                                     if(( block.mutable_transactions(i)->write_set_size()) != 0) 
                                     {
@@ -314,7 +315,8 @@ void *simulation_handler(void *arg) {
         Request req;
         Endorsement *endorsement = req.mutable_endorsement();
         LOG(DEBUG) << "simulation handler thread: received transaction proposal.";
- 
+        //print last_block_id
+        LOG(INFO) << "last_block_id: " << last_block_id;
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
             ycsb_get(proposal.keys(), endorsement, last_block_id);
             if(!ycsb_get) {                 //corner case of last_block_id = 0 which means this is the first transaction

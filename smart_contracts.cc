@@ -9,6 +9,8 @@ bool ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement, lo
     uint64_t block_id = 0;
     kv_get(keys[0], endorsement, nullptr, block_id);
     //early abort
+    //print block_id and last_block_id
+    LOG(INFO) << "block_id: " << block_id << " last_block_id: " << last_block_id;
     if(block_id > last_block_id){
         return false;
     }
