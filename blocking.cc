@@ -164,6 +164,7 @@ void *block_formation_thread(void *arg) {
                                 }
                                 else
                                 {
+                                    LOG(INFO) << "Transaction " << i << " in block " << block_index << " is aborted.";
                                     block.mutable_transactions(i)->set_aborted(true);
                                 }
                             //push the remaining transactions back into request_queue 
@@ -219,6 +220,7 @@ void *block_formation_thread(void *arg) {
                                             }
                                             endorsement->set_aborted(false);
                                         } else {
+                                            LOG(INFO)<< "aborted";
                                             endorsement->set_aborted(true);
                                         }
                                     } 
@@ -318,11 +320,10 @@ void *simulation_handler(void *arg) {
             if(!ycsb_get && last_block_id!=0) {                 //corner case of last_block_id = 0 which means this is the first transaction
                 LOG(INFO) << "EARLY ABORT";
                 endorsement->set_aborted(true);
-                return nullptr;
             }
             else
             {
-                endorsement->set_aborted(true);
+                endorsement->set_aborted(false);
             }
         } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
             ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
@@ -333,7 +334,6 @@ void *simulation_handler(void *arg) {
             if(!smallbank && last_block_id!=0) {
                 LOG(INFO) << "EARLY ABORT";
                 endorsement->set_aborted(true);
-                return nullptr;
             }
             else
             {
