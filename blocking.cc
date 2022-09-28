@@ -164,7 +164,7 @@ void *block_formation_thread(void *arg) {
                                 }
                                 else
                                 {
-                                    LOG(INFO) << "Transaction " << i << " in block " << block_index << " is aborted.";
+                                    //LOG(INFO) << "Transaction " << i << " in block " << block_index << " is aborted.";
                                     block.mutable_transactions(i)->set_aborted(true);
                                 }
                             //push the remaining transactions back into request_queue 
@@ -220,7 +220,7 @@ void *block_formation_thread(void *arg) {
                                             }
                                             endorsement->set_aborted(false);
                                         } else {
-                                            LOG(INFO)<< "aborted";
+                                            //LOG(INFO)<< "aborted";
                                             endorsement->set_aborted(true);
                                         }
                                     } 
