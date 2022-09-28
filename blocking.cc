@@ -305,6 +305,8 @@ void *block_formation_thread(void *arg) {
 //At the start of the simulation phase, we first identify the block-ID of the last block that made it into the ledger
 //This is stored as a global variable last_block_id and changes(atomically) everytime a new block is added to the ledger
 void *simulation_handler(void *arg) {
+
+    bool early_abort = peer_config["arch"]["early_abort"].GetBool();
     LOG(DEBUG) << "simulation handler thread started.";
     struct ExecThreadContext ctx = *(struct ExecThreadContext *)arg;
     int thread_index = ctx.thread_index;
@@ -320,28 +322,22 @@ void *simulation_handler(void *arg) {
         Endorsement *endorsement = req.mutable_endorsement();
         LOG(DEBUG) << "simulation handler thread: received transaction proposal.";
         //print last_block_id
-        LOG(INFO) << "last_block_id: " << last_block_id;
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
             //apply condition if ycsb_get returns false 
-            if (ycsb_get(proposal.keys(), endorsement, last_block_id)) {
-                endorsement->set_aborted(false);
-            } else {
-                LOG(INFO) << "EARLY ABORT";
+            if (!ycsb_get(proposal.keys(), endorsement, last_block_id) && !early_abort) {
                 endorsement->set_aborted(true);
+            } else {
+                endorsement->set_aborted(false);
             }
         } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
             ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
             endorsement->set_aborted(false);
 
         } else {
-            if(smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id))
-            {
-                endorsement->set_aborted(false);
-            }
-            else
-            {
-                LOG(INFO) << "EARLY ABORT";
+            if((!smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id)) && !early_abort) {
                 endorsement->set_aborted(true);
+            } else {
+                endorsement->set_aborted(false);
             }
         }
         if (is_leader) {

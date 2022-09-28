@@ -16,11 +16,11 @@ echo "\"trans_per_interval\": $5," >> client_config.json
 echo "\"interval\": $6," >> client_config.json
 echo "\"execution_delay\": $7" >> client_config.json 
 echo "}" >> client_config.json
-echo "{\"arch\": {\"blocksize\": $8,\"early_execution\": $9,\"reorder\": ${10},\"block_pipe_num\": ${11}},\"sysconfig\": {\"num_execution_threads\": 16,\"leader\": \"10.10.1.2:50052\",\"followers\": [\"10.10.1.3:50052\",\"10.10.1.4:50052\"]}}" > peer_config.json
+echo "{\"arch\": {\"blocksize\": $8,\"early_execution\": $9,\"reorder\": ${10},\"early_abort\": ${11},\"block_pipe_num\": ${12}},\"sysconfig\": {\"num_execution_threads\": 16,\"leader\": \"10.10.1.2:50052\",\"followers\": [\"10.10.1.3:50052\",\"10.10.1.4:50052\"]}}" > peer_config.json
 cd ..
  
 rm -rf peer.cc
-if [[ "${12}" != "" ]]; then
+if [[ "${13}" != "" ]]; then
 ln -s blocking.cc peer.cc
 else
 ln -s nonblocking.cc peer.cc
@@ -29,7 +29,11 @@ fi
 make clean
 make
 
-./peer -l -a 10.10.1.2:50052
-./peer -a 10.10.1.3:50052
-./peer -a 10.10.1.4:50052
-./client
+//sleep 2s
+//sleep 3s
+//sleep 5s
+
+//./peer -l -a 10.10.1.2:50052
+//./peer -a 10.10.1.3:50052
+//./peer -a 10.10.1.4:50052
+//./client
