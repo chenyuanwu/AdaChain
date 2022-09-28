@@ -149,7 +149,6 @@ void *block_formation_thread(void *arg) {
                                 if ((!block.mutable_transactions(i)->aborted()) && validate_transaction(record_version, block.mutable_transactions(i)))
                                 {
                                     total_ops++;
-                                    LOG(INFO) << "TOTAL OPS changed in reoder xov" << total_ops;
                                     //counts the reads and writes in every transaction(i) in each block
                                     if(( block.mutable_transactions(i)->write_set_size()) != 0) 
                                     {
@@ -318,28 +317,26 @@ void *simulation_handler(void *arg) {
         //print last_block_id
         LOG(INFO) << "last_block_id: " << last_block_id;
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-            ycsb_get(proposal.keys(), endorsement, last_block_id);
-            if(!ycsb_get) {                 //corner case of last_block_id = 0 which means this is the first transaction
+            //apply condition if ycsb_get returns false 
+            if (ycsb_get(proposal.keys(), endorsement, last_block_id)) {
+                endorsement->set_aborted(false);
+            } else {
                 LOG(INFO) << "EARLY ABORT";
                 endorsement->set_aborted(true);
-            }
-            else
-            {
-                endorsement->set_aborted(false);
             }
         } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
             ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
             endorsement->set_aborted(false);
 
         } else {
-            smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id);
-            if(!smallbank) {
-                LOG(INFO) << "EARLY ABORT";
-                endorsement->set_aborted(true);
+            if(smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id))
+            {
+                endorsement->set_aborted(false);
             }
             else
             {
-                endorsement->set_aborted(false);
+                LOG(INFO) << "EARLY ABORT";
+                endorsement->set_aborted(true);
             }
         }
         if (is_leader) {
@@ -351,7 +348,8 @@ void *simulation_handler(void *arg) {
             if (!status.ok()) {
                 LOG(ERROR) << "grpc failed in simulation handler.";
             }
-        }}
+        }
+    }
     return nullptr;
 }
 
