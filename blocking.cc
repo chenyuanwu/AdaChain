@@ -265,9 +265,8 @@ void *block_formation_thread(void *arg) {
 
                 /* write the block to stable storage */
                 //print the block id version number 
-                LOG(INFO) << "BLOCK ID: "<< block_index << ",READ: " << readn << ",WRITE RATIO: " << writen;
-                block.set_block_id(block_index);
                 uint64_t last_block_id = block_index;
+                block.set_block_id(block_index);
                 block.set_prev_block_hash(prev_block_hash);  // write to disk and hash the block
                 serialized_block.clear();
                 if (!block.SerializeToString(&serialized_block)) {
