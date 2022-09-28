@@ -317,7 +317,7 @@ void *simulation_handler(void *arg) {
  
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
             ycsb_get(proposal.keys(), endorsement, last_block_id);
-            if(!ycsb_get && last_block_id!=0) {                 //corner case of last_block_id = 0 which means this is the first transaction
+            if(!ycsb_get) {                 //corner case of last_block_id = 0 which means this is the first transaction
                 LOG(INFO) << "EARLY ABORT";
                 endorsement->set_aborted(true);
             }
@@ -331,7 +331,7 @@ void *simulation_handler(void *arg) {
 
         } else {
             smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id);
-            if(!smallbank && last_block_id!=0) {
+            if(!smallbank) {
                 LOG(INFO) << "EARLY ABORT";
                 endorsement->set_aborted(true);
             }
