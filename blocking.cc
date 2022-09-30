@@ -342,17 +342,13 @@ void *simulation_handler(void *arg) {
         }
         if (is_leader) {
             //ask chenyuan
-            if (!endorsement->aborted()) 
-            {ordering_queue.add(endorsement->SerializeAsString());}
+            ordering_queue.add(endorsement->SerializeAsString());
         } else {
             ClientContext context;
             google::protobuf::Empty rsp;
-            if (!endorsement->aborted()) 
-            {
             Status status = stub->send_to_peer(&context, req, &rsp);
             if (!status.ok()) {
                 LOG(ERROR) << "grpc failed in simulation handler.";
-            }
             }
         }
     }
