@@ -317,11 +317,13 @@ void *simulation_handler(void *arg) {
         TransactionProposal proposal = execution_queue.pop();
         Request req;
         Endorsement *endorsement = req.mutable_endorsement();
+        bool checking_condition;
         LOG(DEBUG) << "simulation handler thread: received transaction proposal.";
         //print last_block_id
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
             //apply condition if ycsb_get returns false
-            if (!ycsb_get(proposal.keys(), endorsement, last_block_id) && early_abort) {
+            checking_condition = ycsb_get(proposal.keys(), endorsement, last_block_id);
+            if (!checking_condition && early_abort) {
                 endorsement->set_aborted(true);
             } else {
                 endorsement->set_aborted(false);
@@ -331,20 +333,26 @@ void *simulation_handler(void *arg) {
             endorsement->set_aborted(false);
 
         } else {
-            if((!smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id)) && early_abort) {
+            checking_condition =  smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id)
+            if(!checking_condition && early_abort) {
                 endorsement->set_aborted(true);
             } else {
                 endorsement->set_aborted(false);
             }
         }
         if (is_leader) {
-            ordering_queue.add(endorsement->SerializeAsString());
+            //ask chenyuan
+            if (!endorsement->aborted()) 
+            {ordering_queue.add(endorsement->SerializeAsString());}
         } else {
             ClientContext context;
             google::protobuf::Empty rsp;
+            if (!endorsement->aborted()) 
+            {
             Status status = stub->send_to_peer(&context, req, &rsp);
             if (!status.ok()) {
                 LOG(ERROR) << "grpc failed in simulation handler.";
+            }
             }
         }
     }
