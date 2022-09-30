@@ -75,7 +75,7 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
 }
 
 void *block_formation_thread(void *arg) {
-    LOG(INFO) << "Block formation thread is running.";
+    //LOG(INFO) << "Block formation thread is running.";
 
     ifstream log("./log/raft.log", ios::in);
     assert(log.is_open());
@@ -165,7 +165,6 @@ void *block_formation_thread(void *arg) {
                                 }
                                 else
                                 {
-                                    //LOG(INFO) << "Transaction " << i << " in block " << block_index << " is aborted.";
                                     block.mutable_transactions(i)->set_aborted(true);
                                 }
                             //push the remaining transactions back into request_queue 
@@ -222,7 +221,6 @@ void *block_formation_thread(void *arg) {
                                             }
                                             endorsement->set_aborted(false);
                                         } else {
-                                            //LOG(INFO)<< "aborted";
                                             endorsement->set_aborted(true);
                                         }
                                     } 
@@ -256,7 +254,6 @@ void *block_formation_thread(void *arg) {
                                         //transaction is a read only transaction
                                         readn++;
                                     }
-                                    //LOG(INFO) << "BLOCK ID3: "<< block_index << ",READ: " << endorsement->read_set_size() << ",WRITE RATIO: " << endorsement->write_set_size();
                         }
                         trans_index_++;
                         request_queue.pop();
@@ -326,7 +323,6 @@ void *simulation_handler(void *arg) {
             //apply condition if ycsb_get returns false
             if (!ycsb_get(proposal.keys(), endorsement, last_block_id) && early_abort) {
                 endorsement->set_aborted(true);
-                LOG(INFO) << "ABORT";
             } else {
                 endorsement->set_aborted(false);
             }
@@ -362,7 +358,7 @@ void run_peer(const string &server_address) {
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
     builder.RegisterService(&service);
     std::unique_ptr<Server> server(builder.BuildAndStart());
-    LOG(INFO) << "RPC server listening on " << server_address << ".";
+    //LOG(INFO) << "RPC server listening on " << server_address << ".";
 
     /* spawn the raft threads on leader, block formation thread, and execution threads */
     unique_ptr<PeerComm::Stub> stub;

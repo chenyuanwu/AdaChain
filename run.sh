@@ -18,7 +18,9 @@ echo "\"execution_delay\": $7" >> client_config.json
 echo "}" >> client_config.json
 echo "{\"arch\": {\"blocksize\": $8,\"early_execution\": $9,\"reorder\": ${10},\"early_abort\": ${11},\"block_pipe_num\": ${12}},\"sysconfig\": {\"num_execution_threads\": 16,\"leader\": \"10.10.1.2:50052\",\"followers\": [\"10.10.1.3:50052\",\"10.10.1.4:50052\"]}}" > peer_config.json
 cd ..
- 
+
+echo "write_ratio:$1		hot_key_ratio:$2	num_keys:$3	num_hot_keys:$4	trans_per_interval:$5	interval:$6	execution_delay:$7	blocksize:$8	xov:${9}	reorder:${10}	early_abort:${11}	block_pipe_num:${12}";
+
 rm -rf peer.cc >> /dev/null
 if [[ "${13}" != "" ]]; then
 ln -s blocking.cc peer.cc
@@ -33,7 +35,7 @@ make >> /dev/null
 #sleep 3s
 #sleep 5s
 
-#./peer -l -a 10.10.1.2:50052
+./peer -l -a 10.10.1.2:50052
 #./peer -a 10.10.1.3:50052
 #./peer -a 10.10.1.4:50052
 #./client

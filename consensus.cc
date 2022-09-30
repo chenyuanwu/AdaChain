@@ -15,7 +15,7 @@ extern atomic<long> writen;
 
 void *log_replication_thread(void *arg) {
     struct RaftThreadContext ctx = *(struct RaftThreadContext *)arg;
-    LOG(INFO) << "[server_index = " << ctx.server_index << "]log replication thread is running for follower " << ctx.grpc_endpoint << ".";
+    //LOG(INFO) << "[server_index = " << ctx.server_index << "]log replication thread is running for follower " << ctx.grpc_endpoint << ".";
     shared_ptr<grpc::Channel> channel = grpc::CreateChannel(ctx.grpc_endpoint, grpc::InsecureChannelCredentials());
     unique_ptr<PeerComm::Stub> stub(PeerComm::NewStub(channel));
 
@@ -136,7 +136,7 @@ Status PeerCommImpl::prepopulate(ServerContext *context, const TransactionPropos
 }
 
 Status PeerCommImpl::start_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) {
-    LOG(INFO) << "starts benchmarking.";
+    //LOG(INFO) << "starts benchmarking.";
     start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
 
     return Status::OK;
@@ -149,9 +149,7 @@ Status PeerCommImpl::end_benchmarking(ServerContext *context, const google::prot
     double readwriteratio = (double)readn.load() / ((double)readn.load() + (double)writen.load());
     double writereadratio = (double)writen.load() / ((double)readn.load() + (double)writen.load());
 
-    LOG(INFO) << "throughput = " << throughput << "tps.";
-    LOG(INFO) << "Read write ratio: R/(R+W) = " << readwriteratio;
-    LOG(INFO) << "Write read ratio: W/(R+W) = " << writereadratio;
+    LOG(INFO) << "throughput = " << throughput << "			     Read write ratio: R/(R+W) = " << readwriteratio;
 
 
     return Status::OK;
