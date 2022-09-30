@@ -19,21 +19,21 @@ echo "}" >> client_config.json
 echo "{\"arch\": {\"blocksize\": $8,\"early_execution\": $9,\"reorder\": ${10},\"early_abort\": ${11},\"block_pipe_num\": ${12}},\"sysconfig\": {\"num_execution_threads\": 16,\"leader\": \"10.10.1.2:50052\",\"followers\": [\"10.10.1.3:50052\",\"10.10.1.4:50052\"]}}" > peer_config.json
 cd ..
  
-rm -rf peer.cc
+rm -rf peer.cc >> /dev/null
 if [[ "${13}" != "" ]]; then
 ln -s blocking.cc peer.cc
 else
 ln -s nonblocking.cc peer.cc
 fi
 
-make clean
-make
+make clean >> /dev/null
+make >> /dev/null
 
-//sleep 2s
-//sleep 3s
-//sleep 5s
+#sleep 2s
+#sleep 3s
+#sleep 5s
 
-//./peer -l -a 10.10.1.2:50052
-//./peer -a 10.10.1.3:50052
-//./peer -a 10.10.1.4:50052
-//./client
+#./peer -l -a 10.10.1.2:50052
+#./peer -a 10.10.1.3:50052
+#./peer -a 10.10.1.4:50052
+#./client

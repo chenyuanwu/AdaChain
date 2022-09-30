@@ -323,9 +323,10 @@ void *simulation_handler(void *arg) {
         LOG(DEBUG) << "simulation handler thread: received transaction proposal.";
         //print last_block_id
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-            //apply condition if ycsb_get returns false 
-            if (!ycsb_get(proposal.keys(), endorsement, last_block_id) && !early_abort) {
+            //apply condition if ycsb_get returns false
+            if (!ycsb_get(proposal.keys(), endorsement, last_block_id) && early_abort) {
                 endorsement->set_aborted(true);
+                LOG(INFO) << "ABORT";
             } else {
                 endorsement->set_aborted(false);
             }
@@ -334,7 +335,7 @@ void *simulation_handler(void *arg) {
             endorsement->set_aborted(false);
 
         } else {
-            if((!smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id)) && !early_abort) {
+            if((!smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id)) && early_abort) {
                 endorsement->set_aborted(true);
             } else {
                 endorsement->set_aborted(false);
