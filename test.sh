@@ -1,20 +1,19 @@
-#!/bin/bash 
+ #!/bin/bash 
 num_keys="10000"
 interval="50000"
 early_execution="true"
 reorder="false"
 num_hot_keys="10"
 execution_delay="10000"
+trans_per_interval="150"
 #high contention, high execution delay, high trans arrival,
 #if without early abort is lower than without early abort and number 
 for block_size in $(seq 25 25 100);
 do
     for write_ratio in $(seq 0.1 0.1 0.9);
     do
-        for hot_key_ratio in $(seq 0.1 0.1 0.5);
+        for hot_key_ratio in $(seq 0.1 0.1 0.9);
         do 
-            for trans_per_interval in $(seq 50 50 200);
-            do
                 for early_abort in false true;
                 do
                         timeout -s SIGINT 120 ./run.sh $write_ratio $hot_key_ratio $num_keys $num_hot_keys $trans_per_interval $interval $execution_delay $block_size $early_execution $reorder $early_abort 1 -b
