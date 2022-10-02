@@ -202,6 +202,7 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
     Graph conflict_graph;
     vector<Endorsement> S;  // the index represents the transaction id
     vector<Endorsement> S_earlyabort;  // the index represents the transaction id
+    Bool someflag=false;
     while (request_queue.size()) {
         Endorsement endorsement;
         if (!endorsement.ParseFromString(request_queue.front()) ||
@@ -215,13 +216,15 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
             }
             else
             {
-                S_earlyabort(endorsement);
+
+                S_earlyabort.push_back(endorsement);
+                someflag=true;
             }
         }
         request_queue.pop();
     }
-    if(!endorsement.aborted())
-
+    if(!someflag)
+    {
         build_conflict_graph_xov(S, conflict_graph);  // step 1
         // LOG(INFO) << "finished step 1.";
 
