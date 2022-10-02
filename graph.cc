@@ -202,7 +202,7 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
     Graph conflict_graph;
     vector<Endorsement> S;  // the index represents the transaction id
     vector<Endorsement> S_earlyabort;  // the index represents the transaction id
-    Bool someflag=false;
+    bool someflag=false;
     while (request_queue.size()) {
         Endorsement endorsement;
         if (!endorsement.ParseFromString(request_queue.front()) ||
