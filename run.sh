@@ -28,8 +28,10 @@ else
 ln -s nonblocking.cc peer.cc
 fi
 
-make clean >> /dev/null
-make >> /dev/null
+#make clean >> /dev/null
+#make clean >> /dev/null
+make clean
+make 
 
 #sleep 2s
 #sleep 3s
