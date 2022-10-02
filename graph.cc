@@ -201,6 +201,7 @@ void build_conflict_graph_xov(const vector<Endorsement>& transactions, Graph& co
 void xov_reorder(queue<string>& request_queue, Block& block) {
     Graph conflict_graph;
     vector<Endorsement> S;  // the index represents the transaction id
+    vector<Endorsement> S_earlyaborted;  // the index represents the transaction id
     while (request_queue.size()) {
         Endorsement endorsement;
         if (!endorsement.ParseFromString(request_queue.front())  ||
@@ -209,119 +210,136 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
         } else {
             if(!endorsement.aborted())
             {
-
                 endorsement.set_aborted(true);
+                S.push_back(endorsement);
             } 
             else
             {
-                endorsement.set_aborted(false);
+                if(!endorsement.aborted())
+                {
+                    endorsement.set_aborted(true);
+                    S.push_back(endorsement);
+                } 
+                else
+                {
+                    endorsement.set_aborted(false);
+                    S_earlyaborted.push_back(endorsement);
+                }
             }
-            S.push_back(endorsement);
         }
 
         request_queue.pop();
     }
 
-    build_conflict_graph_xov(S, conflict_graph);  // step 1
-    // LOG(INFO) << "finished step 1.";
+    if(!endorsement.aborted()){
+            build_conflict_graph_xov(S, conflict_graph);  // step 1
+            // LOG(INFO) << "finished step 1.";
 
-    CyclesSearch cycles_search;
-    cycles_search.get_elementary_cycles(conflict_graph);  // step 2
-    // LOG(INFO) << "finished step 2 with " << cycles_search.cycles.size() << " cycles.";
+            CyclesSearch cycles_search;
+            cycles_search.get_elementary_cycles(conflict_graph);  // step 2
+            // LOG(INFO) << "finished step 2 with " << cycles_search.cycles.size() << " cycles.";
 
-    boost::heap::fibonacci_heap<heap_data> transactions_in_cycles;  // step 3
-    typedef typename boost::heap::fibonacci_heap<heap_data>::handle_type handle_t;
-    unordered_map<int, handle_t> transaction_to_handle;
-    for (int i = 0; i < cycles_search.cycles.size(); i++) {
-        for (int j = 0; j < cycles_search.cycles[i].size(); j++) {
-            int t = cycles_search.cycles[i][j];
-            auto it = transaction_to_handle.find(t);
-            if (it != transaction_to_handle.end()) {
-                int count = (*(it->second)).payload;
-                count++;
-                heap_data f(t, count);
-                transactions_in_cycles.update(it->second, f);
-            } else {
-                heap_data f(t, 1);
-                handle_t handle = transactions_in_cycles.push(f);
-                transaction_to_handle[t] = handle;
-            }
-        }
-    }
-    // LOG(INFO) << "finished step 3.";
-
-    while (!cycles_search.cycles.empty()) {  // step 4
-        // LOG(INFO) << "now there exists " << cycles_search.cycles.size() << " cycles.";
-        int t = transactions_in_cycles.top().key;
-        int appear_count = transactions_in_cycles.top().payload;
-        transactions_in_cycles.pop();
-        // LOG(INFO) << "removed transaction " << t << ", which appeared in " << appear_count << " cycles.";
-        S[t].set_aborted(true);
-        for (auto c_it = cycles_search.cycles.begin(); c_it != cycles_search.cycles.end();) {
-            auto p = find(c_it->begin(), c_it->end(), t);
-            if (p != c_it->end()) {
-                c_it->erase(p);
-                for (auto it = c_it->begin(); it != c_it->end(); it++) {
-                    int t_prime = *it;
-                    int count = (*transaction_to_handle[t_prime]).payload;
-                    count--;
-                    heap_data f(t_prime, count);
-                    transactions_in_cycles.update(transaction_to_handle[t_prime], f);
+            boost::heap::fibonacci_heap<heap_data> transactions_in_cycles;  // step 3
+            typedef typename boost::heap::fibonacci_heap<heap_data>::handle_type handle_t;
+            unordered_map<int, handle_t> transaction_to_handle;
+            for (int i = 0; i < cycles_search.cycles.size(); i++) {
+                for (int j = 0; j < cycles_search.cycles[i].size(); j++) {
+                    int t = cycles_search.cycles[i][j];
+                    auto it = transaction_to_handle.find(t);
+                    if (it != transaction_to_handle.end()) {
+                        int count = (*(it->second)).payload;
+                        count++;
+                        heap_data f(t, count);
+                        transactions_in_cycles.update(it->second, f);
+                    } else {
+                        heap_data f(t, 1);
+                        handle_t handle = transactions_in_cycles.push(f);
+                        transaction_to_handle[t] = handle;
+                    }
                 }
-                c_it = cycles_search.cycles.erase(c_it);
+            }
+            // LOG(INFO) << "finished step 3.";
+
+            while (!cycles_search.cycles.empty()) {  // step 4
+                // LOG(INFO) << "now there exists " << cycles_search.cycles.size() << " cycles.";
+                int t = transactions_in_cycles.top().key;
+                int appear_count = transactions_in_cycles.top().payload;
+                transactions_in_cycles.pop();
+                // LOG(INFO) << "removed transaction " << t << ", which appeared in " << appear_count << " cycles.";
+                S[t].set_aborted(true);
+                for (auto c_it = cycles_search.cycles.begin(); c_it != cycles_search.cycles.end();) {
+                    auto p = find(c_it->begin(), c_it->end(), t);
+                    if (p != c_it->end()) {
+                        c_it->erase(p);
+                        for (auto it = c_it->begin(); it != c_it->end(); it++) {
+                            int t_prime = *it;
+                            int count = (*transaction_to_handle[t_prime]).payload;
+                            count--;
+                            heap_data f(t_prime, count);
+                            transactions_in_cycles.update(transaction_to_handle[t_prime], f);
+                        }
+                        c_it = cycles_search.cycles.erase(c_it);
+                    } else {
+                        c_it++;
+                    }
+                }
+            }
+            // LOG(INFO) << "finished step 4.";
+
+            vector<Endorsement> S_prime;    // step 5
+            vector<Endorsement> S_aborted;  // record early aborted transactions
+            Graph conflict_graph_prime;     // cycle-free conflict graph
+            for (int i = 0; i < S.size(); i++) {
+                if (!S[i].aborted()) {
+                    S_prime.push_back(S[i]);
+                } else {
+                    S_aborted.push_back(S[i]);
+                }
+            }
+            // LOG(INFO) << "constructed S_prime, now S_prime has " << S_prime.size() << " transactions.";
+            build_conflict_graph_xov(S_prime, conflict_graph_prime);
+
+            vector<int> in_degree(conflict_graph_prime.size(), 0);
+            queue<int> Q;
+            for (auto u_it = conflict_graph_prime.begin(); u_it != conflict_graph_prime.end(); u_it++) {
+                for (auto v_it = u_it->out_edges.begin(); v_it != u_it->out_edges.end(); v_it++) {
+                    in_degree[*v_it] = in_degree[*v_it] + 1;
+                }
+            }
+            for (int u = 0; u < in_degree.size(); u++) {
+                if (in_degree[u] == 0) {
+                    Q.push(u);
+                }
+            }
+            while (Q.size()) {
+                int u = Q.front();
+                Q.pop();
+                Endorsement* endorsement = block.add_transactions();  // output u
+                (*endorsement) = S_prime[u];
+                for (auto v_it = conflict_graph_prime[u].out_edges.begin(); v_it != conflict_graph_prime[u].out_edges.end(); v_it++) {
+                    in_degree[*v_it] = in_degree[*v_it] - 1;
+                    if (in_degree[*v_it] == 0) {
+                        Q.push(*v_it);
+                    }
+                }
+            }
+            if (block.transactions_size() != conflict_graph_prime.size()) {
+                LOG(ERROR) << "cycle detected in topological sort.";
             } else {
-                c_it++;
+                // LOG(INFO) << "successfully finished topological sort.";
             }
-        }
-    }
-    // LOG(INFO) << "finished step 4.";
 
-    vector<Endorsement> S_prime;    // step 5
-    vector<Endorsement> S_aborted;  // record early aborted transactions
-    Graph conflict_graph_prime;     // cycle-free conflict graph
-    for (int i = 0; i < S.size(); i++) {
-        if (!S[i].aborted()) {
-            S_prime.push_back(S[i]);
-        } else {
-            S_aborted.push_back(S[i]);
-        }
-    }
-    // LOG(INFO) << "constructed S_prime, now S_prime has " << S_prime.size() << " transactions.";
-    build_conflict_graph_xov(S_prime, conflict_graph_prime);
-
-    vector<int> in_degree(conflict_graph_prime.size(), 0);
-    queue<int> Q;
-    for (auto u_it = conflict_graph_prime.begin(); u_it != conflict_graph_prime.end(); u_it++) {
-        for (auto v_it = u_it->out_edges.begin(); v_it != u_it->out_edges.end(); v_it++) {
-            in_degree[*v_it] = in_degree[*v_it] + 1;
-        }
-    }
-    for (int u = 0; u < in_degree.size(); u++) {
-        if (in_degree[u] == 0) {
-            Q.push(u);
-        }
-    }
-    while (Q.size()) {
-        int u = Q.front();
-        Q.pop();
-        Endorsement* endorsement = block.add_transactions();  // output u
-        (*endorsement) = S_prime[u];
-        for (auto v_it = conflict_graph_prime[u].out_edges.begin(); v_it != conflict_graph_prime[u].out_edges.end(); v_it++) {
-            in_degree[*v_it] = in_degree[*v_it] - 1;
-            if (in_degree[*v_it] == 0) {
-                Q.push(*v_it);
+            for (int i = 0; i < S_aborted.size(); i++) {
+                Endorsement* endorsement = block.add_transactions();
+                (*endorsement) = S_aborted[i];
             }
+    }   
+    else
+    {
+        for (int i = 0; i < S_earlyaborted.size(); i++) {
+            Endorsement* endorsement = block.add_transactions();
+            (*endorsement) = S_earlyaborted[i];
         }
-    }
-    if (block.transactions_size() != conflict_graph_prime.size()) {
-        LOG(ERROR) << "cycle detected in topological sort.";
-    } else {
-        // LOG(INFO) << "successfully finished topological sort.";
-    }
-
-    for (int i = 0; i < S_aborted.size(); i++) {
-        Endorsement* endorsement = block.add_transactions();
-        (*endorsement) = S_aborted[i];
     }
 }
 
