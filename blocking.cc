@@ -335,6 +335,7 @@ void *simulation_handler(void *arg) {
         } else {
             checking_condition =  smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id);
             if(!checking_condition && early_abort) {
+                LOG(INFO) << "aborted in simulation handler";
                 endorsement->set_aborted(true);
             } else {
                 endorsement->set_aborted(false);

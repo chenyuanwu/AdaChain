@@ -210,13 +210,13 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
             LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
         } else {
             if(!endorsement.aborted())
-            {
+            {   
                 endorsement.set_aborted(false);
                 S.push_back(endorsement);
             }
             else
             {
-
+                LOG(INFO) << "SO APPARETLY ABORTED";
                 S_earlyabort.push_back(endorsement);
                 someflag=true;
             }
