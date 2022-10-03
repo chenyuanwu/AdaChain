@@ -165,7 +165,6 @@ void *block_formation_thread(void *arg) {
                                 }
                                 else
                                 {
-                                    LOG(INFO) << "aborted in validation check handler";
                                     block.mutable_transactions(i)->set_aborted(true);
                                 }
                             //push the remaining transactions back into request_queue 
@@ -323,26 +322,13 @@ void *simulation_handler(void *arg) {
         LOG(DEBUG) << "simulation handler thread: received transaction proposal.";
         //print last_block_id
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-            //apply condition if ycsb_get returns false
-            checking_condition = ycsb_get(proposal.keys(), endorsement, last_block_id);
-            if (!checking_condition && early_abort) {
-                LOG(INFO) << "aborted in simulation handler";
-                endorsement->set_aborted(true);
-            } else {
-                endorsement->set_aborted(false);
-            }
-        } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+            ycsb_get(proposal.keys(), endorsement, last_block_id);  
+        } 
+        else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
             ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
-            endorsement->set_aborted(false);
-
-        } else {
-            checking_condition =  smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id);
-            if(!checking_condition && early_abort) {
-                LOG(INFO) << "aborted in simulation handler";
-                endorsement->set_aborted(true);
-            } else {
-                endorsement->set_aborted(false);
-            }
+        }
+        else {
+            smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id);
         }
         if (is_leader) {
             //ask chenyuan
