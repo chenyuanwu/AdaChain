@@ -165,6 +165,7 @@ void *block_formation_thread(void *arg) {
                                 }
                                 else
                                 {
+                                    LOG(INFO) << "aborted in validation check handler";
                                     block.mutable_transactions(i)->set_aborted(true);
                                 }
                             //push the remaining transactions back into request_queue 
@@ -221,6 +222,7 @@ void *block_formation_thread(void *arg) {
                                             }
                                             endorsement->set_aborted(false);
                                         } else {
+                                            LOG(INFO) << "aborted in validation check handler";
                                             endorsement->set_aborted(true);
                                         }
                                     } 
@@ -297,7 +299,7 @@ void *block_formation_thread(void *arg) {
 //3) if a read value is not up-to-date, we have to abort the transaction and inform client to send the proposal again
 
 
-//simulation_handler executes transactions from transaction proposals 
+//transactions from transaction proposals 
 
 //At the start of the simulation phase, we first identify the block-ID of the last block that made it into the ledger
 //This is stored as a global variable last_block_id and changes(atomically) everytime a new block is added to the ledger
@@ -386,7 +388,6 @@ void run_peer(const string &server_address) {
     struct ExecThreadContext *ctxs = (struct ExecThreadContext *)calloc(num_exec_threads, sizeof(struct ExecThreadContext));
     for (int i = 0; i < num_exec_threads; i++) {
         ctxs[i].thread_index = i;
-        //this - simulation_handler
         pthread_create(&exec_tids[i], NULL, simulation_handler, &ctxs[i]);
 
         /* stick thread to a core for better performance */
