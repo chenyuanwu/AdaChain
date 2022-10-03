@@ -209,21 +209,22 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
             !endorsement.GetReflection()->GetUnknownFields(endorsement).empty()) {
             LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
         } else {
-            if(!endorsement.aborted())
-            {   
-                endorsement.set_aborted(false);
-                S.push_back(endorsement);
+            if(endorsement.aborted())
+            { 
+                LOG(INFO) << "SO APPARETLY ABORTED";
+                S_earlyabort.push_back(endorsement);
+                
             }
             else
             {
-                LOG(INFO) << "SO APPARETLY ABORTED";
-                S_earlyabort.push_back(endorsement);
                 someflag=true;
+                endorsement.set_aborted(false);
+                S.push_back(endorsement);
             }
         }
         request_queue.pop();
     }
-    if(!someflag)
+    if(someflag)
     {
         build_conflict_graph_xov(S, conflict_graph);  // step 1
         // LOG(INFO) << "finished step 1.";
