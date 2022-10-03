@@ -257,7 +257,7 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
             int t = transactions_in_cycles.top().key;
             int appear_count = transactions_in_cycles.top().payload;
             transactions_in_cycles.pop();
-            LOG(INFO) << "removed transaction " << t << ", which appeared in " << appear_count << " cycles.";
+            //LOG(INFO) << "removed transaction " << t << ", which appeared in " << appear_count << " cycles.";
             S[t].set_aborted(true);
             for (auto c_it = cycles_search.cycles.begin(); c_it != cycles_search.cycles.end();) {
                 auto p = find(c_it->begin(), c_it->end(), t);
