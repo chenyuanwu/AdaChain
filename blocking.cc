@@ -236,11 +236,11 @@ void *block_formation_thread(void *arg) {
                             }
 
                             if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-                                ycsb_get(proposal.keys(), endorsement);
+                                ycsb_get(proposal.keys(), endorsement, false);
                             } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
                                 ycsb_put(proposal.keys(), proposal.values(), record_version, true, endorsement);
                             } else {
-                                smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, endorsement);
+                                smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, endorsement, false);
                             }
                             total_ops++;
                             endorsement->set_aborted(false);
@@ -322,13 +322,13 @@ void *simulation_handler(void *arg) {
         LOG(DEBUG) << "simulation handler thread: received transaction proposal.";
         //print last_block_id
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-            ycsb_get(proposal.keys(), endorsement, last_block_id);  
+            ycsb_get(proposal.keys(), endorsement, last_block_id, early_abort);  
         } 
         else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
             ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
         }
         else {
-            smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id);
+            smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id, early_abort);
         }
         if (is_leader) {
             //ask chenyuan
