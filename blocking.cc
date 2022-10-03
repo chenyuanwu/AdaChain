@@ -324,6 +324,7 @@ void *simulation_handler(void *arg) {
             //apply condition if ycsb_get returns false
             checking_condition = ycsb_get(proposal.keys(), endorsement, last_block_id);
             if (!checking_condition && early_abort) {
+                LOG(INFO) << "aborted in simulation handler";
                 endorsement->set_aborted(true);
             } else {
                 endorsement->set_aborted(false);

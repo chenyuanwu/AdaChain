@@ -209,14 +209,12 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
             !endorsement.GetReflection()->GetUnknownFields(endorsement).empty()) {
             LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
         } else {
-            if(endorsement.aborted())
-            { 
+            if(endorsement.aborted()) { 
                 LOG(INFO) << "SO APPARETLY ABORTED";
-                S_earlyabort.push_back(endorsement);
-                
-            }
-            else
-            {
+                S_earlyabort.push_back(endorsement); 
+                endorsement.set_aborted(true);
+
+            } else {
                 someflag=true;
                 endorsement.set_aborted(false);
                 S.push_back(endorsement);
