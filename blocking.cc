@@ -318,17 +318,29 @@ void *simulation_handler(void *arg) {
         TransactionProposal proposal = execution_queue.pop();
         Request req;
         Endorsement *endorsement = req.mutable_endorsement();
-        bool checking_condition;
+        bool checking_condition=true;
         LOG(DEBUG) << "simulation handler thread: received transaction proposal.";
         //print last_block_id
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-            ycsb_get(proposal.keys(), endorsement, last_block_id, early_abort);  
-        } 
+            if(!ycsb_get(proposal.keys(), endorsement, last_block_id, early_abort) && early_abort) {
+                endorsement->set_aborted(true);
+            } 
+            else 
+            {
+                endorsement->set_aborted(false);
+            }
+        }
         else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
             ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
         }
         else {
-            smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id, early_abort);
+            if(!smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id, early_abort) && early_abort) {
+                endorsement->set_aborted(true);
+            }
+            else 
+            {
+                endorsement->set_aborted(false);
+            }
         }
         if (is_leader) {
             //ask chenyuan
