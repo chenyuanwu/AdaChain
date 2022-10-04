@@ -221,7 +221,6 @@ void *block_formation_thread(void *arg) {
                                             }
                                             endorsement->set_aborted(false);
                                         } else {
-                                            LOG(INFO) << "aborted in validation check handler";
                                             endorsement->set_aborted(true);
                                         }
                                     } 
@@ -322,7 +321,8 @@ void *simulation_handler(void *arg) {
         LOG(DEBUG) << "simulation handler thread: received transaction proposal.";
         //print last_block_id
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-            if(!ycsb_get(proposal.keys(), endorsement, last_block_id, early_abort) && early_abort) {
+            checking_condition=ycsb_get(proposal.keys(), endorsement, early_abort);
+            if(!checking_condition && early_abort) {
                 endorsement->set_aborted(true);
             } 
             else 
@@ -334,9 +334,10 @@ void *simulation_handler(void *arg) {
             ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
         }
         else {
-            if(!smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id, early_abort) && early_abort) {
+            checking_condition = smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id, early_abort);
+            if(!checking_condition && early_abort) {
                 endorsement->set_aborted(true);
-            }
+            } 
             else 
             {
                 endorsement->set_aborted(false);
