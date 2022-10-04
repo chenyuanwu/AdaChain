@@ -197,7 +197,7 @@ void build_conflict_graph_xov(const vector<Endorsement>& transactions, Graph& co
         }
     }
 }
-void xov_reorder(queue<string>& request_queue, Block& block) {
+void xov_reorder2(queue<string>& request_queue, Block& block) {
     Graph conflict_graph;
     vector<Endorsement> S;  // the index represents the transaction id
     while (request_queue.size()) {
@@ -315,7 +315,7 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
     }
 }
 
-/*
+
 void xov_reorder(queue<string>& request_queue, Block& block) {
     Graph conflict_graph;
     vector<Endorsement> S;  // the index represents the transaction id
@@ -330,7 +330,7 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
             if(endorsement.aborted()) { 
                 LOG(INFO) << "SO APPARETLY ABORTED";
                 S_earlyabort.push_back(endorsement); 
-                endorsement.set_aborted(false);
+                endorsement.set_aborted(true);
 
             } else {
                 someflag=true;
@@ -443,6 +443,11 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
             Endorsement* endorsement = block.add_transactions();
             (*endorsement) = S_aborted[i];
         }
+        
+        for (int i = 0; i < S_earlyabort.size(); i++) {
+            Endorsement* endorsement = block.add_transactions();
+            (*endorsement) = S_earlyabort[i];
+        }
     }
     else
     {
@@ -452,5 +457,3 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
         }
     }
 }
-
-*/
