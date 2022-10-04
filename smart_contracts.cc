@@ -5,12 +5,12 @@
 extern leveldb::DB *db;
 extern leveldb::Options options;
 
-bool ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement, bool early_abort, long long last_block_id) {
+bool ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement, long long last_block_id) {
     uint64_t block_id = 0;
     kv_get(keys[0], endorsement, nullptr, block_id);
     //early abort
     //print block_id and last_block_id
-    if((block_id > last_block_id) && early_abort){
+    if(block_id > last_block_id){
         //endorsement->set_aborted(true);
         //LOG(INFO) << "aborted in simulation handler";
         return false;
@@ -81,12 +81,12 @@ int kv_put(const string &key, const string &value, struct RecordVersion record_v
 }
 
 bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type type, int execution_delay, bool expose_write,
-               struct RecordVersion record_version, Endorsement *endorsement,  bool early_abort, long long last_block_id) {
+               struct RecordVersion record_version, Endorsement *endorsement, long long last_block_id) {
     if (type == TransactionProposal::Type::TransactionProposal_Type_TransactSavings) {
         string key = "saving_" + keys[0];
         uint64_t block_id = 0;
         string value = kv_get(key, endorsement, nullptr, block_id);
-        if((block_id > last_block_id) && early_abort) {
+        if(block_id > last_block_id)  {
             //endorsement->set_aborted(true);
             //LOG(INFO) << "aborted in simulation handler";
             return false;
@@ -104,7 +104,7 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         uint64_t block_id = 0;
         string key = "checking_" + keys[0];
         string value = kv_get(key, endorsement, nullptr, block_id);
-        if((block_id > last_block_id) && early_abort){
+        if(block_id > last_block_id){
             //endorsement->set_aborted(true);
             //LOG(INFO) << "aborted in simulation handler";
             return false;
@@ -124,14 +124,14 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         uint64_t block_id = 0;
 
         string sender_value = kv_get(sender_key, endorsement,  nullptr, block_id);
-        if((block_id > last_block_id) && early_abort){
+        if(block_id > last_block_id){
             //endorsement->set_aborted(true);
             //LOG(INFO) << "aborted in simulation handler";
             return false;
         }
         
         string receiver_value = kv_get(receiver_key, endorsement, nullptr, block_id);
-        if((block_id > last_block_id) && early_abort){
+        if(block_id > last_block_id){
             //endorsement->set_aborted(true);
             //LOG(INFO) << "aborted in simulation handler";
             return false;
@@ -156,7 +156,7 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         uint64_t block_id = 0;
 
         string value = kv_get(key, endorsement, nullptr, block_id);
-        if((block_id > last_block_id) && early_abort) {
+        if(block_id > last_block_id)  {
             //endorsement->set_aborted(true);
             //LOG(INFO) << "aborted in simulation handler";
             return false;
@@ -179,11 +179,11 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         uint64_t block_id = 0;
 
         string checking_value = kv_get(checking_key, endorsement, nullptr, block_id);
-        if((block_id > last_block_id) && early_abort) {
+        if(block_id > last_block_id) {
             return false;
         }
         string saving_value = kv_get(saving_key, endorsement, nullptr, block_id);
-        if((block_id > last_block_id) && early_abort) {
+        if(block_id > last_block_id)  {
             return false;
         }
         
@@ -204,11 +204,11 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         uint64_t block_id = 0;
 
         string checking_value = kv_get(checking_key, endorsement, nullptr, block_id);
-        if((block_id > last_block_id) && early_abort) {
+        if(block_id > last_block_id)  {
             return false;
         }
         string saving_value = kv_get(saving_key, endorsement, nullptr, block_id);
-        if((block_id > last_block_id) && early_abort) {
+        if(block_id > last_block_id) {
             return false;
         }
 

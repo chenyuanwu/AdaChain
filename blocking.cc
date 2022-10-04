@@ -235,11 +235,11 @@ void *block_formation_thread(void *arg) {
                             }
 
                             if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-                                ycsb_get(proposal.keys(), endorsement, false);
+                                ycsb_get(proposal.keys(), endorsement);
                             } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
                                 ycsb_put(proposal.keys(), proposal.values(), record_version, true, endorsement);
                             } else {
-                                smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, endorsement, false);
+                                smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, endorsement);
                             }
                             total_ops++;
                             endorsement->set_aborted(false);
@@ -321,12 +321,10 @@ void *simulation_handler(void *arg) {
         LOG(DEBUG) << "simulation handler thread: received transaction proposal.";
         //print last_block_id
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-            checking_condition=ycsb_get(proposal.keys(), endorsement, early_abort);
-            if(!checking_condition && early_abort) {
+            checking_condition = ycsb_get(proposal.keys(), endorsement, last_block_id);
+            if (!checking_condition && early_abort) {
                 endorsement->set_aborted(true);
-            } 
-            else 
-            {
+            } else {
                 endorsement->set_aborted(false);
             }
         }
@@ -334,12 +332,10 @@ void *simulation_handler(void *arg) {
             ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
         }
         else {
-            checking_condition = smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id, early_abort);
+            checking_condition =  smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id);
             if(!checking_condition && early_abort) {
                 endorsement->set_aborted(true);
-            } 
-            else 
-            {
+            } else {
                 endorsement->set_aborted(false);
             }
         }
