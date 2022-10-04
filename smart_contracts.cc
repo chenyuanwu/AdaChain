@@ -15,6 +15,9 @@ void ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement, bo
         LOG(INFO) << "aborted in simulation handler";
         return;
     }
+    else {
+        endorsement->set_aborted(false);
+    }
 }
 
 void ycsb_put(const RepeatedPtrField<string> &keys, const RepeatedPtrField<string> &values, struct RecordVersion record_version,
@@ -86,7 +89,9 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
             endorsement->set_aborted(true);
             LOG(INFO) << "aborted in simulation handler";
             return;
-
+        }
+        else {
+            endorsement->set_aborted(false);
         }
         int balance = stoi(value);
         balance += 1000;
@@ -104,6 +109,9 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
             endorsement->set_aborted(true);
             LOG(INFO) << "aborted in simulation handler";
             return;
+        }
+        else {
+            endorsement->set_aborted(false);
         }
         uint64_t balance = stoi(value);
         balance += 1000;
@@ -131,6 +139,9 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
             LOG(INFO) << "aborted in simulation handler";
             return;
         }
+        else {
+            endorsement->set_aborted(false);
+        }
         uint64_t sender_balance = stoi(sender_value);
         uint64_t receiver_balance = stoi(receiver_value);
 
@@ -154,6 +165,9 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
             endorsement->set_aborted(true);
             LOG(INFO) << "aborted in simulation handler";
             return;
+        }
+        else {
+            endorsement->set_aborted(false);
         }
         uint64_t balance = stoi(value);
 
@@ -183,6 +197,9 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
             LOG(INFO) << "aborted in simulation handler";
             return;
         }
+        else {
+            endorsement->set_aborted(false);
+        }
         uint64_t checking_balance = stoi(checking_value);
         uint64_t saving_balance = stoi(saving_value);
         checking_balance = checking_balance + saving_balance;
@@ -210,6 +227,9 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
             endorsement->set_aborted(true);
             LOG(INFO) << "aborted in simulation handler";
             return;
+        }
+        else {
+            endorsement->set_aborted(false);
         }
 
         if (execution_delay > 0) {
