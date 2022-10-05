@@ -158,36 +158,37 @@ struct ActionDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT ActionDefaultTypeInternal _Action_default_instance_;
-constexpr Reward::Reward(
+constexpr WatermarkLow::WatermarkLow(
   ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
   : throughput_(0)
-  , is_leader_(false){}
-struct RewardDefaultTypeInternal {
-  constexpr RewardDefaultTypeInternal()
+  , block_id_start_(uint64_t{0u})
+  , block_id_now_(uint64_t{0u}){}
+struct WatermarkLowDefaultTypeInternal {
+  constexpr WatermarkLowDefaultTypeInternal()
     : _instance(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized{}) {}
-  ~RewardDefaultTypeInternal() {}
+  ~WatermarkLowDefaultTypeInternal() {}
   union {
-    Reward _instance;
+    WatermarkLow _instance;
   };
 };
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT RewardDefaultTypeInternal _Reward_default_instance_;
-constexpr Experience::Experience(
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT WatermarkLowDefaultTypeInternal _WatermarkLow_default_instance_;
+constexpr AgentExchange::AgentExchange(
   ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
-  : action_(nullptr)
-  , reward_(nullptr)
+  : originator_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string)
   , write_ratio_(0)
   , hot_key_ratio_(0)
   , trans_arrival_rate_(0)
-  , execution_delay_(0){}
-struct ExperienceDefaultTypeInternal {
-  constexpr ExperienceDefaultTypeInternal()
+  , execution_delay_(0)
+  , throughput_(0){}
+struct AgentExchangeDefaultTypeInternal {
+  constexpr AgentExchangeDefaultTypeInternal()
     : _instance(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized{}) {}
-  ~ExperienceDefaultTypeInternal() {}
+  ~AgentExchangeDefaultTypeInternal() {}
   union {
-    Experience _instance;
+    AgentExchange _instance;
   };
 };
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT ExperienceDefaultTypeInternal _Experience_default_instance_;
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT AgentExchangeDefaultTypeInternal _AgentExchange_default_instance_;
 static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_blockchain_2eproto[12];
 static const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* file_level_enum_descriptors_blockchain_2eproto[1];
 static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_service_descriptors_blockchain_2eproto = nullptr;
@@ -285,25 +286,26 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_blockchain_2eproto::offsets[] 
   PROTOBUF_FIELD_OFFSET(::Action, early_execution_),
   PROTOBUF_FIELD_OFFSET(::Action, reorder_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::Reward, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::WatermarkLow, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::Reward, throughput_),
-  PROTOBUF_FIELD_OFFSET(::Reward, is_leader_),
+  PROTOBUF_FIELD_OFFSET(::WatermarkLow, throughput_),
+  PROTOBUF_FIELD_OFFSET(::WatermarkLow, block_id_start_),
+  PROTOBUF_FIELD_OFFSET(::WatermarkLow, block_id_now_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::Experience, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::AgentExchange, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
-  PROTOBUF_FIELD_OFFSET(::Experience, write_ratio_),
-  PROTOBUF_FIELD_OFFSET(::Experience, hot_key_ratio_),
-  PROTOBUF_FIELD_OFFSET(::Experience, trans_arrival_rate_),
-  PROTOBUF_FIELD_OFFSET(::Experience, execution_delay_),
-  PROTOBUF_FIELD_OFFSET(::Experience, action_),
-  PROTOBUF_FIELD_OFFSET(::Experience, reward_),
+  PROTOBUF_FIELD_OFFSET(::AgentExchange, originator_),
+  PROTOBUF_FIELD_OFFSET(::AgentExchange, write_ratio_),
+  PROTOBUF_FIELD_OFFSET(::AgentExchange, hot_key_ratio_),
+  PROTOBUF_FIELD_OFFSET(::AgentExchange, trans_arrival_rate_),
+  PROTOBUF_FIELD_OFFSET(::AgentExchange, execution_delay_),
+  PROTOBUF_FIELD_OFFSET(::AgentExchange, throughput_),
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::AppendRequest)},
@@ -316,8 +318,8 @@ static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOB
   { 65, -1, -1, sizeof(::Request)},
   { 73, -1, -1, sizeof(::Block)},
   { 82, -1, -1, sizeof(::Action)},
-  { 91, -1, -1, sizeof(::Reward)},
-  { 99, -1, -1, sizeof(::Experience)},
+  { 91, -1, -1, sizeof(::WatermarkLow)},
+  { 100, -1, -1, sizeof(::AgentExchange)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
@@ -331,8 +333,8 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::_Request_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::_Block_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::_Action_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::_Reward_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::_Experience_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::_WatermarkLow_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::_AgentExchange_default_instance_),
 };
 
 const char descriptor_table_protodef_blockchain_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
@@ -366,25 +368,29 @@ const char descriptor_table_protodef_blockchain_2eproto[] PROTOBUF_SECTION_VARIA
   "2\014.Endorsement\022\020\n\010block_id\030\002 \001(\004\022\027\n\017prev"
   "_block_hash\030\003 \001(\t\"E\n\006Action\022\021\n\tblocksize"
   "\030\001 \001(\004\022\027\n\017early_execution\030\002 \001(\010\022\017\n\007reord"
-  "er\030\003 \001(\010\"/\n\006Reward\022\022\n\nthroughput\030\001 \001(\001\022\021"
-  "\n\tis_leader\030\002 \001(\010\"\237\001\n\nExperience\022\023\n\013writ"
-  "e_ratio\030\001 \001(\001\022\025\n\rhot_key_ratio\030\002 \001(\001\022\032\n\022"
-  "trans_arrival_rate\030\003 \001(\001\022\027\n\017execution_de"
-  "lay\030\004 \001(\001\022\027\n\006action\030\005 \001(\0132\007.Action\022\027\n\006re"
-  "ward\030\006 \001(\0132\007.Reward2\263\003\n\010PeerComm\0223\n\016appe"
-  "nd_entries\022\016.AppendRequest\032\017.AppendRespo"
-  "nse\"\000\0222\n\014send_to_peer\022\010.Request\032\026.google"
-  ".protobuf.Empty\"\000\022;\n\023send_to_peer_stream"
-  "\022\010.Request\032\026.google.protobuf.Empty\"\000(\001\022;"
-  "\n\013prepopulate\022\024.TransactionProposal\032\024.Pr"
-  "epopulateResponse\"\000\022F\n\022start_benchmarkin"
-  "g\022\026.google.protobuf.Empty\032\026.google.proto"
-  "buf.Empty\"\000\022D\n\020end_benchmarking\022\026.google"
-  ".protobuf.Empty\032\026.google.protobuf.Empty\""
-  "\000\0226\n\021start_new_episode\022\007.Action\032\026.google"
-  ".protobuf.Empty\"\0002E\n\tAgentComm\0228\n\023end_cu"
-  "rrent_episode\022\007.Reward\032\026.google.protobuf"
-  ".Empty\"\000b\006proto3"
+  "er\030\003 \001(\010\"P\n\014WatermarkLow\022\022\n\nthroughput\030\001"
+  " \001(\001\022\026\n\016block_id_start\030\002 \001(\004\022\024\n\014block_id"
+  "_now\030\003 \001(\004\"\230\001\n\rAgentExchange\022\022\n\noriginat"
+  "or\030\001 \001(\t\022\023\n\013write_ratio\030\002 \001(\001\022\025\n\rhot_key"
+  "_ratio\030\003 \001(\001\022\032\n\022trans_arrival_rate\030\004 \001(\001"
+  "\022\027\n\017execution_delay\030\005 \001(\001\022\022\n\nthroughput\030"
+  "\006 \001(\0012\262\003\n\010PeerComm\0223\n\016append_entries\022\016.A"
+  "ppendRequest\032\017.AppendResponse\"\000\0222\n\014send_"
+  "to_peer\022\010.Request\032\026.google.protobuf.Empt"
+  "y\"\000\022;\n\023send_to_peer_stream\022\010.Request\032\026.g"
+  "oogle.protobuf.Empty\"\000(\001\022;\n\013prepopulate\022"
+  "\024.TransactionProposal\032\024.PrepopulateRespo"
+  "nse\"\000\022F\n\022start_benchmarking\022\026.google.pro"
+  "tobuf.Empty\032\026.google.protobuf.Empty\"\000\022D\n"
+  "\020end_benchmarking\022\026.google.protobuf.Empt"
+  "y\032\026.google.protobuf.Empty\"\000\0225\n\020new_episo"
+  "de_info\022\007.Action\032\026.google.protobuf.Empty"
+  "\"\0002\304\001\n\tAgentComm\022@\n\025reached_watermark_lo"
+  "w\022\r.WatermarkLow\032\026.google.protobuf.Empty"
+  "\"\000\022;\n\017send_preprepare\022\016.AgentExchange\032\026."
+  "google.protobuf.Empty\"\000\0228\n\014send_prepare\022"
+  "\016.AgentExchange\032\026.google.protobuf.Empty\""
+  "\000b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_blockchain_2eproto_deps[2] = {
   &::descriptor_table_google_2fprotobuf_2fempty_2eproto,
@@ -392,7 +398,7 @@ static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_blockchain_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_blockchain_2eproto = {
-  false, false, 1936, descriptor_table_protodef_blockchain_2eproto, "blockchain.proto", 
+  false, false, 2089, descriptor_table_protodef_blockchain_2eproto, "blockchain.proto", 
   &descriptor_table_blockchain_2eproto_once, descriptor_table_blockchain_2eproto_deps, 2, 12,
   schemas, file_default_instances, TableStruct_blockchain_2eproto::offsets,
   file_level_metadata_blockchain_2eproto, file_level_enum_descriptors_blockchain_2eproto, file_level_service_descriptors_blockchain_2eproto,
@@ -2935,69 +2941,69 @@ void Action::InternalSwap(Action* other) {
 
 // ===================================================================
 
-class Reward::_Internal {
+class WatermarkLow::_Internal {
  public:
 };
 
-Reward::Reward(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+WatermarkLow::WatermarkLow(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
   SharedCtor();
   if (!is_message_owned) {
     RegisterArenaDtor(arena);
   }
-  // @@protoc_insertion_point(arena_constructor:Reward)
+  // @@protoc_insertion_point(arena_constructor:WatermarkLow)
 }
-Reward::Reward(const Reward& from)
+WatermarkLow::WatermarkLow(const WatermarkLow& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   ::memcpy(&throughput_, &from.throughput_,
-    static_cast<size_t>(reinterpret_cast<char*>(&is_leader_) -
-    reinterpret_cast<char*>(&throughput_)) + sizeof(is_leader_));
-  // @@protoc_insertion_point(copy_constructor:Reward)
+    static_cast<size_t>(reinterpret_cast<char*>(&block_id_now_) -
+    reinterpret_cast<char*>(&throughput_)) + sizeof(block_id_now_));
+  // @@protoc_insertion_point(copy_constructor:WatermarkLow)
 }
 
-void Reward::SharedCtor() {
+void WatermarkLow::SharedCtor() {
 ::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
     reinterpret_cast<char*>(&throughput_) - reinterpret_cast<char*>(this)),
-    0, static_cast<size_t>(reinterpret_cast<char*>(&is_leader_) -
-    reinterpret_cast<char*>(&throughput_)) + sizeof(is_leader_));
+    0, static_cast<size_t>(reinterpret_cast<char*>(&block_id_now_) -
+    reinterpret_cast<char*>(&throughput_)) + sizeof(block_id_now_));
 }
 
-Reward::~Reward() {
-  // @@protoc_insertion_point(destructor:Reward)
+WatermarkLow::~WatermarkLow() {
+  // @@protoc_insertion_point(destructor:WatermarkLow)
   if (GetArenaForAllocation() != nullptr) return;
   SharedDtor();
   _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-inline void Reward::SharedDtor() {
+inline void WatermarkLow::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
 }
 
-void Reward::ArenaDtor(void* object) {
-  Reward* _this = reinterpret_cast< Reward* >(object);
+void WatermarkLow::ArenaDtor(void* object) {
+  WatermarkLow* _this = reinterpret_cast< WatermarkLow* >(object);
   (void)_this;
 }
-void Reward::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+void WatermarkLow::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
 }
-void Reward::SetCachedSize(int size) const {
+void WatermarkLow::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
 
-void Reward::Clear() {
-// @@protoc_insertion_point(message_clear_start:Reward)
+void WatermarkLow::Clear() {
+// @@protoc_insertion_point(message_clear_start:WatermarkLow)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
   ::memset(&throughput_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&is_leader_) -
-      reinterpret_cast<char*>(&throughput_)) + sizeof(is_leader_));
+      reinterpret_cast<char*>(&block_id_now_) -
+      reinterpret_cast<char*>(&throughput_)) + sizeof(block_id_now_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-const char* Reward::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+const char* WatermarkLow::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
@@ -3011,10 +3017,18 @@ const char* Reward::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::int
         } else
           goto handle_unusual;
         continue;
-      // bool is_leader = 2;
+      // uint64 block_id_start = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 16)) {
-          is_leader_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          block_id_start_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 block_id_now = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 24)) {
+          block_id_now_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -3042,9 +3056,9 @@ failure:
 #undef CHK_
 }
 
-::PROTOBUF_NAMESPACE_ID::uint8* Reward::_InternalSerialize(
+::PROTOBUF_NAMESPACE_ID::uint8* WatermarkLow::_InternalSerialize(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:Reward)
+  // @@protoc_insertion_point(serialize_to_array_start:WatermarkLow)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -3054,22 +3068,28 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(1, this->_internal_throughput(), target);
   }
 
-  // bool is_leader = 2;
-  if (this->_internal_is_leader() != 0) {
+  // uint64 block_id_start = 2;
+  if (this->_internal_block_id_start() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteBoolToArray(2, this->_internal_is_leader(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt64ToArray(2, this->_internal_block_id_start(), target);
+  }
+
+  // uint64 block_id_now = 3;
+  if (this->_internal_block_id_now() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt64ToArray(3, this->_internal_block_id_now(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:Reward)
+  // @@protoc_insertion_point(serialize_to_array_end:WatermarkLow)
   return target;
 }
 
-size_t Reward::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:Reward)
+size_t WatermarkLow::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:WatermarkLow)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -3081,29 +3101,34 @@ size_t Reward::ByteSizeLong() const {
     total_size += 1 + 8;
   }
 
-  // bool is_leader = 2;
-  if (this->_internal_is_leader() != 0) {
-    total_size += 1 + 1;
+  // uint64 block_id_start = 2;
+  if (this->_internal_block_id_start() != 0) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64SizePlusOne(this->_internal_block_id_start());
+  }
+
+  // uint64 block_id_now = 3;
+  if (this->_internal_block_id_now() != 0) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt64SizePlusOne(this->_internal_block_id_now());
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
 }
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData Reward::_class_data_ = {
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData WatermarkLow::_class_data_ = {
     ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
-    Reward::MergeImpl
+    WatermarkLow::MergeImpl
 };
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*Reward::GetClassData() const { return &_class_data_; }
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*WatermarkLow::GetClassData() const { return &_class_data_; }
 
-void Reward::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+void WatermarkLow::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
                       const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-  static_cast<Reward *>(to)->MergeFrom(
-      static_cast<const Reward &>(from));
+  static_cast<WatermarkLow *>(to)->MergeFrom(
+      static_cast<const WatermarkLow &>(from));
 }
 
 
-void Reward::MergeFrom(const Reward& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:Reward)
+void WatermarkLow::MergeFrom(const WatermarkLow& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:WatermarkLow)
   GOOGLE_DCHECK_NE(&from, this);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
@@ -3111,35 +3136,38 @@ void Reward::MergeFrom(const Reward& from) {
   if (!(from._internal_throughput() <= 0 && from._internal_throughput() >= 0)) {
     _internal_set_throughput(from._internal_throughput());
   }
-  if (from._internal_is_leader() != 0) {
-    _internal_set_is_leader(from._internal_is_leader());
+  if (from._internal_block_id_start() != 0) {
+    _internal_set_block_id_start(from._internal_block_id_start());
+  }
+  if (from._internal_block_id_now() != 0) {
+    _internal_set_block_id_now(from._internal_block_id_now());
   }
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
-void Reward::CopyFrom(const Reward& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:Reward)
+void WatermarkLow::CopyFrom(const WatermarkLow& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:WatermarkLow)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool Reward::IsInitialized() const {
+bool WatermarkLow::IsInitialized() const {
   return true;
 }
 
-void Reward::InternalSwap(Reward* other) {
+void WatermarkLow::InternalSwap(WatermarkLow* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(Reward, is_leader_)
-      + sizeof(Reward::is_leader_)
-      - PROTOBUF_FIELD_OFFSET(Reward, throughput_)>(
+      PROTOBUF_FIELD_OFFSET(WatermarkLow, block_id_now_)
+      + sizeof(WatermarkLow::block_id_now_)
+      - PROTOBUF_FIELD_OFFSET(WatermarkLow, throughput_)>(
           reinterpret_cast<char*>(&throughput_),
           reinterpret_cast<char*>(&other->throughput_));
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata Reward::GetMetadata() const {
+::PROTOBUF_NAMESPACE_ID::Metadata WatermarkLow::GetMetadata() const {
   return ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(
       &descriptor_table_blockchain_2eproto_getter, &descriptor_table_blockchain_2eproto_once,
       file_level_metadata_blockchain_2eproto[10]);
@@ -3147,149 +3175,129 @@ void Reward::InternalSwap(Reward* other) {
 
 // ===================================================================
 
-class Experience::_Internal {
+class AgentExchange::_Internal {
  public:
-  static const ::Action& action(const Experience* msg);
-  static const ::Reward& reward(const Experience* msg);
 };
 
-const ::Action&
-Experience::_Internal::action(const Experience* msg) {
-  return *msg->action_;
-}
-const ::Reward&
-Experience::_Internal::reward(const Experience* msg) {
-  return *msg->reward_;
-}
-Experience::Experience(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+AgentExchange::AgentExchange(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
   SharedCtor();
   if (!is_message_owned) {
     RegisterArenaDtor(arena);
   }
-  // @@protoc_insertion_point(arena_constructor:Experience)
+  // @@protoc_insertion_point(arena_constructor:AgentExchange)
 }
-Experience::Experience(const Experience& from)
+AgentExchange::AgentExchange(const AgentExchange& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  if (from._internal_has_action()) {
-    action_ = new ::Action(*from.action_);
-  } else {
-    action_ = nullptr;
-  }
-  if (from._internal_has_reward()) {
-    reward_ = new ::Reward(*from.reward_);
-  } else {
-    reward_ = nullptr;
+  originator_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (!from._internal_originator().empty()) {
+    originator_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_originator(), 
+      GetArenaForAllocation());
   }
   ::memcpy(&write_ratio_, &from.write_ratio_,
-    static_cast<size_t>(reinterpret_cast<char*>(&execution_delay_) -
-    reinterpret_cast<char*>(&write_ratio_)) + sizeof(execution_delay_));
-  // @@protoc_insertion_point(copy_constructor:Experience)
+    static_cast<size_t>(reinterpret_cast<char*>(&throughput_) -
+    reinterpret_cast<char*>(&write_ratio_)) + sizeof(throughput_));
+  // @@protoc_insertion_point(copy_constructor:AgentExchange)
 }
 
-void Experience::SharedCtor() {
+void AgentExchange::SharedCtor() {
+originator_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 ::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
-    reinterpret_cast<char*>(&action_) - reinterpret_cast<char*>(this)),
-    0, static_cast<size_t>(reinterpret_cast<char*>(&execution_delay_) -
-    reinterpret_cast<char*>(&action_)) + sizeof(execution_delay_));
+    reinterpret_cast<char*>(&write_ratio_) - reinterpret_cast<char*>(this)),
+    0, static_cast<size_t>(reinterpret_cast<char*>(&throughput_) -
+    reinterpret_cast<char*>(&write_ratio_)) + sizeof(throughput_));
 }
 
-Experience::~Experience() {
-  // @@protoc_insertion_point(destructor:Experience)
+AgentExchange::~AgentExchange() {
+  // @@protoc_insertion_point(destructor:AgentExchange)
   if (GetArenaForAllocation() != nullptr) return;
   SharedDtor();
   _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-inline void Experience::SharedDtor() {
+inline void AgentExchange::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  if (this != internal_default_instance()) delete action_;
-  if (this != internal_default_instance()) delete reward_;
+  originator_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 
-void Experience::ArenaDtor(void* object) {
-  Experience* _this = reinterpret_cast< Experience* >(object);
+void AgentExchange::ArenaDtor(void* object) {
+  AgentExchange* _this = reinterpret_cast< AgentExchange* >(object);
   (void)_this;
 }
-void Experience::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+void AgentExchange::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
 }
-void Experience::SetCachedSize(int size) const {
+void AgentExchange::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
 
-void Experience::Clear() {
-// @@protoc_insertion_point(message_clear_start:Experience)
+void AgentExchange::Clear() {
+// @@protoc_insertion_point(message_clear_start:AgentExchange)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  if (GetArenaForAllocation() == nullptr && action_ != nullptr) {
-    delete action_;
-  }
-  action_ = nullptr;
-  if (GetArenaForAllocation() == nullptr && reward_ != nullptr) {
-    delete reward_;
-  }
-  reward_ = nullptr;
+  originator_.ClearToEmpty();
   ::memset(&write_ratio_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&execution_delay_) -
-      reinterpret_cast<char*>(&write_ratio_)) + sizeof(execution_delay_));
+      reinterpret_cast<char*>(&throughput_) -
+      reinterpret_cast<char*>(&write_ratio_)) + sizeof(throughput_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
-const char* Experience::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+const char* AgentExchange::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
   while (!ctx->Done(&ptr)) {
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // double write_ratio = 1;
+      // string originator = 1;
       case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 9)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
+          auto str = _internal_mutable_originator();
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "AgentExchange.originator"));
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // double write_ratio = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 17)) {
           write_ratio_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
           ptr += sizeof(double);
         } else
           goto handle_unusual;
         continue;
-      // double hot_key_ratio = 2;
-      case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 17)) {
+      // double hot_key_ratio = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 25)) {
           hot_key_ratio_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
           ptr += sizeof(double);
         } else
           goto handle_unusual;
         continue;
-      // double trans_arrival_rate = 3;
-      case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 25)) {
+      // double trans_arrival_rate = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 33)) {
           trans_arrival_rate_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
           ptr += sizeof(double);
         } else
           goto handle_unusual;
         continue;
-      // double execution_delay = 4;
-      case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 33)) {
+      // double execution_delay = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 41)) {
           execution_delay_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
           ptr += sizeof(double);
         } else
           goto handle_unusual;
         continue;
-      // .Action action = 5;
-      case 5:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 42)) {
-          ptr = ctx->ParseMessage(_internal_mutable_action(), ptr);
-          CHK_(ptr);
-        } else
-          goto handle_unusual;
-        continue;
-      // .Reward reward = 6;
+      // double throughput = 6;
       case 6:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 50)) {
-          ptr = ctx->ParseMessage(_internal_mutable_reward(), ptr);
-          CHK_(ptr);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 49)) {
+          throughput_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
         } else
           goto handle_unusual;
         continue;
@@ -3316,129 +3324,124 @@ failure:
 #undef CHK_
 }
 
-::PROTOBUF_NAMESPACE_ID::uint8* Experience::_InternalSerialize(
+::PROTOBUF_NAMESPACE_ID::uint8* AgentExchange::_InternalSerialize(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:Experience)
+  // @@protoc_insertion_point(serialize_to_array_start:AgentExchange)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // double write_ratio = 1;
+  // string originator = 1;
+  if (!this->_internal_originator().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_originator().data(), static_cast<int>(this->_internal_originator().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "AgentExchange.originator");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_originator(), target);
+  }
+
+  // double write_ratio = 2;
   if (!(this->_internal_write_ratio() <= 0 && this->_internal_write_ratio() >= 0)) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(1, this->_internal_write_ratio(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(2, this->_internal_write_ratio(), target);
   }
 
-  // double hot_key_ratio = 2;
+  // double hot_key_ratio = 3;
   if (!(this->_internal_hot_key_ratio() <= 0 && this->_internal_hot_key_ratio() >= 0)) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(2, this->_internal_hot_key_ratio(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(3, this->_internal_hot_key_ratio(), target);
   }
 
-  // double trans_arrival_rate = 3;
+  // double trans_arrival_rate = 4;
   if (!(this->_internal_trans_arrival_rate() <= 0 && this->_internal_trans_arrival_rate() >= 0)) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(3, this->_internal_trans_arrival_rate(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(4, this->_internal_trans_arrival_rate(), target);
   }
 
-  // double execution_delay = 4;
+  // double execution_delay = 5;
   if (!(this->_internal_execution_delay() <= 0 && this->_internal_execution_delay() >= 0)) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(4, this->_internal_execution_delay(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(5, this->_internal_execution_delay(), target);
   }
 
-  // .Action action = 5;
-  if (this->_internal_has_action()) {
+  // double throughput = 6;
+  if (!(this->_internal_throughput() <= 0 && this->_internal_throughput() >= 0)) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(
-        5, _Internal::action(this), target, stream);
-  }
-
-  // .Reward reward = 6;
-  if (this->_internal_has_reward()) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      InternalWriteMessage(
-        6, _Internal::reward(this), target, stream);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(6, this->_internal_throughput(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:Experience)
+  // @@protoc_insertion_point(serialize_to_array_end:AgentExchange)
   return target;
 }
 
-size_t Experience::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:Experience)
+size_t AgentExchange::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:AgentExchange)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // .Action action = 5;
-  if (this->_internal_has_action()) {
+  // string originator = 1;
+  if (!this->_internal_originator().empty()) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-        *action_);
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_originator());
   }
 
-  // .Reward reward = 6;
-  if (this->_internal_has_reward()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
-        *reward_);
-  }
-
-  // double write_ratio = 1;
+  // double write_ratio = 2;
   if (!(this->_internal_write_ratio() <= 0 && this->_internal_write_ratio() >= 0)) {
     total_size += 1 + 8;
   }
 
-  // double hot_key_ratio = 2;
+  // double hot_key_ratio = 3;
   if (!(this->_internal_hot_key_ratio() <= 0 && this->_internal_hot_key_ratio() >= 0)) {
     total_size += 1 + 8;
   }
 
-  // double trans_arrival_rate = 3;
+  // double trans_arrival_rate = 4;
   if (!(this->_internal_trans_arrival_rate() <= 0 && this->_internal_trans_arrival_rate() >= 0)) {
     total_size += 1 + 8;
   }
 
-  // double execution_delay = 4;
+  // double execution_delay = 5;
   if (!(this->_internal_execution_delay() <= 0 && this->_internal_execution_delay() >= 0)) {
+    total_size += 1 + 8;
+  }
+
+  // double throughput = 6;
+  if (!(this->_internal_throughput() <= 0 && this->_internal_throughput() >= 0)) {
     total_size += 1 + 8;
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
 }
 
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData Experience::_class_data_ = {
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData AgentExchange::_class_data_ = {
     ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSizeCheck,
-    Experience::MergeImpl
+    AgentExchange::MergeImpl
 };
-const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*Experience::GetClassData() const { return &_class_data_; }
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*AgentExchange::GetClassData() const { return &_class_data_; }
 
-void Experience::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
+void AgentExchange::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
                       const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-  static_cast<Experience *>(to)->MergeFrom(
-      static_cast<const Experience &>(from));
+  static_cast<AgentExchange *>(to)->MergeFrom(
+      static_cast<const AgentExchange &>(from));
 }
 
 
-void Experience::MergeFrom(const Experience& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:Experience)
+void AgentExchange::MergeFrom(const AgentExchange& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:AgentExchange)
   GOOGLE_DCHECK_NE(&from, this);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  if (from._internal_has_action()) {
-    _internal_mutable_action()->::Action::MergeFrom(from._internal_action());
-  }
-  if (from._internal_has_reward()) {
-    _internal_mutable_reward()->::Reward::MergeFrom(from._internal_reward());
+  if (!from._internal_originator().empty()) {
+    _internal_set_originator(from._internal_originator());
   }
   if (!(from._internal_write_ratio() <= 0 && from._internal_write_ratio() >= 0)) {
     _internal_set_write_ratio(from._internal_write_ratio());
@@ -3452,32 +3455,42 @@ void Experience::MergeFrom(const Experience& from) {
   if (!(from._internal_execution_delay() <= 0 && from._internal_execution_delay() >= 0)) {
     _internal_set_execution_delay(from._internal_execution_delay());
   }
+  if (!(from._internal_throughput() <= 0 && from._internal_throughput() >= 0)) {
+    _internal_set_throughput(from._internal_throughput());
+  }
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
 
-void Experience::CopyFrom(const Experience& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:Experience)
+void AgentExchange::CopyFrom(const AgentExchange& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:AgentExchange)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool Experience::IsInitialized() const {
+bool AgentExchange::IsInitialized() const {
   return true;
 }
 
-void Experience::InternalSwap(Experience* other) {
+void AgentExchange::InternalSwap(AgentExchange* other) {
   using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      &originator_, lhs_arena,
+      &other->originator_, rhs_arena
+  );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(Experience, execution_delay_)
-      + sizeof(Experience::execution_delay_)
-      - PROTOBUF_FIELD_OFFSET(Experience, action_)>(
-          reinterpret_cast<char*>(&action_),
-          reinterpret_cast<char*>(&other->action_));
+      PROTOBUF_FIELD_OFFSET(AgentExchange, throughput_)
+      + sizeof(AgentExchange::throughput_)
+      - PROTOBUF_FIELD_OFFSET(AgentExchange, write_ratio_)>(
+          reinterpret_cast<char*>(&write_ratio_),
+          reinterpret_cast<char*>(&other->write_ratio_));
 }
 
-::PROTOBUF_NAMESPACE_ID::Metadata Experience::GetMetadata() const {
+::PROTOBUF_NAMESPACE_ID::Metadata AgentExchange::GetMetadata() const {
   return ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(
       &descriptor_table_blockchain_2eproto_getter, &descriptor_table_blockchain_2eproto_once,
       file_level_metadata_blockchain_2eproto[11]);
@@ -3515,11 +3528,11 @@ template<> PROTOBUF_NOINLINE ::Block* Arena::CreateMaybeMessage< ::Block >(Arena
 template<> PROTOBUF_NOINLINE ::Action* Arena::CreateMaybeMessage< ::Action >(Arena* arena) {
   return Arena::CreateMessageInternal< ::Action >(arena);
 }
-template<> PROTOBUF_NOINLINE ::Reward* Arena::CreateMaybeMessage< ::Reward >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::Reward >(arena);
+template<> PROTOBUF_NOINLINE ::WatermarkLow* Arena::CreateMaybeMessage< ::WatermarkLow >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::WatermarkLow >(arena);
 }
-template<> PROTOBUF_NOINLINE ::Experience* Arena::CreateMaybeMessage< ::Experience >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::Experience >(arena);
+template<> PROTOBUF_NOINLINE ::AgentExchange* Arena::CreateMaybeMessage< ::AgentExchange >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::AgentExchange >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
 

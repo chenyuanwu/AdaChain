@@ -64,7 +64,7 @@ void *leader_main_thread(void *arg) {
     struct RaftThreadContext ctx = *(struct RaftThreadContext *)arg;
     ofstream log(string(peer_config["sysconfig"]["log_dir"].GetString()) + "/raft.log", ios::out | ios::binary);
     while (true) {
-        if (last_log_index < ep.T_n) {
+        if (last_log_index < ep.T_h) {
             int i = 0;
             for (; i < arch.max_block_size; i++) {
                 string req = ordering_queue.pop();
@@ -170,24 +170,26 @@ Status PeerCommImpl::end_benchmarking(ServerContext *context, const google::prot
     return Status::OK;
 }
 
-Status PeerCommImpl::start_new_episode(ServerContext *context, const Action *action, google::protobuf::Empty *response) {
-    // set the arch for the new episode
-    arch.max_block_size = action->blocksize();
-    arch.is_xov = action->early_execution();
-    arch.reorder = action->reorder();
+Status PeerCommImpl::new_episode_info(ServerContext *context, const Action *action, google::protobuf::Empty *response) {
+    if (ep.equal_curr_action(*action)) {
+        // update W_L, W_H
+        ep.episode++;
+        ep.B_start = ep.B_h.load();
+        ep.B_l = ep.B_h + (peer_config["sysconfig"]["trans_watermark_low"].GetInt() / arch.max_block_size);
+        uint64_t B_h_delta = peer_config["sysconfig"]["trans_watermark_high"].GetInt() / arch.max_block_size;
+        ep.B_h += B_h_delta;
+        ep.T_h += B_h_delta * arch.max_block_size;
+        ep.agent_notified = false;
 
-    // start the new episode
-    ep.episode++;
-    uint64_t B_n_delta = peer_config["sysconfig"]["trans_water_mark"].GetInt() / arch.max_block_size;
-    ep.B_n += B_n_delta;
-    ep.T_n += B_n_delta * arch.max_block_size;
-    ep.freeze = false;
+        LOG(INFO) << "Episode " << ep.episode << " starts: blocksize = " << arch.max_block_size << ", early_execution = "
+                  << arch.is_xov << ", reorder = " << arch.reorder << ", B_h = " << ep.B_h << ", T_h = " << ep.T_h << ".";
 
-    LOG(INFO) << "Episode " << ep.episode << " starts: blocksize = " << arch.max_block_size << ", early_execution = "
-              << arch.is_xov << ", reorder = " << arch.reorder << ", B_n = " << ep.B_n << ", T_n = " << ep.T_n << ".";
-
-    ep.total_ops = 0;
-    ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+        ep.total_ops = 0;
+        ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+    } else {
+        // process until W_H and then switch
+        ep.next_action = (*action);
+    }
 
     return Status::OK;
 }

@@ -3,6 +3,7 @@
 
 #include <google/protobuf/message.h>
 #include <google/protobuf/text_format.h>
+#include <google/protobuf/util/message_differencer.h>
 #include <google/protobuf/util/time_util.h>
 #include <pthread.h>
 #include <sys/time.h>
@@ -34,17 +35,27 @@ extern Architecture arch;
 
 class Episode {
    private:
+    google::protobuf::util::MessageDifferencer differencer;
    public:
-    Episode() : total_ops(0), freeze(false), episode(0) {
+    Episode() : total_ops(0), freeze(false), agent_notified(false), episode(0) {
     }
 
     atomic<long> total_ops;
     atomic_bool freeze;
-    atomic<uint64_t> B_n;
-    atomic<uint64_t> T_n;
+    atomic_bool agent_notified;
+    atomic<uint64_t> B_h;
+    atomic<uint64_t> T_h;
+    atomic<uint64_t> B_l;
+    atomic<uint64_t> B_start;
     atomic<uint64_t> episode;
     chrono::milliseconds start;
-    chrono::milliseconds end;
+
+    Action curr_action;
+    Action next_action;
+
+    bool equal_curr_action(const Action& action) {
+        return differencer.Equals(action, curr_action);
+    }
 };  // the class used for synchronization across episodes
 
 extern Episode ep;

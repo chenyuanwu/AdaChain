@@ -65,7 +65,7 @@ class PeerCommImpl final : public PeerComm::Service {
 
     Status end_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) override;
 
-    Status start_new_episode(ServerContext *context, const Action *action, google::protobuf::Empty *response) override;
+    Status new_episode_info(ServerContext *context, const Action *action, google::protobuf::Empty *response) override;
 
    private:
     ofstream log;

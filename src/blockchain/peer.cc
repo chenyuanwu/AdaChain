@@ -19,7 +19,6 @@ OXIIHelper oxii_helper;
 shared_ptr<grpc::Channel> leader_channel;
 bool is_leader = false;
 uint64_t block_index = 0;
-uint64_t transaction_count = 0;
 
 string sha256(const string str) {
     unsigned char hash[SHA256_DIGEST_LENGTH];
@@ -89,7 +88,7 @@ void *block_formation_thread(void *arg) {
     queue<string> request_queue;
 
     while (true) {
-        if (block_index < ep.B_n) {
+        if (block_index < ep.B_h) {
             if (is_leader) {
                 int N = commit_index + 1;
                 int count = 0;
@@ -117,7 +116,6 @@ void *block_formation_thread(void *arg) {
                 LOG(DEBUG) << "[block_id = " << block_index << ", trans_id = " << trans_index << "]: added transaction to block.";
                 request_queue.push(serialized_request);
                 trans_index++;
-                transaction_count++;
 
                 if (trans_index >= arch.max_block_size) {
                     /* cut the block */
@@ -325,8 +323,13 @@ void run_peer(const string &server_address) {
     LOG(INFO) << "RPC server listening on " << server_address << ".";
 
     /* spawn the raft threads on leader, block formation thread, and execution threads */
-    ep.B_n = peer_config["sysconfig"]["trans_water_mark"].GetInt() / arch.max_block_size;
-    ep.T_n = ep.B_n.load() * arch.max_block_size;
+    ep.B_h = peer_config["sysconfig"]["trans_watermark_high"].GetInt() / arch.max_block_size;
+    ep.B_l = peer_config["sysconfig"]["trans_watermark_low"].GetInt() / arch.max_block_size;
+    ep.B_start = 1;
+    ep.T_h = ep.B_h.load() * arch.max_block_size;
+    ep.curr_action.set_blocksize(arch.max_block_size);
+    ep.curr_action.set_early_execution(arch.is_xov);
+    ep.curr_action.set_reorder(arch.reorder);
 
     unique_ptr<PeerComm::Stub> stub;
     if (is_leader) {
@@ -363,13 +366,35 @@ void run_peer(const string &server_address) {
 
     /* setup the grpc client for learning agent */
     unique_ptr<AgentComm::Stub> agent_stub;
-    agent_stub = AgentComm::NewStub(grpc::CreateChannel(peer_config["sysconfig"]["agent"].GetString(),
+    agent_stub = AgentComm::NewStub(grpc::CreateChannel("localhost:50053",
                                                         grpc::InsecureChannelCredentials()));
 
     /* process transaction proposals from queue */
     bool is_cleaned = false;
     while (true) {
-        if (block_index < ep.B_n) {
+        if ((!ep.agent_notified) && block_index >= ep.B_l) {
+            chrono::milliseconds curr = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+            uint64_t time = (curr - ep.start).count();
+            double throughput = ((double)ep.total_ops.load() / time) * 1000;
+
+            LOG(INFO) << "Episode " << ep.episode << " reached W_l: duration = " << time / 1000.0 << "s, throughput = " << throughput << "tps.";
+
+            ClientContext context;  // notify learning agent about reaching watermark low
+            WatermarkLow wl;
+            google::protobuf::Empty rsp;
+            wl.set_throughput(throughput);
+            wl.set_block_id_now(block_index);
+            wl.set_block_id_start(ep.B_start);
+            Status status = agent_stub->reached_watermark_low(&context, wl, &rsp);
+            if (!status.ok()) {
+                LOG(ERROR) << "grpc failed in run_peer.";
+                exit(1);
+            }
+
+            ep.agent_notified = true;
+        }
+
+        if (block_index < ep.B_h) {
             TransactionProposal proposal = proposal_queue.pop();
             if (arch.is_xov) {
                 execution_queue.add(proposal);
@@ -393,28 +418,32 @@ void run_peer(const string &server_address) {
             }
         } else {
             if (!is_cleaned) {
-                ep.end = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
-                uint64_t time = (ep.end - ep.start).count();
-                double throughput = ((double)ep.total_ops.load() / time) * 1000;
-
-                LOG(INFO) << "Episode " << ep.episode << " ends: duration = " << time / 1000.0 << "s, throughput = " << throughput << "tps, "
-                          << "trans_count(T_n) = " << transaction_count << ", last_log_index = " << last_log_index << ".";
-
                 ep.freeze = true;
                 proposal_queue.clear();
                 ordering_queue.clear();
                 execution_queue.clear();
 
-                ClientContext context;  // notify learning agent the end of current episode
-                Reward reward;
-                google::protobuf::Empty rsp;
-                reward.set_is_leader(is_leader);
-                reward.set_throughput(throughput);
-                Status status = agent_stub->end_current_episode(&context, reward, &rsp);
-                if (!status.ok()) {
-                    LOG(ERROR) << "grpc failed in run_peer.";
-                    exit(1);
-                }
+                // set the arch for the new episode
+                arch.max_block_size = ep.next_action.blocksize();
+                arch.is_xov = ep.next_action.early_execution();
+                arch.reorder = ep.next_action.reorder();
+                ep.curr_action = ep.next_action;
+
+                // start the new episode
+                ep.episode++;
+                ep.B_start = ep.B_h.load();
+                ep.B_l = ep.B_h + (peer_config["sysconfig"]["trans_watermark_low"].GetInt() / arch.max_block_size);
+                uint64_t B_h_delta = peer_config["sysconfig"]["trans_watermark_high"].GetInt() / arch.max_block_size;
+                ep.B_h += B_h_delta;
+                ep.T_h += B_h_delta * arch.max_block_size;
+                ep.agent_notified = false;
+                ep.freeze = false;
+
+                LOG(INFO) << "Episode " << ep.episode << " starts (by reaching W_H): blocksize = " << arch.max_block_size << ", early_execution = "
+                          << arch.is_xov << ", reorder = " << arch.reorder << ", B_h = " << ep.B_h << ", T_h = " << ep.T_h << ".";
+
+                ep.total_ops = 0;
+                ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
 
                 is_cleaned = true;
             }

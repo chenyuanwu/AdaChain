@@ -1,19 +1,24 @@
 {
     "arch": {
-        "blocksize": 50,
-        "early_execution": true,
-        "reorder": false
+        "blocksize": 200,
+        "early_execution": false,
+        "reorder": true
     },
     "sysconfig": {
         "leveldb_dir": "/mydata/testdb",
         "log_dir": "/mydata/log",
-        "trans_water_mark": 10000,
+        "trans_watermark_high": 10000,
+        "trans_watermark_low": 7500,
         "num_execution_threads": 16,
         "leader": "10.10.1.2:50052",
         "followers": [
             "10.10.1.3:50052",
             "10.10.1.4:50052"
         ],
-        "agent": "10.10.1.2:50053"
+        "agents": [
+            "10.10.1.2:50053",
+            "10.10.1.3:50053",
+            "10.10.1.4:50053"
+        ]
     }
 }

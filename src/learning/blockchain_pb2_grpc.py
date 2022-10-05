@@ -45,8 +45,8 @@ class PeerCommStub(object):
                 request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
                 response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
                 )
-        self.start_new_episode = channel.unary_unary(
-                '/PeerComm/start_new_episode',
+        self.new_episode_info = channel.unary_unary(
+                '/PeerComm/new_episode_info',
                 request_serializer=blockchain__pb2.Action.SerializeToString,
                 response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
                 )
@@ -91,7 +91,7 @@ class PeerCommServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def start_new_episode(self, request, context):
+    def new_episode_info(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -130,8 +130,8 @@ def add_PeerCommServicer_to_server(servicer, server):
                     request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
                     response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
             ),
-            'start_new_episode': grpc.unary_unary_rpc_method_handler(
-                    servicer.start_new_episode,
+            'new_episode_info': grpc.unary_unary_rpc_method_handler(
+                    servicer.new_episode_info,
                     request_deserializer=blockchain__pb2.Action.FromString,
                     response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
             ),
@@ -248,7 +248,7 @@ class PeerComm(object):
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
-    def start_new_episode(request,
+    def new_episode_info(request,
             target,
             options=(),
             channel_credentials=None,
@@ -258,7 +258,7 @@ class PeerComm(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/PeerComm/start_new_episode',
+        return grpc.experimental.unary_unary(request, target, '/PeerComm/new_episode_info',
             blockchain__pb2.Action.SerializeToString,
             google_dot_protobuf_dot_empty__pb2.Empty.FromString,
             options, channel_credentials,
@@ -274,9 +274,19 @@ class AgentCommStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.end_current_episode = channel.unary_unary(
-                '/AgentComm/end_current_episode',
-                request_serializer=blockchain__pb2.Reward.SerializeToString,
+        self.reached_watermark_low = channel.unary_unary(
+                '/AgentComm/reached_watermark_low',
+                request_serializer=blockchain__pb2.WatermarkLow.SerializeToString,
+                response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                )
+        self.send_preprepare = channel.unary_unary(
+                '/AgentComm/send_preprepare',
+                request_serializer=blockchain__pb2.AgentExchange.SerializeToString,
+                response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                )
+        self.send_prepare = channel.unary_unary(
+                '/AgentComm/send_prepare',
+                request_serializer=blockchain__pb2.AgentExchange.SerializeToString,
                 response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
                 )
 
@@ -284,7 +294,19 @@ class AgentCommStub(object):
 class AgentCommServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def end_current_episode(self, request, context):
+    def reached_watermark_low(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def send_preprepare(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def send_prepare(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -293,9 +315,19 @@ class AgentCommServicer(object):
 
 def add_AgentCommServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'end_current_episode': grpc.unary_unary_rpc_method_handler(
-                    servicer.end_current_episode,
-                    request_deserializer=blockchain__pb2.Reward.FromString,
+            'reached_watermark_low': grpc.unary_unary_rpc_method_handler(
+                    servicer.reached_watermark_low,
+                    request_deserializer=blockchain__pb2.WatermarkLow.FromString,
+                    response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            ),
+            'send_preprepare': grpc.unary_unary_rpc_method_handler(
+                    servicer.send_preprepare,
+                    request_deserializer=blockchain__pb2.AgentExchange.FromString,
+                    response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            ),
+            'send_prepare': grpc.unary_unary_rpc_method_handler(
+                    servicer.send_prepare,
+                    request_deserializer=blockchain__pb2.AgentExchange.FromString,
                     response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
             ),
     }
@@ -309,7 +341,7 @@ class AgentComm(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def end_current_episode(request,
+    def reached_watermark_low(request,
             target,
             options=(),
             channel_credentials=None,
@@ -319,8 +351,42 @@ class AgentComm(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/AgentComm/end_current_episode',
-            blockchain__pb2.Reward.SerializeToString,
+        return grpc.experimental.unary_unary(request, target, '/AgentComm/reached_watermark_low',
+            blockchain__pb2.WatermarkLow.SerializeToString,
+            google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def send_preprepare(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/AgentComm/send_preprepare',
+            blockchain__pb2.AgentExchange.SerializeToString,
+            google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def send_prepare(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/AgentComm/send_prepare',
+            blockchain__pb2.AgentExchange.SerializeToString,
             google_dot_protobuf_dot_empty__pb2.Empty.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

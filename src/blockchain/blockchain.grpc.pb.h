@@ -77,12 +77,12 @@ class PeerComm final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncend_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncend_benchmarkingRaw(context, request, cq));
     }
-    virtual ::grpc::Status start_new_episode(::grpc::ClientContext* context, const ::Action& request, ::google::protobuf::Empty* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> Asyncstart_new_episode(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(Asyncstart_new_episodeRaw(context, request, cq));
+    virtual ::grpc::Status new_episode_info(::grpc::ClientContext* context, const ::Action& request, ::google::protobuf::Empty* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> Asyncnew_episode_info(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(Asyncnew_episode_infoRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncstart_new_episode(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncstart_new_episodeRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncnew_episode_info(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncnew_episode_infoRaw(context, request, cq));
     }
     class async_interface {
      public:
@@ -98,8 +98,8 @@ class PeerComm final {
       virtual void start_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       virtual void end_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
       virtual void end_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
-      virtual void start_new_episode(::grpc::ClientContext* context, const ::Action* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void start_new_episode(::grpc::ClientContext* context, const ::Action* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void new_episode_info(::grpc::ClientContext* context, const ::Action* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void new_episode_info(::grpc::ClientContext* context, const ::Action* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
@@ -118,8 +118,8 @@ class PeerComm final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncstart_benchmarkingRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* Asyncend_benchmarkingRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncend_benchmarkingRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* Asyncstart_new_episodeRaw(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncstart_new_episodeRaw(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* Asyncnew_episode_infoRaw(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncnew_episode_infoRaw(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -168,12 +168,12 @@ class PeerComm final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncend_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncend_benchmarkingRaw(context, request, cq));
     }
-    ::grpc::Status start_new_episode(::grpc::ClientContext* context, const ::Action& request, ::google::protobuf::Empty* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> Asyncstart_new_episode(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(Asyncstart_new_episodeRaw(context, request, cq));
+    ::grpc::Status new_episode_info(::grpc::ClientContext* context, const ::Action& request, ::google::protobuf::Empty* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> Asyncnew_episode_info(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(Asyncnew_episode_infoRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncstart_new_episode(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncstart_new_episodeRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncnew_episode_info(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncnew_episode_infoRaw(context, request, cq));
     }
     class async final :
       public StubInterface::async_interface {
@@ -189,8 +189,8 @@ class PeerComm final {
       void start_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
       void end_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
       void end_benchmarking(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void start_new_episode(::grpc::ClientContext* context, const ::Action* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
-      void start_new_episode(::grpc::ClientContext* context, const ::Action* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void new_episode_info(::grpc::ClientContext* context, const ::Action* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
+      void new_episode_info(::grpc::ClientContext* context, const ::Action* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -215,15 +215,15 @@ class PeerComm final {
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncstart_benchmarkingRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* Asyncend_benchmarkingRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncend_benchmarkingRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* Asyncstart_new_episodeRaw(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncstart_new_episodeRaw(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* Asyncnew_episode_infoRaw(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncnew_episode_infoRaw(::grpc::ClientContext* context, const ::Action& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_append_entries_;
     const ::grpc::internal::RpcMethod rpcmethod_send_to_peer_;
     const ::grpc::internal::RpcMethod rpcmethod_send_to_peer_stream_;
     const ::grpc::internal::RpcMethod rpcmethod_prepopulate_;
     const ::grpc::internal::RpcMethod rpcmethod_start_benchmarking_;
     const ::grpc::internal::RpcMethod rpcmethod_end_benchmarking_;
-    const ::grpc::internal::RpcMethod rpcmethod_start_new_episode_;
+    const ::grpc::internal::RpcMethod rpcmethod_new_episode_info_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -237,7 +237,7 @@ class PeerComm final {
     virtual ::grpc::Status prepopulate(::grpc::ServerContext* context, const ::TransactionProposal* request, ::PrepopulateResponse* response);
     virtual ::grpc::Status start_benchmarking(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response);
     virtual ::grpc::Status end_benchmarking(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response);
-    virtual ::grpc::Status start_new_episode(::grpc::ServerContext* context, const ::Action* request, ::google::protobuf::Empty* response);
+    virtual ::grpc::Status new_episode_info(::grpc::ServerContext* context, const ::Action* request, ::google::protobuf::Empty* response);
   };
   template <class BaseClass>
   class WithAsyncMethod_append_entries : public BaseClass {
@@ -360,26 +360,26 @@ class PeerComm final {
     }
   };
   template <class BaseClass>
-  class WithAsyncMethod_start_new_episode : public BaseClass {
+  class WithAsyncMethod_new_episode_info : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_start_new_episode() {
+    WithAsyncMethod_new_episode_info() {
       ::grpc::Service::MarkMethodAsync(6);
     }
-    ~WithAsyncMethod_start_new_episode() override {
+    ~WithAsyncMethod_new_episode_info() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status start_new_episode(::grpc::ServerContext* /*context*/, const ::Action* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status new_episode_info(::grpc::ServerContext* /*context*/, const ::Action* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void Requeststart_new_episode(::grpc::ServerContext* context, ::Action* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void Requestnew_episode_info(::grpc::ServerContext* context, ::Action* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(6, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_append_entries<WithAsyncMethod_send_to_peer<WithAsyncMethod_send_to_peer_stream<WithAsyncMethod_prepopulate<WithAsyncMethod_start_benchmarking<WithAsyncMethod_end_benchmarking<WithAsyncMethod_start_new_episode<Service > > > > > > > AsyncService;
+  typedef WithAsyncMethod_append_entries<WithAsyncMethod_send_to_peer<WithAsyncMethod_send_to_peer_stream<WithAsyncMethod_prepopulate<WithAsyncMethod_start_benchmarking<WithAsyncMethod_end_benchmarking<WithAsyncMethod_new_episode_info<Service > > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_append_entries : public BaseClass {
    private:
@@ -538,33 +538,33 @@ class PeerComm final {
       ::grpc::CallbackServerContext* /*context*/, const ::google::protobuf::Empty* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_start_new_episode : public BaseClass {
+  class WithCallbackMethod_new_episode_info : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_start_new_episode() {
+    WithCallbackMethod_new_episode_info() {
       ::grpc::Service::MarkMethodCallback(6,
           new ::grpc::internal::CallbackUnaryHandler< ::Action, ::google::protobuf::Empty>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::Action* request, ::google::protobuf::Empty* response) { return this->start_new_episode(context, request, response); }));}
-    void SetMessageAllocatorFor_start_new_episode(
+                   ::grpc::CallbackServerContext* context, const ::Action* request, ::google::protobuf::Empty* response) { return this->new_episode_info(context, request, response); }));}
+    void SetMessageAllocatorFor_new_episode_info(
         ::grpc::MessageAllocator< ::Action, ::google::protobuf::Empty>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(6);
       static_cast<::grpc::internal::CallbackUnaryHandler< ::Action, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_start_new_episode() override {
+    ~WithCallbackMethod_new_episode_info() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status start_new_episode(::grpc::ServerContext* /*context*/, const ::Action* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status new_episode_info(::grpc::ServerContext* /*context*/, const ::Action* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* start_new_episode(
+    virtual ::grpc::ServerUnaryReactor* new_episode_info(
       ::grpc::CallbackServerContext* /*context*/, const ::Action* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_append_entries<WithCallbackMethod_send_to_peer<WithCallbackMethod_send_to_peer_stream<WithCallbackMethod_prepopulate<WithCallbackMethod_start_benchmarking<WithCallbackMethod_end_benchmarking<WithCallbackMethod_start_new_episode<Service > > > > > > > CallbackService;
+  typedef WithCallbackMethod_append_entries<WithCallbackMethod_send_to_peer<WithCallbackMethod_send_to_peer_stream<WithCallbackMethod_prepopulate<WithCallbackMethod_start_benchmarking<WithCallbackMethod_end_benchmarking<WithCallbackMethod_new_episode_info<Service > > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_append_entries : public BaseClass {
@@ -669,18 +669,18 @@ class PeerComm final {
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_start_new_episode : public BaseClass {
+  class WithGenericMethod_new_episode_info : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_start_new_episode() {
+    WithGenericMethod_new_episode_info() {
       ::grpc::Service::MarkMethodGeneric(6);
     }
-    ~WithGenericMethod_start_new_episode() override {
+    ~WithGenericMethod_new_episode_info() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status start_new_episode(::grpc::ServerContext* /*context*/, const ::Action* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status new_episode_info(::grpc::ServerContext* /*context*/, const ::Action* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -806,22 +806,22 @@ class PeerComm final {
     }
   };
   template <class BaseClass>
-  class WithRawMethod_start_new_episode : public BaseClass {
+  class WithRawMethod_new_episode_info : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_start_new_episode() {
+    WithRawMethod_new_episode_info() {
       ::grpc::Service::MarkMethodRaw(6);
     }
-    ~WithRawMethod_start_new_episode() override {
+    ~WithRawMethod_new_episode_info() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status start_new_episode(::grpc::ServerContext* /*context*/, const ::Action* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status new_episode_info(::grpc::ServerContext* /*context*/, const ::Action* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void Requeststart_new_episode(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void Requestnew_episode_info(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(6, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
@@ -958,25 +958,25 @@ class PeerComm final {
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_start_new_episode : public BaseClass {
+  class WithRawCallbackMethod_new_episode_info : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_start_new_episode() {
+    WithRawCallbackMethod_new_episode_info() {
       ::grpc::Service::MarkMethodRawCallback(6,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->start_new_episode(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->new_episode_info(context, request, response); }));
     }
-    ~WithRawCallbackMethod_start_new_episode() override {
+    ~WithRawCallbackMethod_new_episode_info() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status start_new_episode(::grpc::ServerContext* /*context*/, const ::Action* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status new_episode_info(::grpc::ServerContext* /*context*/, const ::Action* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* start_new_episode(
+    virtual ::grpc::ServerUnaryReactor* new_episode_info(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
@@ -1115,35 +1115,35 @@ class PeerComm final {
     virtual ::grpc::Status Streamedend_benchmarking(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::google::protobuf::Empty,::google::protobuf::Empty>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_start_new_episode : public BaseClass {
+  class WithStreamedUnaryMethod_new_episode_info : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_start_new_episode() {
+    WithStreamedUnaryMethod_new_episode_info() {
       ::grpc::Service::MarkMethodStreamed(6,
         new ::grpc::internal::StreamedUnaryHandler<
           ::Action, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
                      ::Action, ::google::protobuf::Empty>* streamer) {
-                       return this->Streamedstart_new_episode(context,
+                       return this->Streamednew_episode_info(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_start_new_episode() override {
+    ~WithStreamedUnaryMethod_new_episode_info() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status start_new_episode(::grpc::ServerContext* /*context*/, const ::Action* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status new_episode_info(::grpc::ServerContext* /*context*/, const ::Action* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status Streamedstart_new_episode(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::Action,::google::protobuf::Empty>* server_unary_streamer) = 0;
+    virtual ::grpc::Status Streamednew_episode_info(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::Action,::google::protobuf::Empty>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_append_entries<WithStreamedUnaryMethod_send_to_peer<WithStreamedUnaryMethod_prepopulate<WithStreamedUnaryMethod_start_benchmarking<WithStreamedUnaryMethod_end_benchmarking<WithStreamedUnaryMethod_start_new_episode<Service > > > > > > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_append_entries<WithStreamedUnaryMethod_send_to_peer<WithStreamedUnaryMethod_prepopulate<WithStreamedUnaryMethod_start_benchmarking<WithStreamedUnaryMethod_end_benchmarking<WithStreamedUnaryMethod_new_episode_info<Service > > > > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_append_entries<WithStreamedUnaryMethod_send_to_peer<WithStreamedUnaryMethod_prepopulate<WithStreamedUnaryMethod_start_benchmarking<WithStreamedUnaryMethod_end_benchmarking<WithStreamedUnaryMethod_start_new_episode<Service > > > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_append_entries<WithStreamedUnaryMethod_send_to_peer<WithStreamedUnaryMethod_prepopulate<WithStreamedUnaryMethod_start_benchmarking<WithStreamedUnaryMethod_end_benchmarking<WithStreamedUnaryMethod_new_episode_info<Service > > > > > > StreamedService;
 };
 
 class AgentComm final {
@@ -1154,41 +1154,81 @@ class AgentComm final {
   class StubInterface {
    public:
     virtual ~StubInterface() {}
-    virtual ::grpc::Status end_current_episode(::grpc::ClientContext* context, const ::Reward& request, ::google::protobuf::Empty* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> Asyncend_current_episode(::grpc::ClientContext* context, const ::Reward& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(Asyncend_current_episodeRaw(context, request, cq));
+    virtual ::grpc::Status reached_watermark_low(::grpc::ClientContext* context, const ::WatermarkLow& request, ::google::protobuf::Empty* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> Asyncreached_watermark_low(::grpc::ClientContext* context, const ::WatermarkLow& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(Asyncreached_watermark_lowRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncend_current_episode(::grpc::ClientContext* context, const ::Reward& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncend_current_episodeRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncreached_watermark_low(::grpc::ClientContext* context, const ::WatermarkLow& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncreached_watermark_lowRaw(context, request, cq));
+    }
+    virtual ::grpc::Status send_preprepare(::grpc::ClientContext* context, const ::AgentExchange& request, ::google::protobuf::Empty* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> Asyncsend_preprepare(::grpc::ClientContext* context, const ::AgentExchange& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(Asyncsend_preprepareRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncsend_preprepare(::grpc::ClientContext* context, const ::AgentExchange& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncsend_preprepareRaw(context, request, cq));
+    }
+    virtual ::grpc::Status send_prepare(::grpc::ClientContext* context, const ::AgentExchange& request, ::google::protobuf::Empty* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> Asyncsend_prepare(::grpc::ClientContext* context, const ::AgentExchange& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(Asyncsend_prepareRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>> PrepareAsyncsend_prepare(::grpc::ClientContext* context, const ::AgentExchange& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>>(PrepareAsyncsend_prepareRaw(context, request, cq));
     }
     class async_interface {
      public:
       virtual ~async_interface() {}
-      virtual void end_current_episode(::grpc::ClientContext* context, const ::Reward* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void end_current_episode(::grpc::ClientContext* context, const ::Reward* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void reached_watermark_low(::grpc::ClientContext* context, const ::WatermarkLow* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void reached_watermark_low(::grpc::ClientContext* context, const ::WatermarkLow* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void send_preprepare(::grpc::ClientContext* context, const ::AgentExchange* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void send_preprepare(::grpc::ClientContext* context, const ::AgentExchange* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void send_prepare(::grpc::ClientContext* context, const ::AgentExchange* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void send_prepare(::grpc::ClientContext* context, const ::AgentExchange* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
     class async_interface* experimental_async() { return async(); }
    private:
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* Asyncend_current_episodeRaw(::grpc::ClientContext* context, const ::Reward& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncend_current_episodeRaw(::grpc::ClientContext* context, const ::Reward& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* Asyncreached_watermark_lowRaw(::grpc::ClientContext* context, const ::WatermarkLow& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncreached_watermark_lowRaw(::grpc::ClientContext* context, const ::WatermarkLow& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* Asyncsend_preprepareRaw(::grpc::ClientContext* context, const ::AgentExchange& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncsend_preprepareRaw(::grpc::ClientContext* context, const ::AgentExchange& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* Asyncsend_prepareRaw(::grpc::ClientContext* context, const ::AgentExchange& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::google::protobuf::Empty>* PrepareAsyncsend_prepareRaw(::grpc::ClientContext* context, const ::AgentExchange& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
     Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
-    ::grpc::Status end_current_episode(::grpc::ClientContext* context, const ::Reward& request, ::google::protobuf::Empty* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> Asyncend_current_episode(::grpc::ClientContext* context, const ::Reward& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(Asyncend_current_episodeRaw(context, request, cq));
+    ::grpc::Status reached_watermark_low(::grpc::ClientContext* context, const ::WatermarkLow& request, ::google::protobuf::Empty* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> Asyncreached_watermark_low(::grpc::ClientContext* context, const ::WatermarkLow& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(Asyncreached_watermark_lowRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncend_current_episode(::grpc::ClientContext* context, const ::Reward& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncend_current_episodeRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncreached_watermark_low(::grpc::ClientContext* context, const ::WatermarkLow& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncreached_watermark_lowRaw(context, request, cq));
+    }
+    ::grpc::Status send_preprepare(::grpc::ClientContext* context, const ::AgentExchange& request, ::google::protobuf::Empty* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> Asyncsend_preprepare(::grpc::ClientContext* context, const ::AgentExchange& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(Asyncsend_preprepareRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncsend_preprepare(::grpc::ClientContext* context, const ::AgentExchange& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncsend_preprepareRaw(context, request, cq));
+    }
+    ::grpc::Status send_prepare(::grpc::ClientContext* context, const ::AgentExchange& request, ::google::protobuf::Empty* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> Asyncsend_prepare(::grpc::ClientContext* context, const ::AgentExchange& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(Asyncsend_prepareRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>> PrepareAsyncsend_prepare(::grpc::ClientContext* context, const ::AgentExchange& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>>(PrepareAsyncsend_prepareRaw(context, request, cq));
     }
     class async final :
       public StubInterface::async_interface {
      public:
-      void end_current_episode(::grpc::ClientContext* context, const ::Reward* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
-      void end_current_episode(::grpc::ClientContext* context, const ::Reward* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void reached_watermark_low(::grpc::ClientContext* context, const ::WatermarkLow* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
+      void reached_watermark_low(::grpc::ClientContext* context, const ::WatermarkLow* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void send_preprepare(::grpc::ClientContext* context, const ::AgentExchange* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
+      void send_preprepare(::grpc::ClientContext* context, const ::AgentExchange* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void send_prepare(::grpc::ClientContext* context, const ::AgentExchange* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)>) override;
+      void send_prepare(::grpc::ClientContext* context, const ::AgentExchange* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -1200,9 +1240,15 @@ class AgentComm final {
    private:
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
     class async async_stub_{this};
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* Asyncend_current_episodeRaw(::grpc::ClientContext* context, const ::Reward& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncend_current_episodeRaw(::grpc::ClientContext* context, const ::Reward& request, ::grpc::CompletionQueue* cq) override;
-    const ::grpc::internal::RpcMethod rpcmethod_end_current_episode_;
+    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* Asyncreached_watermark_lowRaw(::grpc::ClientContext* context, const ::WatermarkLow& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncreached_watermark_lowRaw(::grpc::ClientContext* context, const ::WatermarkLow& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* Asyncsend_preprepareRaw(::grpc::ClientContext* context, const ::AgentExchange& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncsend_preprepareRaw(::grpc::ClientContext* context, const ::AgentExchange& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* Asyncsend_prepareRaw(::grpc::ClientContext* context, const ::AgentExchange& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PrepareAsyncsend_prepareRaw(::grpc::ClientContext* context, const ::AgentExchange& request, ::grpc::CompletionQueue* cq) override;
+    const ::grpc::internal::RpcMethod rpcmethod_reached_watermark_low_;
+    const ::grpc::internal::RpcMethod rpcmethod_send_preprepare_;
+    const ::grpc::internal::RpcMethod rpcmethod_send_prepare_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -1210,147 +1256,415 @@ class AgentComm final {
    public:
     Service();
     virtual ~Service();
-    virtual ::grpc::Status end_current_episode(::grpc::ServerContext* context, const ::Reward* request, ::google::protobuf::Empty* response);
+    virtual ::grpc::Status reached_watermark_low(::grpc::ServerContext* context, const ::WatermarkLow* request, ::google::protobuf::Empty* response);
+    virtual ::grpc::Status send_preprepare(::grpc::ServerContext* context, const ::AgentExchange* request, ::google::protobuf::Empty* response);
+    virtual ::grpc::Status send_prepare(::grpc::ServerContext* context, const ::AgentExchange* request, ::google::protobuf::Empty* response);
   };
   template <class BaseClass>
-  class WithAsyncMethod_end_current_episode : public BaseClass {
+  class WithAsyncMethod_reached_watermark_low : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithAsyncMethod_end_current_episode() {
+    WithAsyncMethod_reached_watermark_low() {
       ::grpc::Service::MarkMethodAsync(0);
     }
-    ~WithAsyncMethod_end_current_episode() override {
+    ~WithAsyncMethod_reached_watermark_low() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status end_current_episode(::grpc::ServerContext* /*context*/, const ::Reward* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status reached_watermark_low(::grpc::ServerContext* /*context*/, const ::WatermarkLow* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void Requestend_current_episode(::grpc::ServerContext* context, ::Reward* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void Requestreached_watermark_low(::grpc::ServerContext* context, ::WatermarkLow* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_end_current_episode<Service > AsyncService;
   template <class BaseClass>
-  class WithCallbackMethod_end_current_episode : public BaseClass {
+  class WithAsyncMethod_send_preprepare : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_end_current_episode() {
+    WithAsyncMethod_send_preprepare() {
+      ::grpc::Service::MarkMethodAsync(1);
+    }
+    ~WithAsyncMethod_send_preprepare() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status send_preprepare(::grpc::ServerContext* /*context*/, const ::AgentExchange* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void Requestsend_preprepare(::grpc::ServerContext* context, ::AgentExchange* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_send_prepare : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_send_prepare() {
+      ::grpc::Service::MarkMethodAsync(2);
+    }
+    ~WithAsyncMethod_send_prepare() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status send_prepare(::grpc::ServerContext* /*context*/, const ::AgentExchange* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void Requestsend_prepare(::grpc::ServerContext* context, ::AgentExchange* request, ::grpc::ServerAsyncResponseWriter< ::google::protobuf::Empty>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_reached_watermark_low<WithAsyncMethod_send_preprepare<WithAsyncMethod_send_prepare<Service > > > AsyncService;
+  template <class BaseClass>
+  class WithCallbackMethod_reached_watermark_low : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_reached_watermark_low() {
       ::grpc::Service::MarkMethodCallback(0,
-          new ::grpc::internal::CallbackUnaryHandler< ::Reward, ::google::protobuf::Empty>(
+          new ::grpc::internal::CallbackUnaryHandler< ::WatermarkLow, ::google::protobuf::Empty>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::Reward* request, ::google::protobuf::Empty* response) { return this->end_current_episode(context, request, response); }));}
-    void SetMessageAllocatorFor_end_current_episode(
-        ::grpc::MessageAllocator< ::Reward, ::google::protobuf::Empty>* allocator) {
+                   ::grpc::CallbackServerContext* context, const ::WatermarkLow* request, ::google::protobuf::Empty* response) { return this->reached_watermark_low(context, request, response); }));}
+    void SetMessageAllocatorFor_reached_watermark_low(
+        ::grpc::MessageAllocator< ::WatermarkLow, ::google::protobuf::Empty>* allocator) {
       ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(0);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::Reward, ::google::protobuf::Empty>*>(handler)
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::WatermarkLow, ::google::protobuf::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
-    ~WithCallbackMethod_end_current_episode() override {
+    ~WithCallbackMethod_reached_watermark_low() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status end_current_episode(::grpc::ServerContext* /*context*/, const ::Reward* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status reached_watermark_low(::grpc::ServerContext* /*context*/, const ::WatermarkLow* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* end_current_episode(
-      ::grpc::CallbackServerContext* /*context*/, const ::Reward* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerUnaryReactor* reached_watermark_low(
+      ::grpc::CallbackServerContext* /*context*/, const ::WatermarkLow* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_end_current_episode<Service > CallbackService;
+  template <class BaseClass>
+  class WithCallbackMethod_send_preprepare : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_send_preprepare() {
+      ::grpc::Service::MarkMethodCallback(1,
+          new ::grpc::internal::CallbackUnaryHandler< ::AgentExchange, ::google::protobuf::Empty>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::AgentExchange* request, ::google::protobuf::Empty* response) { return this->send_preprepare(context, request, response); }));}
+    void SetMessageAllocatorFor_send_preprepare(
+        ::grpc::MessageAllocator< ::AgentExchange, ::google::protobuf::Empty>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(1);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::AgentExchange, ::google::protobuf::Empty>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_send_preprepare() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status send_preprepare(::grpc::ServerContext* /*context*/, const ::AgentExchange* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* send_preprepare(
+      ::grpc::CallbackServerContext* /*context*/, const ::AgentExchange* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithCallbackMethod_send_prepare : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_send_prepare() {
+      ::grpc::Service::MarkMethodCallback(2,
+          new ::grpc::internal::CallbackUnaryHandler< ::AgentExchange, ::google::protobuf::Empty>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::AgentExchange* request, ::google::protobuf::Empty* response) { return this->send_prepare(context, request, response); }));}
+    void SetMessageAllocatorFor_send_prepare(
+        ::grpc::MessageAllocator< ::AgentExchange, ::google::protobuf::Empty>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(2);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::AgentExchange, ::google::protobuf::Empty>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_send_prepare() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status send_prepare(::grpc::ServerContext* /*context*/, const ::AgentExchange* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* send_prepare(
+      ::grpc::CallbackServerContext* /*context*/, const ::AgentExchange* /*request*/, ::google::protobuf::Empty* /*response*/)  { return nullptr; }
+  };
+  typedef WithCallbackMethod_reached_watermark_low<WithCallbackMethod_send_preprepare<WithCallbackMethod_send_prepare<Service > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
-  class WithGenericMethod_end_current_episode : public BaseClass {
+  class WithGenericMethod_reached_watermark_low : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_end_current_episode() {
+    WithGenericMethod_reached_watermark_low() {
       ::grpc::Service::MarkMethodGeneric(0);
     }
-    ~WithGenericMethod_end_current_episode() override {
+    ~WithGenericMethod_reached_watermark_low() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status end_current_episode(::grpc::ServerContext* /*context*/, const ::Reward* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status reached_watermark_low(::grpc::ServerContext* /*context*/, const ::WatermarkLow* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithRawMethod_end_current_episode : public BaseClass {
+  class WithGenericMethod_send_preprepare : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_end_current_episode() {
-      ::grpc::Service::MarkMethodRaw(0);
+    WithGenericMethod_send_preprepare() {
+      ::grpc::Service::MarkMethodGeneric(1);
     }
-    ~WithRawMethod_end_current_episode() override {
+    ~WithGenericMethod_send_preprepare() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status end_current_episode(::grpc::ServerContext* /*context*/, const ::Reward* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status send_preprepare(::grpc::ServerContext* /*context*/, const ::AgentExchange* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void Requestend_current_episode(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+  };
+  template <class BaseClass>
+  class WithGenericMethod_send_prepare : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_send_prepare() {
+      ::grpc::Service::MarkMethodGeneric(2);
+    }
+    ~WithGenericMethod_send_prepare() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status send_prepare(::grpc::ServerContext* /*context*/, const ::AgentExchange* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_reached_watermark_low : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_reached_watermark_low() {
+      ::grpc::Service::MarkMethodRaw(0);
+    }
+    ~WithRawMethod_reached_watermark_low() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status reached_watermark_low(::grpc::ServerContext* /*context*/, const ::WatermarkLow* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void Requestreached_watermark_low(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_end_current_episode : public BaseClass {
+  class WithRawMethod_send_preprepare : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_end_current_episode() {
+    WithRawMethod_send_preprepare() {
+      ::grpc::Service::MarkMethodRaw(1);
+    }
+    ~WithRawMethod_send_preprepare() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status send_preprepare(::grpc::ServerContext* /*context*/, const ::AgentExchange* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void Requestsend_preprepare(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawMethod_send_prepare : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_send_prepare() {
+      ::grpc::Service::MarkMethodRaw(2);
+    }
+    ~WithRawMethod_send_prepare() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status send_prepare(::grpc::ServerContext* /*context*/, const ::AgentExchange* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void Requestsend_prepare(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_reached_watermark_low : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_reached_watermark_low() {
       ::grpc::Service::MarkMethodRawCallback(0,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->end_current_episode(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->reached_watermark_low(context, request, response); }));
     }
-    ~WithRawCallbackMethod_end_current_episode() override {
+    ~WithRawCallbackMethod_reached_watermark_low() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status end_current_episode(::grpc::ServerContext* /*context*/, const ::Reward* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status reached_watermark_low(::grpc::ServerContext* /*context*/, const ::WatermarkLow* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* end_current_episode(
+    virtual ::grpc::ServerUnaryReactor* reached_watermark_low(
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithStreamedUnaryMethod_end_current_episode : public BaseClass {
+  class WithRawCallbackMethod_send_preprepare : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithStreamedUnaryMethod_end_current_episode() {
+    WithRawCallbackMethod_send_preprepare() {
+      ::grpc::Service::MarkMethodRawCallback(1,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->send_preprepare(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_send_preprepare() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status send_preprepare(::grpc::ServerContext* /*context*/, const ::AgentExchange* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* send_preprepare(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithRawCallbackMethod_send_prepare : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_send_prepare() {
+      ::grpc::Service::MarkMethodRawCallback(2,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->send_prepare(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_send_prepare() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status send_prepare(::grpc::ServerContext* /*context*/, const ::AgentExchange* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* send_prepare(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_reached_watermark_low : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_reached_watermark_low() {
       ::grpc::Service::MarkMethodStreamed(0,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::Reward, ::google::protobuf::Empty>(
+          ::WatermarkLow, ::google::protobuf::Empty>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::Reward, ::google::protobuf::Empty>* streamer) {
-                       return this->Streamedend_current_episode(context,
+                     ::WatermarkLow, ::google::protobuf::Empty>* streamer) {
+                       return this->Streamedreached_watermark_low(context,
                          streamer);
                   }));
     }
-    ~WithStreamedUnaryMethod_end_current_episode() override {
+    ~WithStreamedUnaryMethod_reached_watermark_low() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status end_current_episode(::grpc::ServerContext* /*context*/, const ::Reward* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+    ::grpc::Status reached_watermark_low(::grpc::ServerContext* /*context*/, const ::WatermarkLow* /*request*/, ::google::protobuf::Empty* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status Streamedend_current_episode(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::Reward,::google::protobuf::Empty>* server_unary_streamer) = 0;
+    virtual ::grpc::Status Streamedreached_watermark_low(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::WatermarkLow,::google::protobuf::Empty>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_end_current_episode<Service > StreamedUnaryService;
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_send_preprepare : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_send_preprepare() {
+      ::grpc::Service::MarkMethodStreamed(1,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::AgentExchange, ::google::protobuf::Empty>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::AgentExchange, ::google::protobuf::Empty>* streamer) {
+                       return this->Streamedsend_preprepare(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_send_preprepare() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status send_preprepare(::grpc::ServerContext* /*context*/, const ::AgentExchange* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status Streamedsend_preprepare(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::AgentExchange,::google::protobuf::Empty>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
+  class WithStreamedUnaryMethod_send_prepare : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_send_prepare() {
+      ::grpc::Service::MarkMethodStreamed(2,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::AgentExchange, ::google::protobuf::Empty>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::AgentExchange, ::google::protobuf::Empty>* streamer) {
+                       return this->Streamedsend_prepare(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_send_prepare() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status send_prepare(::grpc::ServerContext* /*context*/, const ::AgentExchange* /*request*/, ::google::protobuf::Empty* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status Streamedsend_prepare(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::AgentExchange,::google::protobuf::Empty>* server_unary_streamer) = 0;
+  };
+  typedef WithStreamedUnaryMethod_reached_watermark_low<WithStreamedUnaryMethod_send_preprepare<WithStreamedUnaryMethod_send_prepare<Service > > > StreamedUnaryService;
   typedef Service SplitStreamedService;
-  typedef WithStreamedUnaryMethod_end_current_episode<Service > StreamedService;
+  typedef WithStreamedUnaryMethod_reached_watermark_low<WithStreamedUnaryMethod_send_preprepare<WithStreamedUnaryMethod_send_prepare<Service > > > StreamedService;
 };
 
 

@@ -9,11 +9,13 @@ service PeerComm {
     rpc prepopulate (TransactionProposal) returns (PrepopulateResponse) {}
     rpc start_benchmarking (google.protobuf.Empty) returns (google.protobuf.Empty) {}
     rpc end_benchmarking (google.protobuf.Empty) returns (google.protobuf.Empty) {}
-    rpc start_new_episode (Action) returns (google.protobuf.Empty) {} 
+    rpc new_episode_info (Action) returns (google.protobuf.Empty) {} 
 }
 
 service AgentComm {
-    rpc end_current_episode (Reward) returns (google.protobuf.Empty) {}
+    rpc reached_watermark_low (WatermarkLow) returns (google.protobuf.Empty) {}
+    rpc send_preprepare (AgentExchange) returns (google.protobuf.Empty) {}
+    rpc send_prepare (AgentExchange) returns (google.protobuf.Empty) {}
 }
 
 message AppendRequest {
@@ -90,16 +92,17 @@ message Action {
     bool reorder = 3;
 }
 
-message Reward {
+message WatermarkLow {
     double throughput = 1;
-    bool is_leader = 2;
+    uint64 block_id_start = 2;
+    uint64 block_id_now = 3;
 }
 
-message Experience {
-    double write_ratio = 1;
-    double hot_key_ratio = 2;
-    double trans_arrival_rate = 3;
-    double execution_delay = 4;
-    Action action = 5;
-    Reward reward = 6;
+message AgentExchange {
+    string originator = 1;
+    double write_ratio = 2;
+    double hot_key_ratio = 3;
+    double trans_arrival_rate = 4;
+    double execution_delay = 5;
+    double throughput = 6;
 }
