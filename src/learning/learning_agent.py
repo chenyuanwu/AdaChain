@@ -121,8 +121,7 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000, experiences_windo
             data_store.flush()
     
 
-        """ Extract feature from blocks """
-        feature_extraction_start = time.time()
+        """ Extract feature from blocks """        
         blocks = []
         while True:
             data = block_store.read(4)
@@ -166,7 +165,7 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000, experiences_windo
         execution_delay = (execution_delay_total_ms / num_total_trans) * 1000
    
         experiences_X.append(np.array([write_ratio, hot_key_ratio, trans_arrival_rate, execution_delay,
-                                           blocksizes, early_execution, reorder]))
+                                           initial_blocksize, initial_early_execution, initial_reorder]))
         # optimal_action_predicted.append(0)
         start_gain_experiences = True
 
