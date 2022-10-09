@@ -51,7 +51,7 @@ struct RaftThreadContext {
 
 class PeerCommImpl final : public PeerComm::Service {
    public:
-    explicit PeerCommImpl(string log_dir) : log(log_dir + "/raft.log", ios::out | ios::binary) {}
+    explicit PeerCommImpl() : log("/mydata/log/raft.log", ios::out | ios::binary) {}
 
     Status append_entries(ServerContext *context, const AppendRequest *request, AppendResponse *response) override;
 

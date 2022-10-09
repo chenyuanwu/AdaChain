@@ -389,6 +389,7 @@ void run_peer(const string &server_address) {
             } 
         }
     }
+}
 
 
 int main(int argc, char *argv[]) {
