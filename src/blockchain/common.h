@@ -10,6 +10,7 @@
 
 #include <atomic>
 #include <deque>
+#include <queue>
 
 #include "blockchain.grpc.pb.h"
 #include "leveldb/db.h"
@@ -36,25 +37,58 @@ extern Architecture arch;
 class Episode {
    private:
     google::protobuf::util::MessageDifferencer differencer;
+    pthread_mutex_t mutex;
+
    public:
-    Episode() : total_ops(0), freeze(false), agent_notified(false), episode(0) {
+    Episode() : total_ops(0), freeze(false), agent_notified(false), timeout(false), block_formation_paused(false), consensus_paused(false), num_reached_new_watermark(0), episode(0) {
+        pthread_mutex_init(&mutex, NULL);
+    }
+    ~Episode() {
+        pthread_mutex_destroy(&mutex);
     }
 
     atomic<long> total_ops;
     atomic_bool freeze;
     atomic_bool agent_notified;
+    atomic_bool timeout;
+    atomic_bool block_formation_paused;
+    atomic_bool consensus_paused;
+    atomic<uint64_t> num_reached_new_watermark;
     atomic<uint64_t> B_h;
     atomic<uint64_t> T_h;
     atomic<uint64_t> B_l;
     atomic<uint64_t> B_start;
     atomic<uint64_t> episode;
     chrono::milliseconds start;
+    vector<uint64_t> last_block_indexes;
+    queue<string> pending_request_queue;
 
     Action curr_action;
     Action next_action;
 
-    bool equal_curr_action(const Action& action) {
+    bool equal_curr_action(const Action &action) {
         return differencer.Equals(action, curr_action);
+    }
+
+    void add_last_block_index(uint64_t block_index) {
+        pthread_mutex_lock(&mutex);
+        last_block_indexes.push_back(block_index);
+        pthread_mutex_unlock(&mutex);
+    }
+
+    void clear_last_block_indexes() {
+        pthread_mutex_lock(&mutex);
+        last_block_indexes.clear();
+        pthread_mutex_unlock(&mutex);
+    }
+
+    size_t num_received_indexes() {
+        size_t size;
+        pthread_mutex_lock(&mutex);
+        size = last_block_indexes.size();
+        pthread_mutex_unlock(&mutex);
+
+        return size;
     }
 };  // the class used for synchronization across episodes
 

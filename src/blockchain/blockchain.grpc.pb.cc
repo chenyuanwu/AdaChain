@@ -28,6 +28,10 @@ static const char* PeerComm_method_names[] = {
   "/PeerComm/start_benchmarking",
   "/PeerComm/end_benchmarking",
   "/PeerComm/new_episode_info",
+  "/PeerComm/timeout",
+  "/PeerComm/exchange_block_index",
+  "/PeerComm/resume_block_formation",
+  "/PeerComm/reached_new_watermark",
 };
 
 std::unique_ptr< PeerComm::Stub> PeerComm::NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options) {
@@ -44,6 +48,10 @@ PeerComm::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, 
   , rpcmethod_start_benchmarking_(PeerComm_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_end_benchmarking_(PeerComm_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_new_episode_info_(PeerComm_method_names[6], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_timeout_(PeerComm_method_names[7], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_exchange_block_index_(PeerComm_method_names[8], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_resume_block_formation_(PeerComm_method_names[9], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_reached_new_watermark_(PeerComm_method_names[10], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   {}
 
 ::grpc::Status PeerComm::Stub::append_entries(::grpc::ClientContext* context, const ::AppendRequest& request, ::AppendResponse* response) {
@@ -200,6 +208,98 @@ void PeerComm::Stub::async::new_episode_info(::grpc::ClientContext* context, con
   return result;
 }
 
+::grpc::Status PeerComm::Stub::timeout(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::google::protobuf::Empty* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::google::protobuf::Empty, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_timeout_, context, request, response);
+}
+
+void PeerComm::Stub::async::timeout(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::google::protobuf::Empty, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_timeout_, context, request, response, std::move(f));
+}
+
+void PeerComm::Stub::async::timeout(::grpc::ClientContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_timeout_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PeerComm::Stub::PrepareAsynctimeoutRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::google::protobuf::Empty, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_timeout_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PeerComm::Stub::AsynctimeoutRaw(::grpc::ClientContext* context, const ::google::protobuf::Empty& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsynctimeoutRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status PeerComm::Stub::exchange_block_index(::grpc::ClientContext* context, const ::PeerExchange& request, ::google::protobuf::Empty* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::PeerExchange, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_exchange_block_index_, context, request, response);
+}
+
+void PeerComm::Stub::async::exchange_block_index(::grpc::ClientContext* context, const ::PeerExchange* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::PeerExchange, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_exchange_block_index_, context, request, response, std::move(f));
+}
+
+void PeerComm::Stub::async::exchange_block_index(::grpc::ClientContext* context, const ::PeerExchange* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_exchange_block_index_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PeerComm::Stub::PrepareAsyncexchange_block_indexRaw(::grpc::ClientContext* context, const ::PeerExchange& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::google::protobuf::Empty, ::PeerExchange, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_exchange_block_index_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PeerComm::Stub::Asyncexchange_block_indexRaw(::grpc::ClientContext* context, const ::PeerExchange& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncexchange_block_indexRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status PeerComm::Stub::resume_block_formation(::grpc::ClientContext* context, const ::PeerExchange& request, ::google::protobuf::Empty* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::PeerExchange, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_resume_block_formation_, context, request, response);
+}
+
+void PeerComm::Stub::async::resume_block_formation(::grpc::ClientContext* context, const ::PeerExchange* request, ::google::protobuf::Empty* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::PeerExchange, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_resume_block_formation_, context, request, response, std::move(f));
+}
+
+void PeerComm::Stub::async::resume_block_formation(::grpc::ClientContext* context, const ::PeerExchange* request, ::google::protobuf::Empty* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_resume_block_formation_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PeerComm::Stub::PrepareAsyncresume_block_formationRaw(::grpc::ClientContext* context, const ::PeerExchange& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::google::protobuf::Empty, ::PeerExchange, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_resume_block_formation_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::google::protobuf::Empty>* PeerComm::Stub::Asyncresume_block_formationRaw(::grpc::ClientContext* context, const ::PeerExchange& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncresume_block_formationRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
+::grpc::Status PeerComm::Stub::reached_new_watermark(::grpc::ClientContext* context, const ::PeerExchange& request, ::PeerExchange* response) {
+  return ::grpc::internal::BlockingUnaryCall< ::PeerExchange, ::PeerExchange, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), rpcmethod_reached_new_watermark_, context, request, response);
+}
+
+void PeerComm::Stub::async::reached_new_watermark(::grpc::ClientContext* context, const ::PeerExchange* request, ::PeerExchange* response, std::function<void(::grpc::Status)> f) {
+  ::grpc::internal::CallbackUnaryCall< ::PeerExchange, ::PeerExchange, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_reached_new_watermark_, context, request, response, std::move(f));
+}
+
+void PeerComm::Stub::async::reached_new_watermark(::grpc::ClientContext* context, const ::PeerExchange* request, ::PeerExchange* response, ::grpc::ClientUnaryReactor* reactor) {
+  ::grpc::internal::ClientCallbackUnaryFactory::Create< ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(stub_->channel_.get(), stub_->rpcmethod_reached_new_watermark_, context, request, response, reactor);
+}
+
+::grpc::ClientAsyncResponseReader< ::PeerExchange>* PeerComm::Stub::PrepareAsyncreached_new_watermarkRaw(::grpc::ClientContext* context, const ::PeerExchange& request, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncResponseReaderHelper::Create< ::PeerExchange, ::PeerExchange, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(channel_.get(), cq, rpcmethod_reached_new_watermark_, context, request);
+}
+
+::grpc::ClientAsyncResponseReader< ::PeerExchange>* PeerComm::Stub::Asyncreached_new_watermarkRaw(::grpc::ClientContext* context, const ::PeerExchange& request, ::grpc::CompletionQueue* cq) {
+  auto* result =
+    this->PrepareAsyncreached_new_watermarkRaw(context, request, cq);
+  result->StartCall();
+  return result;
+}
+
 PeerComm::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       PeerComm_method_names[0],
@@ -271,6 +371,46 @@ PeerComm::Service::Service() {
              ::google::protobuf::Empty* resp) {
                return service->new_episode_info(ctx, req, resp);
              }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      PeerComm_method_names[7],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< PeerComm::Service, ::google::protobuf::Empty, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](PeerComm::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::google::protobuf::Empty* req,
+             ::google::protobuf::Empty* resp) {
+               return service->timeout(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      PeerComm_method_names[8],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< PeerComm::Service, ::PeerExchange, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](PeerComm::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::PeerExchange* req,
+             ::google::protobuf::Empty* resp) {
+               return service->exchange_block_index(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      PeerComm_method_names[9],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< PeerComm::Service, ::PeerExchange, ::google::protobuf::Empty, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](PeerComm::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::PeerExchange* req,
+             ::google::protobuf::Empty* resp) {
+               return service->resume_block_formation(ctx, req, resp);
+             }, this)));
+  AddMethod(new ::grpc::internal::RpcServiceMethod(
+      PeerComm_method_names[10],
+      ::grpc::internal::RpcMethod::NORMAL_RPC,
+      new ::grpc::internal::RpcMethodHandler< PeerComm::Service, ::PeerExchange, ::PeerExchange, ::grpc::protobuf::MessageLite, ::grpc::protobuf::MessageLite>(
+          [](PeerComm::Service* service,
+             ::grpc::ServerContext* ctx,
+             const ::PeerExchange* req,
+             ::PeerExchange* resp) {
+               return service->reached_new_watermark(ctx, req, resp);
+             }, this)));
 }
 
 PeerComm::Service::~Service() {
@@ -319,6 +459,34 @@ PeerComm::Service::~Service() {
 }
 
 ::grpc::Status PeerComm::Service::new_episode_info(::grpc::ServerContext* context, const ::Action* request, ::google::protobuf::Empty* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status PeerComm::Service::timeout(::grpc::ServerContext* context, const ::google::protobuf::Empty* request, ::google::protobuf::Empty* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status PeerComm::Service::exchange_block_index(::grpc::ServerContext* context, const ::PeerExchange* request, ::google::protobuf::Empty* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status PeerComm::Service::resume_block_formation(::grpc::ServerContext* context, const ::PeerExchange* request, ::google::protobuf::Empty* response) {
+  (void) context;
+  (void) request;
+  (void) response;
+  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+}
+
+::grpc::Status PeerComm::Service::reached_new_watermark(::grpc::ServerContext* context, const ::PeerExchange* request, ::PeerExchange* response) {
   (void) context;
   (void) request;
   (void) response;

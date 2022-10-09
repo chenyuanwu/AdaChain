@@ -156,6 +156,7 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
     training_overhead = 0
     inference_overhead = 0
     block_id = 0
+
     for episode in range(num_episodes):
         # wait for the peer to reach lower watermark in the current episode
         with episode_cv:
@@ -168,10 +169,12 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
         feature_extraction_start = time.time()
         blocks = []
         while True:
-            block_id += 1
             data = block_store.read(4)
+            if not data:
+                break
             size, = struct.unpack('I', data)
             data = block_store.read(size)
+            block_id += 1
             if block_id >= block_id_start:
                 block = blockchain_pb2.Block()
                 block.ParseFromString(data)
@@ -179,37 +182,38 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
             if block_id == block_id_end:
                 break
 
-        # measure the write ratio and hot key ratio
-        num_write_trans = 0
-        num_total_trans = 0
-        key_access_count = {}
-        execution_delay_total_ms = 0
-        for block in blocks:
-            for trans in block.transactions:
-                if len(trans.read_set) or len(trans.write_set):
-                    num_total_trans += 1
-                    delay_ms = (trans.execution_end_ts.seconds - trans.execution_start_ts.seconds) * 1e3 + \
-                        (trans.execution_end_ts.nanos - trans.execution_start_ts.nanos) * 1e-6
-                    execution_delay_total_ms += delay_ms
-                if len(trans.write_set):
-                    num_write_trans += 1
-                for read_item in trans.read_set:
-                    key_access_count[read_item.read_key] = key_access_count.get(read_item.read_key, 0) + 1
-                for write_item in trans.write_set:
-                    key_access_count[write_item.write_key] = key_access_count.get(write_item.write_key, 0) + 1
-        local_write_ratio = num_write_trans / num_total_trans
-        sorted_keys = sorted(key_access_count, key=key_access_count.get, reverse=True)
-        local_hot_key_ratio = key_access_count[sorted_keys[0]] / sum(key_access_count.values())
+        if len(blocks):
+            # measure the write ratio and hot key ratio
+            num_write_trans = 0
+            num_total_trans = 0
+            key_access_count = {}
+            execution_delay_total_ms = 0
+            for block in blocks:
+                for trans in block.transactions:
+                    if len(trans.read_set) or len(trans.write_set):
+                        num_total_trans += 1
+                        delay_ms = (trans.execution_end_ts.seconds - trans.execution_start_ts.seconds) * 1e3 + \
+                            (trans.execution_end_ts.nanos - trans.execution_start_ts.nanos) * 1e-6
+                        execution_delay_total_ms += delay_ms
+                    if len(trans.write_set):
+                        num_write_trans += 1
+                    for read_item in trans.read_set:
+                        key_access_count[read_item.read_key] = key_access_count.get(read_item.read_key, 0) + 1
+                    for write_item in trans.write_set:
+                        key_access_count[write_item.write_key] = key_access_count.get(write_item.write_key, 0) + 1
+            local_write_ratio = num_write_trans / num_total_trans
+            sorted_keys = sorted(key_access_count, key=key_access_count.get, reverse=True)
+            local_hot_key_ratio = key_access_count[sorted_keys[0]] / sum(key_access_count.values())
 
-        # measure the transaction arrival rate
-        seconds = blocks[-1].transactions[-1].received_ts.seconds - blocks[0].transactions[0].received_ts.seconds
-        nanos = blocks[-1].transactions[-1].received_ts.nanos - blocks[0].transactions[0].received_ts.nanos
-        seconds = seconds + nanos * 1e-9
-        local_trans_arrival_rate = num_total_trans / seconds
+            # measure the transaction arrival rate
+            seconds = blocks[-1].transactions[-1].received_ts.seconds - blocks[0].transactions[0].received_ts.seconds
+            nanos = blocks[-1].transactions[-1].received_ts.nanos - blocks[0].transactions[0].received_ts.nanos
+            seconds = seconds + nanos * 1e-9
+            local_trans_arrival_rate = num_total_trans / seconds
 
-        # measure the execution delay in us
-        local_execution_delay = (execution_delay_total_ms / num_total_trans) * 1000
-        feature_extraction_overhead = round(time.time() - feature_extraction_start, 6)
+            # measure the execution delay in us
+            local_execution_delay = (execution_delay_total_ms / num_total_trans) * 1000
+            feature_extraction_overhead = round(time.time() - feature_extraction_start, 6)
 
         """ Exchange <state, throughput> with other agents """
         communication_start = time.time()

@@ -10,6 +10,10 @@ service PeerComm {
     rpc start_benchmarking (google.protobuf.Empty) returns (google.protobuf.Empty) {}
     rpc end_benchmarking (google.protobuf.Empty) returns (google.protobuf.Empty) {}
     rpc new_episode_info (Action) returns (google.protobuf.Empty) {} 
+    rpc timeout (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+    rpc exchange_block_index (PeerExchange) returns (google.protobuf.Empty) {}
+    rpc resume_block_formation (PeerExchange) returns (google.protobuf.Empty) {}
+    rpc reached_new_watermark (PeerExchange) returns (PeerExchange) {}
 }
 
 service AgentComm {
@@ -105,4 +109,15 @@ message AgentExchange {
     double trans_arrival_rate = 4;
     double execution_delay = 5;
     double throughput = 6;
+}
+
+message PeerExchange {
+    uint64 block_index = 1;
+    uint64 raft_index = 2;
+    bool no_progress = 3;
+}
+
+message TaggedEntry {
+    uint64 tag = 1;
+    bytes entry = 2;
 }

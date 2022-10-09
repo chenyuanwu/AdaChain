@@ -7,6 +7,7 @@
     "sysconfig": {
         "leveldb_dir": "/mydata/testdb",
         "log_dir": "/mydata/log",
+        "timeout": 15,
         "trans_watermark_high": 10000,
         "trans_watermark_low": 7500,
         "num_execution_threads": 16,

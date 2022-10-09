@@ -50,7 +50,7 @@ struct TableStruct_blockchain_2eproto {
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::AuxiliaryParseTableField aux[]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[12]
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[14]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata[];
   static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable serialization_table[];
@@ -75,6 +75,9 @@ extern BlockDefaultTypeInternal _Block_default_instance_;
 class Endorsement;
 struct EndorsementDefaultTypeInternal;
 extern EndorsementDefaultTypeInternal _Endorsement_default_instance_;
+class PeerExchange;
+struct PeerExchangeDefaultTypeInternal;
+extern PeerExchangeDefaultTypeInternal _PeerExchange_default_instance_;
 class PrepopulateResponse;
 struct PrepopulateResponseDefaultTypeInternal;
 extern PrepopulateResponseDefaultTypeInternal _PrepopulateResponse_default_instance_;
@@ -84,6 +87,9 @@ extern ReadItemDefaultTypeInternal _ReadItem_default_instance_;
 class Request;
 struct RequestDefaultTypeInternal;
 extern RequestDefaultTypeInternal _Request_default_instance_;
+class TaggedEntry;
+struct TaggedEntryDefaultTypeInternal;
+extern TaggedEntryDefaultTypeInternal _TaggedEntry_default_instance_;
 class TransactionProposal;
 struct TransactionProposalDefaultTypeInternal;
 extern TransactionProposalDefaultTypeInternal _TransactionProposal_default_instance_;
@@ -100,9 +106,11 @@ template<> ::AppendRequest* Arena::CreateMaybeMessage<::AppendRequest>(Arena*);
 template<> ::AppendResponse* Arena::CreateMaybeMessage<::AppendResponse>(Arena*);
 template<> ::Block* Arena::CreateMaybeMessage<::Block>(Arena*);
 template<> ::Endorsement* Arena::CreateMaybeMessage<::Endorsement>(Arena*);
+template<> ::PeerExchange* Arena::CreateMaybeMessage<::PeerExchange>(Arena*);
 template<> ::PrepopulateResponse* Arena::CreateMaybeMessage<::PrepopulateResponse>(Arena*);
 template<> ::ReadItem* Arena::CreateMaybeMessage<::ReadItem>(Arena*);
 template<> ::Request* Arena::CreateMaybeMessage<::Request>(Arena*);
+template<> ::TaggedEntry* Arena::CreateMaybeMessage<::TaggedEntry>(Arena*);
 template<> ::TransactionProposal* Arena::CreateMaybeMessage<::TransactionProposal>(Arena*);
 template<> ::WatermarkLow* Arena::CreateMaybeMessage<::WatermarkLow>(Arena*);
 template<> ::WriteItem* Arena::CreateMaybeMessage<::WriteItem>(Arena*);
@@ -2349,6 +2357,330 @@ class AgentExchange final :
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_blockchain_2eproto;
 };
+// -------------------------------------------------------------------
+
+class PeerExchange final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:PeerExchange) */ {
+ public:
+  inline PeerExchange() : PeerExchange(nullptr) {}
+  ~PeerExchange() override;
+  explicit constexpr PeerExchange(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  PeerExchange(const PeerExchange& from);
+  PeerExchange(PeerExchange&& from) noexcept
+    : PeerExchange() {
+    *this = ::std::move(from);
+  }
+
+  inline PeerExchange& operator=(const PeerExchange& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PeerExchange& operator=(PeerExchange&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PeerExchange& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const PeerExchange* internal_default_instance() {
+    return reinterpret_cast<const PeerExchange*>(
+               &_PeerExchange_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    12;
+
+  friend void swap(PeerExchange& a, PeerExchange& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(PeerExchange* other) {
+    if (other == this) return;
+    if (GetOwningArena() == other->GetOwningArena()) {
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PeerExchange* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline PeerExchange* New() const final {
+    return new PeerExchange();
+  }
+
+  PeerExchange* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<PeerExchange>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const PeerExchange& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom(const PeerExchange& from);
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to, const ::PROTOBUF_NAMESPACE_ID::Message& from);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(PeerExchange* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "PeerExchange";
+  }
+  protected:
+  explicit PeerExchange(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kBlockIndexFieldNumber = 1,
+    kRaftIndexFieldNumber = 2,
+    kNoProgressFieldNumber = 3,
+  };
+  // uint64 block_index = 1;
+  void clear_block_index();
+  ::PROTOBUF_NAMESPACE_ID::uint64 block_index() const;
+  void set_block_index(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint64 _internal_block_index() const;
+  void _internal_set_block_index(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  public:
+
+  // uint64 raft_index = 2;
+  void clear_raft_index();
+  ::PROTOBUF_NAMESPACE_ID::uint64 raft_index() const;
+  void set_raft_index(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint64 _internal_raft_index() const;
+  void _internal_set_raft_index(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  public:
+
+  // bool no_progress = 3;
+  void clear_no_progress();
+  bool no_progress() const;
+  void set_no_progress(bool value);
+  private:
+  bool _internal_no_progress() const;
+  void _internal_set_no_progress(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:PeerExchange)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::uint64 block_index_;
+  ::PROTOBUF_NAMESPACE_ID::uint64 raft_index_;
+  bool no_progress_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_blockchain_2eproto;
+};
+// -------------------------------------------------------------------
+
+class TaggedEntry final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:TaggedEntry) */ {
+ public:
+  inline TaggedEntry() : TaggedEntry(nullptr) {}
+  ~TaggedEntry() override;
+  explicit constexpr TaggedEntry(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  TaggedEntry(const TaggedEntry& from);
+  TaggedEntry(TaggedEntry&& from) noexcept
+    : TaggedEntry() {
+    *this = ::std::move(from);
+  }
+
+  inline TaggedEntry& operator=(const TaggedEntry& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline TaggedEntry& operator=(TaggedEntry&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const TaggedEntry& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const TaggedEntry* internal_default_instance() {
+    return reinterpret_cast<const TaggedEntry*>(
+               &_TaggedEntry_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    13;
+
+  friend void swap(TaggedEntry& a, TaggedEntry& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(TaggedEntry* other) {
+    if (other == this) return;
+    if (GetOwningArena() == other->GetOwningArena()) {
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(TaggedEntry* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline TaggedEntry* New() const final {
+    return new TaggedEntry();
+  }
+
+  TaggedEntry* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<TaggedEntry>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const TaggedEntry& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom(const TaggedEntry& from);
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to, const ::PROTOBUF_NAMESPACE_ID::Message& from);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(TaggedEntry* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "TaggedEntry";
+  }
+  protected:
+  explicit TaggedEntry(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kEntryFieldNumber = 2,
+    kTagFieldNumber = 1,
+  };
+  // bytes entry = 2;
+  void clear_entry();
+  const std::string& entry() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_entry(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_entry();
+  PROTOBUF_MUST_USE_RESULT std::string* release_entry();
+  void set_allocated_entry(std::string* entry);
+  private:
+  const std::string& _internal_entry() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_entry(const std::string& value);
+  std::string* _internal_mutable_entry();
+  public:
+
+  // uint64 tag = 1;
+  void clear_tag();
+  ::PROTOBUF_NAMESPACE_ID::uint64 tag() const;
+  void set_tag(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint64 _internal_tag() const;
+  void _internal_set_tag(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:TaggedEntry)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr entry_;
+  ::PROTOBUF_NAMESPACE_ID::uint64 tag_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_blockchain_2eproto;
+};
 // ===================================================================
 
 
@@ -4015,9 +4347,147 @@ inline void AgentExchange::set_throughput(double value) {
   // @@protoc_insertion_point(field_set:AgentExchange.throughput)
 }
 
+// -------------------------------------------------------------------
+
+// PeerExchange
+
+// uint64 block_index = 1;
+inline void PeerExchange::clear_block_index() {
+  block_index_ = uint64_t{0u};
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 PeerExchange::_internal_block_index() const {
+  return block_index_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 PeerExchange::block_index() const {
+  // @@protoc_insertion_point(field_get:PeerExchange.block_index)
+  return _internal_block_index();
+}
+inline void PeerExchange::_internal_set_block_index(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  
+  block_index_ = value;
+}
+inline void PeerExchange::set_block_index(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  _internal_set_block_index(value);
+  // @@protoc_insertion_point(field_set:PeerExchange.block_index)
+}
+
+// uint64 raft_index = 2;
+inline void PeerExchange::clear_raft_index() {
+  raft_index_ = uint64_t{0u};
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 PeerExchange::_internal_raft_index() const {
+  return raft_index_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 PeerExchange::raft_index() const {
+  // @@protoc_insertion_point(field_get:PeerExchange.raft_index)
+  return _internal_raft_index();
+}
+inline void PeerExchange::_internal_set_raft_index(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  
+  raft_index_ = value;
+}
+inline void PeerExchange::set_raft_index(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  _internal_set_raft_index(value);
+  // @@protoc_insertion_point(field_set:PeerExchange.raft_index)
+}
+
+// bool no_progress = 3;
+inline void PeerExchange::clear_no_progress() {
+  no_progress_ = false;
+}
+inline bool PeerExchange::_internal_no_progress() const {
+  return no_progress_;
+}
+inline bool PeerExchange::no_progress() const {
+  // @@protoc_insertion_point(field_get:PeerExchange.no_progress)
+  return _internal_no_progress();
+}
+inline void PeerExchange::_internal_set_no_progress(bool value) {
+  
+  no_progress_ = value;
+}
+inline void PeerExchange::set_no_progress(bool value) {
+  _internal_set_no_progress(value);
+  // @@protoc_insertion_point(field_set:PeerExchange.no_progress)
+}
+
+// -------------------------------------------------------------------
+
+// TaggedEntry
+
+// uint64 tag = 1;
+inline void TaggedEntry::clear_tag() {
+  tag_ = uint64_t{0u};
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 TaggedEntry::_internal_tag() const {
+  return tag_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint64 TaggedEntry::tag() const {
+  // @@protoc_insertion_point(field_get:TaggedEntry.tag)
+  return _internal_tag();
+}
+inline void TaggedEntry::_internal_set_tag(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  
+  tag_ = value;
+}
+inline void TaggedEntry::set_tag(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  _internal_set_tag(value);
+  // @@protoc_insertion_point(field_set:TaggedEntry.tag)
+}
+
+// bytes entry = 2;
+inline void TaggedEntry::clear_entry() {
+  entry_.ClearToEmpty();
+}
+inline const std::string& TaggedEntry::entry() const {
+  // @@protoc_insertion_point(field_get:TaggedEntry.entry)
+  return _internal_entry();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void TaggedEntry::set_entry(ArgT0&& arg0, ArgT... args) {
+ 
+ entry_.SetBytes(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:TaggedEntry.entry)
+}
+inline std::string* TaggedEntry::mutable_entry() {
+  std::string* _s = _internal_mutable_entry();
+  // @@protoc_insertion_point(field_mutable:TaggedEntry.entry)
+  return _s;
+}
+inline const std::string& TaggedEntry::_internal_entry() const {
+  return entry_.Get();
+}
+inline void TaggedEntry::_internal_set_entry(const std::string& value) {
+  
+  entry_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
+}
+inline std::string* TaggedEntry::_internal_mutable_entry() {
+  
+  return entry_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
+}
+inline std::string* TaggedEntry::release_entry() {
+  // @@protoc_insertion_point(field_release:TaggedEntry.entry)
+  return entry_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
+}
+inline void TaggedEntry::set_allocated_entry(std::string* entry) {
+  if (entry != nullptr) {
+    
+  } else {
+    
+  }
+  entry_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), entry,
+      GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set_allocated:TaggedEntry.entry)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

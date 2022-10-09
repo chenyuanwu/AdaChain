@@ -66,7 +66,7 @@ class CyclesSearch {
     CyclesSearch() {
     }
     vector<vector<int>> cycles;
-    void get_elementary_cycles(const Graph& graph);
+    bool get_elementary_cycles(const Graph& graph);
 
    private:
     void unblock(int u);
@@ -90,7 +90,7 @@ struct heap_data {
     }
 };
 
-void xov_reorder(queue<string>& request_queue, Block& block);
+bool xov_reorder(queue<string>& request_queue, Block& block);
 void build_conflict_graph_oxii(queue<string>& request_queue, vector<TransactionProposal>& proposals, Graph& conflict_graph);
 
 #endif

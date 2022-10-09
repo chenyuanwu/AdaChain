@@ -63,17 +63,25 @@ void *log_replication_thread(void *arg) {
 void *leader_main_thread(void *arg) {
     struct RaftThreadContext ctx = *(struct RaftThreadContext *)arg;
     ofstream log(string(peer_config["sysconfig"]["log_dir"].GetString()) + "/raft.log", ios::out | ios::binary);
+    string tagged_entry_str;
     while (true) {
-        if (last_log_index < ep.T_h) {
+        if (last_log_index < ep.T_h && !ep.consensus_paused) {
             int i = 0;
             for (; i < arch.max_block_size; i++) {
+                TaggedEntry tagged_entry;
                 string req = ordering_queue.pop();
-                uint32_t size = req.size();
+                tagged_entry.set_entry(req);
+                tagged_entry.set_tag(ep.episode);
+                tagged_entry.SerializeToString(&tagged_entry_str);
+                uint32_t size = tagged_entry_str.size();
                 log.write((char *)&size, sizeof(uint32_t));
-                log.write(req.c_str(), size);
+                log.write(tagged_entry_str.c_str(), size);
             }
             log.flush();
             last_log_index += i;
+            if (ep.timeout) {
+                ep.consensus_paused = true;
+            }
         }
     }
 }
@@ -171,25 +179,40 @@ Status PeerCommImpl::end_benchmarking(ServerContext *context, const google::prot
 }
 
 Status PeerCommImpl::new_episode_info(ServerContext *context, const Action *action, google::protobuf::Empty *response) {
-    if (ep.equal_curr_action(*action)) {
-        // update W_L, W_H
-        ep.episode++;
-        ep.B_start = ep.B_h.load();
-        ep.B_l = ep.B_h + (peer_config["sysconfig"]["trans_watermark_low"].GetInt() / arch.max_block_size);
-        uint64_t B_h_delta = peer_config["sysconfig"]["trans_watermark_high"].GetInt() / arch.max_block_size;
-        ep.B_h += B_h_delta;
-        ep.T_h += B_h_delta * arch.max_block_size;
-        ep.agent_notified = false;
+    ep.next_action = (*action);
 
-        LOG(INFO) << "Episode " << ep.episode << " starts: blocksize = " << arch.max_block_size << ", early_execution = "
-                  << arch.is_xov << ", reorder = " << arch.reorder << ", B_h = " << ep.B_h << ", T_h = " << ep.T_h << ".";
+    return Status::OK;
+}
 
-        ep.total_ops = 0;
-        ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
-    } else {
-        // process until W_H and then switch
-        ep.next_action = (*action);
+Status PeerCommImpl::timeout(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) {
+    LOG(INFO) << "Episode " << ep.episode << " timeout: initiated by the leader.";
+    ep.timeout = true;
+
+    return Status::OK;
+}
+
+Status PeerCommImpl::exchange_block_index(ServerContext *context, const PeerExchange *exchange, google::protobuf::Empty *response) {
+    LOG(INFO) << "Episode " << ep.episode << ": received last_block_index = " << exchange->block_index() << ".";
+    ep.add_last_block_index(exchange->block_index());
+
+    return Status::OK;
+}
+
+Status PeerCommImpl::resume_block_formation(ServerContext *context, const PeerExchange *exchange, google::protobuf::Empty *response) {
+    if (exchange->no_progress()) {
+        queue<string>().swap(ep.pending_request_queue);
     }
+
+    ep.timeout = false;
+    ep.B_h = exchange->block_index();
+    ep.block_formation_paused = false;
+
+    return Status::OK;
+}
+
+Status PeerCommImpl::reached_new_watermark(ServerContext *context, const PeerExchange *request, PeerExchange *response) {
+    ep.num_reached_new_watermark++;
+    response->set_raft_index(last_log_index);
 
     return Status::OK;
 }

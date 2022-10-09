@@ -27,6 +27,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <algorithm>
 
 #include "blockchain.grpc.pb.h"
 #include "consensus.h"

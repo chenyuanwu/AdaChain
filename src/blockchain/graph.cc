@@ -1,5 +1,7 @@
 #include "graph.h"
 
+#include "common.h"
+
 const static int k_invalid_index = -1;
 
 void TarjanAlgorithm::execute(int vertex, Graph* graph, vector<int>* out) {
@@ -22,7 +24,7 @@ void TarjanAlgorithm::strong_connect(int vertex, Graph* graph) {
     (*graph)[vertex].lowlink = i_;
     i_++;
     stack_.push_back(vertex);
-    for (auto it = (*graph)[vertex].out_edges.begin(); it != (*graph)[vertex].out_edges.end(); ++it) {
+    for (auto it = (*graph)[vertex].out_edges.begin(); it != (*graph)[vertex].out_edges.end() && !ep.timeout; ++it) {
         int vertex_next = *it;
         if ((*graph)[vertex_next].index == k_invalid_index) {
             strong_connect(vertex_next, graph);
@@ -33,7 +35,7 @@ void TarjanAlgorithm::strong_connect(int vertex, Graph* graph) {
                                            (*graph)[vertex_next].index);
         }
     }
-    if ((*graph)[vertex].lowlink == (*graph)[vertex].index) {
+    if ((*graph)[vertex].lowlink == (*graph)[vertex].index && !ep.timeout) {
         vector<int> component;
         int other_vertex;
         do {
@@ -50,7 +52,7 @@ void TarjanAlgorithm::strong_connect(int vertex, Graph* graph) {
 }
 
 // This is the outer function from the original Johnson's paper.
-void CyclesSearch::get_elementary_cycles(const Graph& graph) {
+bool CyclesSearch::get_elementary_cycles(const Graph& graph) {
     // Make a copy, which we will modify by removing edges. Thus, in each
     // iteration subgraph_ is the current subgraph or the original with
     // vertices we desire. This variable was "A_K" in the original paper.
@@ -64,7 +66,7 @@ void CyclesSearch::get_elementary_cycles(const Graph& graph) {
     // and looking for the strongly connected component with vertex s.
     TarjanAlgorithm tarjan;
 
-    for (int i = 0; i < subgraph_.size(); i++) {
+    for (int i = 0; i < subgraph_.size() && !ep.timeout; i++) {
         if (i > 0) {
             // Erase node (i - 1) from subgraph_. First, erase what it points to
             subgraph_[i - 1].out_edges.clear();
@@ -97,7 +99,12 @@ void CyclesSearch::get_elementary_cycles(const Graph& graph) {
         circuit(current_vertex_);
     }
 
-    assert(stack_.empty());
+    if (!ep.timeout) {
+        assert(stack_.empty());
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void CyclesSearch::unblock(int u) {
@@ -117,7 +124,7 @@ bool CyclesSearch::circuit(int vertex) {
     stack_.push_back(vertex);
     blocked_[vertex] = true;
 
-    for (auto w = subgraph_[vertex].subgraph_edges.begin(); w != subgraph_[vertex].subgraph_edges.end(); ++w) {
+    for (auto w = subgraph_[vertex].subgraph_edges.begin(); w != subgraph_[vertex].subgraph_edges.end() && !ep.timeout; ++w) {
         if (*w == current_vertex_) {
             // The original paper called for printing stack_ followed by
             // current_vertex_ here, which is a cycle.
@@ -135,17 +142,19 @@ bool CyclesSearch::circuit(int vertex) {
         }
     }
 
-    if (found) {
-        unblock(vertex);
-    } else {
-        for (auto w = subgraph_[vertex].subgraph_edges.begin(); w != subgraph_[vertex].subgraph_edges.end(); ++w) {
-            if (blocked_map_[*w].find(vertex) == blocked_map_[*w].end()) {
-                blocked_map_[*w].insert(vertex);
+    if (!ep.timeout) {
+        if (found) {
+            unblock(vertex);
+        } else {
+            for (auto w = subgraph_[vertex].subgraph_edges.begin(); w != subgraph_[vertex].subgraph_edges.end(); ++w) {
+                if (blocked_map_[*w].find(vertex) == blocked_map_[*w].end()) {
+                    blocked_map_[*w].insert(vertex);
+                }
             }
         }
+        // assert(vertex == stack_.back());
+        stack_.pop_back();
     }
-    assert(vertex == stack_.back());
-    stack_.pop_back();
     return found;
 }
 
@@ -198,7 +207,7 @@ void build_conflict_graph_xov(const vector<Endorsement>& transactions, Graph& co
     }
 }
 
-void xov_reorder(queue<string>& request_queue, Block& block) {
+bool xov_reorder(queue<string>& request_queue, Block& block) {
     Graph conflict_graph;
     vector<Endorsement> S;  // the index represents the transaction id
     while (request_queue.size()) {
@@ -217,7 +226,9 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
     // LOG(INFO) << "finished step 1.";
 
     CyclesSearch cycles_search;
-    cycles_search.get_elementary_cycles(conflict_graph);  // step 2
+    if (!cycles_search.get_elementary_cycles(conflict_graph)) {  // step 2
+        return false;
+    }
     // LOG(INFO) << "finished step 2 with " << cycles_search.cycles.size() << " cycles.";
 
     boost::heap::fibonacci_heap<heap_data> transactions_in_cycles;  // step 3
@@ -314,10 +325,11 @@ void xov_reorder(queue<string>& request_queue, Block& block) {
         Endorsement* endorsement = block.add_transactions();
         (*endorsement) = S_aborted[i];
     }
+    return true;
 }
 
 void build_conflict_graph_oxii(queue<string>& request_queue, vector<TransactionProposal>& proposals, Graph& conflict_graph) {
-    int index = 0; // the index in proposals represents the transaction propoal id
+    int index = 0;  // the index in proposals represents the transaction propoal id
     while (request_queue.size()) {
         TransactionProposal proposal;
         if (!proposal.ParseFromString(request_queue.front()) ||

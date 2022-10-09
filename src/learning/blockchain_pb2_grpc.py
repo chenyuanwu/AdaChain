@@ -50,6 +50,26 @@ class PeerCommStub(object):
                 request_serializer=blockchain__pb2.Action.SerializeToString,
                 response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
                 )
+        self.timeout = channel.unary_unary(
+                '/PeerComm/timeout',
+                request_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+                response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                )
+        self.exchange_block_index = channel.unary_unary(
+                '/PeerComm/exchange_block_index',
+                request_serializer=blockchain__pb2.PeerExchange.SerializeToString,
+                response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                )
+        self.resume_block_formation = channel.unary_unary(
+                '/PeerComm/resume_block_formation',
+                request_serializer=blockchain__pb2.PeerExchange.SerializeToString,
+                response_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                )
+        self.reached_new_watermark = channel.unary_unary(
+                '/PeerComm/reached_new_watermark',
+                request_serializer=blockchain__pb2.PeerExchange.SerializeToString,
+                response_deserializer=blockchain__pb2.PeerExchange.FromString,
+                )
 
 
 class PeerCommServicer(object):
@@ -97,6 +117,30 @@ class PeerCommServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def timeout(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def exchange_block_index(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def resume_block_formation(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def reached_new_watermark(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_PeerCommServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -134,6 +178,26 @@ def add_PeerCommServicer_to_server(servicer, server):
                     servicer.new_episode_info,
                     request_deserializer=blockchain__pb2.Action.FromString,
                     response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            ),
+            'timeout': grpc.unary_unary_rpc_method_handler(
+                    servicer.timeout,
+                    request_deserializer=google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+                    response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            ),
+            'exchange_block_index': grpc.unary_unary_rpc_method_handler(
+                    servicer.exchange_block_index,
+                    request_deserializer=blockchain__pb2.PeerExchange.FromString,
+                    response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            ),
+            'resume_block_formation': grpc.unary_unary_rpc_method_handler(
+                    servicer.resume_block_formation,
+                    request_deserializer=blockchain__pb2.PeerExchange.FromString,
+                    response_serializer=google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            ),
+            'reached_new_watermark': grpc.unary_unary_rpc_method_handler(
+                    servicer.reached_new_watermark,
+                    request_deserializer=blockchain__pb2.PeerExchange.FromString,
+                    response_serializer=blockchain__pb2.PeerExchange.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -261,6 +325,74 @@ class PeerComm(object):
         return grpc.experimental.unary_unary(request, target, '/PeerComm/new_episode_info',
             blockchain__pb2.Action.SerializeToString,
             google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def timeout(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/PeerComm/timeout',
+            google_dot_protobuf_dot_empty__pb2.Empty.SerializeToString,
+            google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def exchange_block_index(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/PeerComm/exchange_block_index',
+            blockchain__pb2.PeerExchange.SerializeToString,
+            google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def resume_block_formation(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/PeerComm/resume_block_formation',
+            blockchain__pb2.PeerExchange.SerializeToString,
+            google_dot_protobuf_dot_empty__pb2.Empty.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def reached_new_watermark(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/PeerComm/reached_new_watermark',
+            blockchain__pb2.PeerExchange.SerializeToString,
+            blockchain__pb2.PeerExchange.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

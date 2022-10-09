@@ -67,6 +67,14 @@ class PeerCommImpl final : public PeerComm::Service {
 
     Status new_episode_info(ServerContext *context, const Action *action, google::protobuf::Empty *response) override;
 
+    Status timeout(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) override;
+
+    Status exchange_block_index(ServerContext *context, const PeerExchange *exchange, google::protobuf::Empty *response) override;
+
+    Status resume_block_formation(ServerContext *context, const PeerExchange *exchange, google::protobuf::Empty *response) override;
+
+    Status reached_new_watermark(ServerContext *context, const PeerExchange *request, PeerExchange *response) override;
+
    private:
     ofstream log;
     chrono::milliseconds start;

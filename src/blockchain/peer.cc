@@ -88,7 +88,7 @@ void *block_formation_thread(void *arg) {
     queue<string> request_queue;
 
     while (true) {
-        if (block_index < ep.B_h) {
+        if ((!ep.block_formation_paused) && block_index < ep.B_h) {
             if (is_leader) {
                 int N = commit_index + 1;
                 int count = 0;
@@ -103,25 +103,44 @@ void *block_formation_thread(void *arg) {
                 }
             }
 
-            if (commit_index > last_applied) {
-                last_applied++;
+            if (commit_index > last_applied || !ep.pending_request_queue.empty()) {
+                if (ep.pending_request_queue.empty()) {
+                    last_applied++;
 
-                uint32_t size;
-                log.read((char *)&size, sizeof(uint32_t));
-                char *entry_ptr = (char *)malloc(size);
-                log.read(entry_ptr, size);
-                string serialized_request(entry_ptr, size);
-                free(entry_ptr);
+                    /* check if the entry belongs to the current episode */
+                    uint32_t size;
+                    log.read((char *)&size, sizeof(uint32_t));
+                    char *entry_ptr = (char *)malloc(size);
+                    log.read(entry_ptr, size);
+                    string tagged_entry_str(entry_ptr, size);
+                    free(entry_ptr);
+                    TaggedEntry tagged_entry;
+                    tagged_entry.ParseFromString(tagged_entry_str);
+                    if (tagged_entry.tag() != ep.episode) {
+                        continue;
+                    }
 
-                LOG(DEBUG) << "[block_id = " << block_index << ", trans_id = " << trans_index << "]: added transaction to block.";
-                request_queue.push(serialized_request);
-                trans_index++;
+                    LOG(DEBUG) << "[block_id = " << block_index << ", trans_id = " << trans_index << "]: added transaction to block.";
+                    request_queue.push(tagged_entry.entry());
+                    trans_index++;
+                }
 
-                if (trans_index >= arch.max_block_size) {
+                if (trans_index >= arch.max_block_size || !ep.pending_request_queue.empty()) {
+                    if (ep.pending_request_queue.empty()) {
+                        ep.pending_request_queue = request_queue;
+                    } else {
+                        request_queue.swap(ep.pending_request_queue);
+                        queue<string>().swap(ep.pending_request_queue);
+                    }
                     /* cut the block */
                     if (arch.reorder) {
                         if (arch.is_xov) {
-                            xov_reorder(request_queue, block);
+                            if (!xov_reorder(request_queue, block)) {
+                                trans_index = 0;
+                                ep.block_formation_paused = true;
+                                continue;
+                            }
+
                             for (uint64_t i = 0; i < block.transactions_size(); i++) {
                                 struct RecordVersion record_version = {
                                     .version_blockid = block_index,
@@ -244,6 +263,12 @@ void *block_formation_thread(void *arg) {
 
                     block.clear_block_id();
                     block.clear_transactions();
+                    queue<string>().swap(ep.pending_request_queue);
+
+                    /* check if block formation should be paused */
+                    if (ep.timeout) {
+                        ep.block_formation_paused = true;
+                    }
                 }
             }
         }
@@ -313,6 +338,66 @@ void *simulation_handler(void *arg) {
     return nullptr;
 }
 
+void reached_watermark_low(AgentComm::Stub *agent_stub, bool timeout) {
+    chrono::milliseconds curr = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+    int64_t time = (curr - ep.start).count();
+    double throughput = ((double)ep.total_ops.load() / time) * 1000;
+
+    if (timeout) {
+        LOG(INFO) << "Episode " << ep.episode << " notified learning agent: throughput = " << throughput << "tps.";
+    } else {
+        LOG(INFO) << "Episode " << ep.episode << " reached W_l: duration = " << time / 1000.0 << "s, throughput = " << throughput << "tps.";
+    }
+    ClientContext context;
+    WatermarkLow wl;
+    google::protobuf::Empty rsp;
+    wl.set_throughput(throughput);
+    wl.set_block_id_now(block_index);
+    wl.set_block_id_start(ep.B_start);
+    Status status = agent_stub->reached_watermark_low(&context, wl, &rsp);
+    if (!status.ok()) {
+        LOG(ERROR) << "grpc failed in reached_watermark_low.";
+        exit(1);
+    }
+
+    ep.agent_notified = true;
+}
+
+void start_new_episode(uint64_t last_log_index) {
+    // set the arch for the new episode
+    if (ep.next_action.blocksize() == 0) {
+        LOG(INFO) << "Episode " << ep.episode << ": waiting for new action from the learning agent.";
+    }
+    while (ep.next_action.blocksize() == 0)
+        ;
+    if (!ep.equal_curr_action(ep.next_action)) {
+        ep.freeze = true;
+        proposal_queue.clear();
+        ordering_queue.clear();
+        execution_queue.clear();
+    }
+    arch.max_block_size = ep.next_action.blocksize();
+    arch.is_xov = ep.next_action.early_execution();
+    arch.reorder = ep.next_action.reorder();
+    ep.curr_action = ep.next_action;
+    ep.next_action.Clear();
+
+    ep.episode++;
+    ep.B_start = ep.B_h.load();
+    ep.B_l = ep.B_h + (peer_config["sysconfig"]["trans_watermark_low"].GetInt() / arch.max_block_size);
+    uint64_t B_h_delta = peer_config["sysconfig"]["trans_watermark_high"].GetInt() / arch.max_block_size;
+    ep.B_h += B_h_delta;
+    ep.T_h = last_log_index + B_h_delta * arch.max_block_size;
+    ep.agent_notified = false;
+    ep.freeze = false;
+    ep.consensus_paused = false;
+    ep.num_reached_new_watermark = 0;
+    ep.clear_last_block_indexes();
+
+    ep.total_ops = 0;
+    ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+}
+
 void run_peer(const string &server_address) {
     /* start the gRPC server to accept requests */
     PeerCommImpl service(peer_config["sysconfig"]["log_dir"].GetString());
@@ -331,13 +416,20 @@ void run_peer(const string &server_address) {
     ep.curr_action.set_early_execution(arch.is_xov);
     ep.curr_action.set_reorder(arch.reorder);
 
-    unique_ptr<PeerComm::Stub> stub;
+    unique_ptr<PeerComm::Stub> leader_stub;
+    vector<unique_ptr<PeerComm::Stub>> follower_stubs;
     if (is_leader) {
         spawn_raft_threads(peer_config["sysconfig"]["followers"], peer_config["arch"]["blocksize"].GetInt());
+        for (int i = 0; i < peer_config["sysconfig"]["followers"].Size(); i++) {
+            unique_ptr<PeerComm::Stub> follower_stub;
+            follower_stub = PeerComm::NewStub(grpc::CreateChannel(peer_config["sysconfig"]["followers"][i].GetString(),
+                                                                  grpc::InsecureChannelCredentials()));
+            follower_stubs.push_back(move(follower_stub));
+        }
     } else {
         string leader_addr = peer_config["sysconfig"]["leader"].GetString();
         leader_channel = grpc::CreateChannel(leader_addr, grpc::InsecureChannelCredentials());
-        stub = PeerComm::NewStub(leader_channel);
+        leader_stub = PeerComm::NewStub(leader_channel);
     }
 
     pthread_t block_form_tid;
@@ -371,29 +463,135 @@ void run_peer(const string &server_address) {
 
     /* process transaction proposals from queue */
     bool is_cleaned = false;
-    while (true) {
-        if ((!ep.agent_notified) && block_index >= ep.B_l) {
-            chrono::milliseconds curr = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
-            uint64_t time = (curr - ep.start).count();
-            double throughput = ((double)ep.total_ops.load() / time) * 1000;
-
-            LOG(INFO) << "Episode " << ep.episode << " reached W_l: duration = " << time / 1000.0 << "s, throughput = " << throughput << "tps.";
-
-            ClientContext context;  // notify learning agent about reaching watermark low
-            WatermarkLow wl;
-            google::protobuf::Empty rsp;
-            wl.set_throughput(throughput);
-            wl.set_block_id_now(block_index);
-            wl.set_block_id_start(ep.B_start);
-            Status status = agent_stub->reached_watermark_low(&context, wl, &rsp);
-            if (!status.ok()) {
-                LOG(ERROR) << "grpc failed in run_peer.";
-                exit(1);
-            }
-
-            ep.agent_notified = true;
+    for (int loop_count = 0;; loop_count++) {
+        if (loop_count == 100) {
+            loop_count = 0;
         }
 
+        if (is_leader && loop_count == 0) {
+            chrono::milliseconds curr = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+            int64_t time_elapsed = (curr - ep.start).count();
+            if (time_elapsed >= peer_config["sysconfig"]["timeout"].GetInt() * 1000) {
+                if (block_index < ep.B_l) {
+                    // start the slow path: notify other peers and the learning agent
+                    LOG(INFO) << "Episode " << ep.episode << " timeout: time_elapsed = " << time_elapsed / 1000.0 << "s.";
+                    ep.timeout = true;
+                    for (int i = 0; i < follower_stubs.size(); i++) {
+                        ClientContext context;
+                        google::protobuf::Empty req, rsp;
+                        Status status = follower_stubs[i]->timeout(&context, req, &rsp);
+                        if (!status.ok()) {
+                            LOG(ERROR) << "grpc failed in run_peer.";
+                            exit(1);
+                        }
+                    }
+                    reached_watermark_low(agent_stub.get(), true);  // notify learning agent
+
+                    // pause block formation and consensus
+                    while (!ep.consensus_paused)
+                        ;
+                    ep.freeze = true;
+                    proposal_queue.clear();
+                    ordering_queue.clear();
+                    execution_queue.clear();
+
+                    while (!ep.block_formation_paused)
+                        ;
+                    LOG(INFO) << "Episode " << ep.episode << ": block formation is paused.";
+
+                    // get the new watermark
+                    while (ep.num_received_indexes() < follower_stubs.size())
+                        ;
+                    uint64_t max_block_index = *max_element(ep.last_block_indexes.begin(), ep.last_block_indexes.end());
+                    assert(block_index >= max_block_index);
+                    max_block_index = block_index;
+
+                    // resume block formation to reach the new watermark
+                    bool no_progress = false;
+                    if (block_index == ep.B_start) {
+                        no_progress = true;
+                        queue<string>().swap(ep.pending_request_queue);
+                    }
+                    for (int i = 0; i < follower_stubs.size(); i++) {
+                        ClientContext context;
+                        PeerExchange exchange;
+                        google::protobuf::Empty rsp;
+                        exchange.set_block_index(max_block_index);
+                        exchange.set_no_progress(no_progress);
+                        Status status = follower_stubs[i]->resume_block_formation(&context, exchange, &rsp);
+                        if (!status.ok()) {
+                            LOG(ERROR) << "grpc failed in run_peer.";
+                            exit(1);
+                        }
+                    }
+                    ep.timeout = false;
+                    ep.B_h = max_block_index;
+                    ep.block_formation_paused = false;
+
+                    // start the new episode once every peer reaches the new watermark
+                    while (ep.num_reached_new_watermark < follower_stubs.size())
+                        ;
+                    start_new_episode(last_log_index);
+                    LOG(INFO) << "Episode " << ep.episode << " starts (by completing slow path): blocksize = " << arch.max_block_size << ", early_execution = "
+                              << arch.is_xov << ", reorder = " << arch.reorder << ", B_h = " << ep.B_h << ", T_h = " << ep.T_h << ".";
+                }
+            }
+        }
+        if ((!is_leader) && ep.timeout) {
+            if (!ep.agent_notified) {
+                reached_watermark_low(agent_stub.get(), true);  // notify learning agent
+            }
+
+            // pause block formation and consensus
+            ep.freeze = true;
+            proposal_queue.clear();
+            ordering_queue.clear();
+            execution_queue.clear();
+
+            while (!ep.block_formation_paused)
+                ;
+            assert(block_index < ep.B_h);
+            LOG(INFO) << "Episode " << ep.episode << ": block formation is paused.";
+
+            // exchange B_n
+            {
+                ClientContext context;
+                PeerExchange exchange;
+                google::protobuf::Empty rsp;
+                exchange.set_block_index(block_index);
+                Status status = leader_stub->exchange_block_index(&context, exchange, &rsp);
+                if (!status.ok()) {
+                    LOG(ERROR) << "grpc failed in run_peer.";
+                    exit(1);
+                }
+            }
+
+            // resume block formation to reach the new watermark
+            while (block_index != ep.B_h)
+                ;
+
+            // notify the leader about reaching the new watermark and get the last raft log index
+            uint64_t leader_last_raft_index;
+            {
+                ClientContext context;
+                PeerExchange req, rsp;
+                Status status = leader_stub->reached_new_watermark(&context, req, &rsp);
+                if (!status.ok()) {
+                    LOG(ERROR) << "grpc failed in run_peer.";
+                    exit(1);
+                }
+                leader_last_raft_index = rsp.raft_index();
+            }
+
+            // start the new episode
+            start_new_episode(leader_last_raft_index);
+            LOG(INFO) << "Episode " << ep.episode << " starts (by completing slow path): blocksize = " << arch.max_block_size << ", early_execution = "
+                      << arch.is_xov << ", reorder = " << arch.reorder << ", B_h = " << ep.B_h << ", T_h = " << ep.T_h << ".";
+        }
+
+        if ((!ep.agent_notified) && block_index >= ep.B_l) {
+            reached_watermark_low(agent_stub.get(), false);  // notify learning agent about reaching watermark low
+        }
         if (block_index < ep.B_h) {
             TransactionProposal proposal = proposal_queue.pop();
             if (arch.is_xov) {
@@ -407,7 +605,7 @@ void run_peer(const string &server_address) {
                     google::protobuf::Empty rsp;
                     TransactionProposal *proposal_ = req.mutable_proposal();
                     *proposal_ = proposal;
-                    Status status = stub->send_to_peer(&context, req, &rsp);
+                    Status status = leader_stub->send_to_peer(&context, req, &rsp);
                     if (!status.ok()) {
                         LOG(ERROR) << "grpc failed in run_peer.";
                     }
@@ -418,33 +616,10 @@ void run_peer(const string &server_address) {
             }
         } else {
             if (!is_cleaned) {
-                ep.freeze = true;
-                proposal_queue.clear();
-                ordering_queue.clear();
-                execution_queue.clear();
-
-                // set the arch for the new episode
-                arch.max_block_size = ep.next_action.blocksize();
-                arch.is_xov = ep.next_action.early_execution();
-                arch.reorder = ep.next_action.reorder();
-                ep.curr_action = ep.next_action;
-
-                // start the new episode
-                ep.episode++;
-                ep.B_start = ep.B_h.load();
-                ep.B_l = ep.B_h + (peer_config["sysconfig"]["trans_watermark_low"].GetInt() / arch.max_block_size);
-                uint64_t B_h_delta = peer_config["sysconfig"]["trans_watermark_high"].GetInt() / arch.max_block_size;
-                ep.B_h += B_h_delta;
-                ep.T_h += B_h_delta * arch.max_block_size;
-                ep.agent_notified = false;
-                ep.freeze = false;
+                start_new_episode(ep.T_h);
 
                 LOG(INFO) << "Episode " << ep.episode << " starts (by reaching W_H): blocksize = " << arch.max_block_size << ", early_execution = "
                           << arch.is_xov << ", reorder = " << arch.reorder << ", B_h = " << ep.B_h << ", T_h = " << ep.T_h << ".";
-
-                ep.total_ops = 0;
-                ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
-
                 is_cleaned = true;
             }
         }
