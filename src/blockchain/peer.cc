@@ -317,7 +317,7 @@ void *simulation_handler(void *arg) {
 
 void run_peer(const string &server_address) {
     /* start the gRPC server to accept requests */
-    PeerCommImpl service(peer_config["sysconfig"]["log_dir"].GetString());
+    PeerCommImpl service;
     ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
     builder.RegisterService(&service);
@@ -367,7 +367,6 @@ void run_peer(const string &server_address) {
                                                         grpc::InsecureChannelCredentials()));
 
     /* process transaction proposals from queue */
-    bool is_cleaned = false;
     while (true) {
         if (block_index < ep.B_n) {
             TransactionProposal proposal = proposal_queue.pop();
@@ -387,40 +386,10 @@ void run_peer(const string &server_address) {
                         LOG(ERROR) << "grpc failed in run_peer.";
                     }
                 }
-            }
-            if (is_cleaned) {
-                is_cleaned = false;
-            }
-        } else {
-            if (!is_cleaned) {
-                ep.end = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
-                uint64_t time = (ep.end - ep.start).count();
-                double throughput = ((double)ep.total_ops.load() / time) * 1000;
-
-                LOG(INFO) << "Episode " << ep.episode << " ends: duration = " << time / 1000.0 << "s, throughput = " << throughput << "tps, "
-                          << "trans_count(T_n) = " << transaction_count << ", last_log_index = " << last_log_index << ".";
-
-                ep.freeze = true;
-                proposal_queue.clear();
-                ordering_queue.clear();
-                execution_queue.clear();
-
-                ClientContext context;  // notify learning agent the end of current episode
-                Reward reward;
-                google::protobuf::Empty rsp;
-                reward.set_is_leader(is_leader);
-                reward.set_throughput(throughput);
-                Status status = agent_stub->end_current_episode(&context, reward, &rsp);
-                if (!status.ok()) {
-                    LOG(ERROR) << "grpc failed in run_peer.";
-                    exit(1);
-                }
-
-                is_cleaned = true;
-            }
+            } 
         }
     }
-}
+
 
 int main(int argc, char *argv[]) {
     int opt;
