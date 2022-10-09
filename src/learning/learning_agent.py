@@ -163,9 +163,11 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000, experiences_windo
 
         # measure the execution delay in us
         execution_delay = (execution_delay_total_ms / num_total_trans) * 1000
+        feature_extraction_overhead = round(time.time() - feature_extraction_start, 6)
    
-        experiences_X.append(np.array([write_ratio, hot_key_ratio, trans_arrival_rate, execution_delay,
-                                           initial_blocksize, initial_early_execution, initial_reorder]))
+        if len(experiences_X) > 0:
+            enumeration_matrix[:, 0:4] = np.array([write_ratio, hot_key_ratio, trans_arrival_rate, execution_delay])
+
         # optimal_action_predicted.append(0)
         start_gain_experiences = True
 
