@@ -116,9 +116,9 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000, experiences_windo
             experiences_X.pop(0)
             experiences_y.pop(0)
 
-        # save the latest experience to csv file
-        csv_writer.writerow(experiences_X[-1].tolist() + [experiences_y[-1]] + time_records[-1])
-        data_store.flush()
+            # save the latest experience to csv file
+            csv_writer.writerow(experiences_X[-1].tolist() + [experiences_y[-1]] + time_records[-1])
+            data_store.flush()
     
 
         """ Extract feature from blocks """
@@ -164,34 +164,15 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000, experiences_windo
 
         # measure the execution delay in us
         execution_delay = (execution_delay_total_ms / num_total_trans) * 1000
-        feature_extraction_overhead = round(time.time() - feature_extraction_start, 6)
-
-        """ Select the best action according to the predictor (M_theta) """
-        if len(experiences_X) > 0:
-            inference_start = time.time()
-            enumeration_matrix[:, 0:4] = np.array([write_ratio, hot_key_ratio, trans_arrival_rate, execution_delay])
-            prediction = rf.predict(enumeration_matrix)
-            # best_index = np.argmax(prediction)
-            while True:
-                best_index = np.random.choice(np.flatnonzero(np.isclose(prediction, prediction.max())), replace=True)
-                best_blocksize = enumeration_matrix[best_index, 4]
-                best_early_execution = enumeration_matrix[best_index, 5]
-                best_reorder = enumeration_matrix[best_index, 6]
-                if not ((best_reorder == 1 and best_blocksize > 50) or (best_reorder == 1 and best_early_execution == 0)):
-                    break
-            experiences_X.append(enumeration_matrix[best_index, :])
-            inference_overhead = round(time.time() - inference_start, 6)
-            # optimal_action_predicted.append(prediction[2])
-        else:
-            best_blocksize = initial_blocksize
-            best_early_execution = initial_early_execution
-            best_reorder = initial_reorder
+   
         experiences_X.append(np.array([write_ratio, hot_key_ratio, trans_arrival_rate, execution_delay,
-                                           blocksizes, early_execution, best_reorder]))
+                                           blocksizes, early_execution, reorder]))
+        # optimal_action_predicted.append(0)
+        start_gain_experiences = True
 
         # notify all peers about the action
-        action = blockchain_pb2.Action(blocksize=int(best_blocksize),
-                                       early_execution=best_early_execution, reorder=best_reorder)
+        action = blockchain_pb2.Action(blocksize=int(blocksizes),
+                                       early_execution=early_execution, reorder=reorder)
         all_tasks = [t.submit(start_new_episode, stub, action) for stub in peer_comm_stubs]
         futures.wait(all_tasks, return_when=futures.ALL_COMPLETED)
         episode_start_time = time.time()
