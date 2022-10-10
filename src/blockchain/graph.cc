@@ -334,7 +334,7 @@ void build_conflict_graph_oxii(queue<string>& request_queue, vector<TransactionP
         TransactionProposal proposal;
         if (!proposal.ParseFromString(request_queue.front()) ||
             !proposal.GetReflection()->GetUnknownFields(proposal).empty()) {
-            LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
+            LOG(WARNING) << "block formation thread: error in deserialising transaction proposal.";
         } else {
             proposal.set_id(index++);
             proposals.push_back(proposal);

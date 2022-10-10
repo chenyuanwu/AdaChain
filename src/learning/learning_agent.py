@@ -52,10 +52,12 @@ class AgentCommServicer(blockchain_pb2_grpc.AgentCommServicer):
 
     def send_prepare(self, request, context):
         global committed_messages
+        # logging.info('received prepare message for originator=%s.', request.originator)
         with agent_exchange_lock:
             count = update_originator_to_message(request)
             if count == self.num_agents:
                 committed_messages += 1
+                # logging.info('committed message for originator=%s.', request.originator)
 
         return blockchain_pb2.google_dot_protobuf_dot_empty__pb2.Empty()
 
@@ -63,11 +65,18 @@ class AgentCommServicer(blockchain_pb2_grpc.AgentCommServicer):
 def update_originator_to_message(request):
     global originator_to_message
     originator = request.originator
-    message, count = originator_to_message.setdefault(originator, (request, 1))
-    if count > 1:
+    message, count = originator_to_message.get(originator, (None, 0))
+    if message is None:
+        originator_to_message[originator] = (request, 1)
+        count = 1
+    else:
         if request == message:
             count += 1
-            originator_to_message[originator] = request, count
+            originator_to_message[originator] = (request, count)
+            # logging.info('detected matching exchange message for originator=%s, count updated to %d.', originator, count)
+        else:
+            logging.info('detected mismatching exchange message for originator=%s.', originator)
+
     return count
 
 
@@ -88,7 +97,9 @@ def preprepare_handler(peer_config, preprepare_queue, agent_channels):
             count = update_originator_to_message(preprepare)
             if count == len(peer_config['sysconfig']['agents']):
                 committed_messages += 1
+                # logging.info('committed message for originator=%s.', preprepare.originator)
         futures.wait(all_tasks, return_when=futures.ALL_COMPLETED)
+        # logging.info('finish sending prepare messages for originator=%s.', preprepare.originator)
 
 
 def seed_model_and_experience(seed_file, model, experiences_window, experiences_X, experiences_y):
@@ -225,10 +236,12 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
             update_originator_to_message(agent_exchange)
         all_tasks = [t.submit(send_preprepare, stub, agent_exchange) for stub in agent_stubs]
         futures.wait(all_tasks, return_when=futures.ALL_COMPLETED)
+        # logging.info('finish sending preprepare messages, originator=%s.', my_address)
 
         # wait for two rounds of communication to complete
         while committed_messages != len(peer_config['sysconfig']['agents']):
             pass
+        # logging.info('all exchange messages are committed.')
 
         # take the median of each peer's state and throughput
         write_ratio = statistics.median([value[0].write_ratio for value in originator_to_message.values()])
@@ -273,7 +286,7 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
                 best_blocksize = enumeration_matrix[best_index, 4]
                 best_early_execution = enumeration_matrix[best_index, 5]
                 best_reorder = enumeration_matrix[best_index, 6]
-                if not (best_early_execution == 1 and best_reorder == 1 and best_blocksize > 50):
+                if not (best_early_execution == 1 and best_reorder == 1):
                     break
             experiences_X.append(enumeration_matrix[best_index, :])
             inference_overhead = round(time.time() - inference_start, 6)
@@ -320,7 +333,7 @@ if __name__ == '__main__':
     logging.info('grpc server running at %s.', server_address)
 
     try:
-        peer_channel = grpc.insecure_channel('localhost:50053')
+        peer_channel = grpc.insecure_channel('localhost:50052')
         agent_channels = []  # channels for other agents
         for agent in peer_config['sysconfig']['agents']:
             if agent != args.my_address:
@@ -328,7 +341,7 @@ if __name__ == '__main__':
                 agent_channels.append(channel)
 
         threading.Thread(target=preprepare_handler, args=(peer_config, preprepare_queue, agent_channels)).start()
-        run_agent(args.my_address, peer_config, agent_channels, peer_channel, 2, 100)
+        run_agent(args.my_address, peer_config, agent_channels, peer_channel, 100, 100)
     finally:
         peer_channel.close()
         for channel in agent_channels:

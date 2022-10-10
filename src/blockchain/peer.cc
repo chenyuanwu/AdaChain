@@ -19,6 +19,7 @@ OXIIHelper oxii_helper;
 shared_ptr<grpc::Channel> leader_channel;
 bool is_leader = false;
 uint64_t block_index = 0;
+uint64_t trans_total = 0;
 
 string sha256(const string str) {
     unsigned char hash[SHA256_DIGEST_LENGTH];
@@ -116,6 +117,7 @@ void *block_formation_thread(void *arg) {
                     free(entry_ptr);
                     TaggedEntry tagged_entry;
                     tagged_entry.ParseFromString(tagged_entry_str);
+                    trans_total++;
                     if (tagged_entry.tag() != ep.episode) {
                         continue;
                     }
@@ -131,6 +133,7 @@ void *block_formation_thread(void *arg) {
                     } else {
                         request_queue.swap(ep.pending_request_queue);
                         queue<string>().swap(ep.pending_request_queue);
+                        LOG(INFO) << "block formation thread: resume from pending request queue.";
                     }
                     /* cut the block */
                     if (arch.reorder) {
@@ -464,11 +467,7 @@ void run_peer(const string &server_address) {
     /* process transaction proposals from queue */
     bool is_cleaned = false;
     for (int loop_count = 0;; loop_count++) {
-        if (loop_count == 100) {
-            loop_count = 0;
-        }
-
-        if (is_leader && loop_count == 0) {
+        if (is_leader && loop_count == 100) {
             chrono::milliseconds curr = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
             int64_t time_elapsed = (curr - ep.start).count();
             if (time_elapsed >= peer_config["sysconfig"]["timeout"].GetInt() * 1000) {
@@ -533,7 +532,7 @@ void run_peer(const string &server_address) {
                         ;
                     start_new_episode(last_log_index);
                     LOG(INFO) << "Episode " << ep.episode << " starts (by completing slow path): blocksize = " << arch.max_block_size << ", early_execution = "
-                              << arch.is_xov << ", reorder = " << arch.reorder << ", B_h = " << ep.B_h << ", T_h = " << ep.T_h << ".";
+                              << arch.is_xov << ", reorder = " << arch.reorder << ", new B_h = " << ep.B_h << ", new T_h = " << ep.T_h << ".";
                 }
             }
         }
@@ -586,7 +585,7 @@ void run_peer(const string &server_address) {
             // start the new episode
             start_new_episode(leader_last_raft_index);
             LOG(INFO) << "Episode " << ep.episode << " starts (by completing slow path): blocksize = " << arch.max_block_size << ", early_execution = "
-                      << arch.is_xov << ", reorder = " << arch.reorder << ", B_h = " << ep.B_h << ", T_h = " << ep.T_h << ".";
+                      << arch.is_xov << ", reorder = " << arch.reorder << ", new B_h = " << ep.B_h << ", new T_h = " << ep.T_h << ".";
         }
 
         if ((!ep.agent_notified) && block_index >= ep.B_l) {
@@ -616,12 +615,18 @@ void run_peer(const string &server_address) {
             }
         } else {
             if (!is_cleaned) {
+                LOG(INFO) << "Episode " << ep.episode << " reached W_h: last_log_index = " << last_log_index << ", trans_total = " << trans_total << ".";
+
                 start_new_episode(ep.T_h);
 
-                LOG(INFO) << "Episode " << ep.episode << " starts (by reaching W_H): blocksize = " << arch.max_block_size << ", early_execution = "
-                          << arch.is_xov << ", reorder = " << arch.reorder << ", B_h = " << ep.B_h << ", T_h = " << ep.T_h << ".";
+                LOG(INFO) << "Episode " << ep.episode << " starts (by reaching W_h): blocksize = " << arch.max_block_size << ", early_execution = "
+                          << arch.is_xov << ", reorder = " << arch.reorder << ", new B_h = " << ep.B_h << ", new T_h = " << ep.T_h << ".";
                 is_cleaned = true;
             }
+        }
+
+        if (loop_count == 100) {
+            loop_count = 0;
         }
     }
 }
@@ -674,7 +679,7 @@ int main(int argc, char *argv[]) {
     std::filesystem::remove_all(peer_config["sysconfig"]["log_dir"].GetString());
     std::filesystem::create_directory(peer_config["sysconfig"]["log_dir"].GetString());
 
-    run_peer(server_address);
+    run_peer("0.0.0.0:50052");
 
     return 0;
 }
