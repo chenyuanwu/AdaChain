@@ -25,6 +25,7 @@ extern leveldb::Options options;
 extern atomic<unsigned long> last_log_index;
 extern deque<atomic<unsigned long>> match_index;
 extern atomic<unsigned long> commit_index;
+extern uint64_t block_index;
 
 struct Architecture {
     size_t max_block_size;

@@ -234,8 +234,8 @@ bool xov_reorder(queue<string>& request_queue, Block& block) {
     boost::heap::fibonacci_heap<heap_data> transactions_in_cycles;  // step 3
     typedef typename boost::heap::fibonacci_heap<heap_data>::handle_type handle_t;
     unordered_map<int, handle_t> transaction_to_handle;
-    for (int i = 0; i < cycles_search.cycles.size(); i++) {
-        for (int j = 0; j < cycles_search.cycles[i].size(); j++) {
+    for (int i = 0; i < cycles_search.cycles.size() && !ep.timeout; i++) {
+        for (int j = 0; j < cycles_search.cycles[i].size() && !ep.timeout; j++) {
             int t = cycles_search.cycles[i][j];
             auto it = transaction_to_handle.find(t);
             if (it != transaction_to_handle.end()) {
@@ -251,15 +251,18 @@ bool xov_reorder(queue<string>& request_queue, Block& block) {
         }
     }
     // LOG(INFO) << "finished step 3.";
+    if (ep.timeout) {
+        return false;
+    }
 
-    while (!cycles_search.cycles.empty()) {  // step 4
+    while ((!cycles_search.cycles.empty()) && (!ep.timeout)) {  // step 4
         // LOG(INFO) << "now there exists " << cycles_search.cycles.size() << " cycles.";
         int t = transactions_in_cycles.top().key;
         int appear_count = transactions_in_cycles.top().payload;
         transactions_in_cycles.pop();
         // LOG(INFO) << "removed transaction " << t << ", which appeared in " << appear_count << " cycles.";
         S[t].set_aborted(true);
-        for (auto c_it = cycles_search.cycles.begin(); c_it != cycles_search.cycles.end();) {
+        for (auto c_it = cycles_search.cycles.begin(); c_it != cycles_search.cycles.end() && !ep.timeout;) {
             auto p = find(c_it->begin(), c_it->end(), t);
             if (p != c_it->end()) {
                 c_it->erase(p);
@@ -277,6 +280,9 @@ bool xov_reorder(queue<string>& request_queue, Block& block) {
         }
     }
     // LOG(INFO) << "finished step 4.";
+    if (ep.timeout) {
+        return false;
+    }
 
     vector<Endorsement> S_prime;    // step 5
     vector<Endorsement> S_aborted;  // record early aborted transactions

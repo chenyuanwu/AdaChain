@@ -286,8 +286,9 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
                 best_blocksize = enumeration_matrix[best_index, 4]
                 best_early_execution = enumeration_matrix[best_index, 5]
                 best_reorder = enumeration_matrix[best_index, 6]
-                if not (best_early_execution == 1 and best_reorder == 1):
-                    break
+                # if not (best_early_execution == 1 and best_reorder == 1):
+                #     break
+                break
             experiences_X.append(enumeration_matrix[best_index, :])
             inference_overhead = round(time.time() - inference_start, 6)
             # optimal_action_predicted.append(prediction[2])

@@ -199,7 +199,7 @@ Status PeerCommImpl::exchange_block_index(ServerContext *context, const PeerExch
 }
 
 Status PeerCommImpl::resume_block_formation(ServerContext *context, const PeerExchange *exchange, google::protobuf::Empty *response) {
-    if (exchange->no_progress()) {
+    if (exchange->no_progress() || exchange->block_index() == block_index) {
         queue<string>().swap(ep.pending_request_queue);
     }
 

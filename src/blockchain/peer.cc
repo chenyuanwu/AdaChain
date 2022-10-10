@@ -471,7 +471,7 @@ void run_peer(const string &server_address) {
             chrono::milliseconds curr = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
             int64_t time_elapsed = (curr - ep.start).count();
             if (time_elapsed >= peer_config["sysconfig"]["timeout"].GetInt() * 1000) {
-                if (block_index < ep.B_l) {
+                if (block_index < ep.B_h) {
                     // start the slow path: notify other peers and the learning agent
                     LOG(INFO) << "Episode " << ep.episode << " timeout: time_elapsed = " << time_elapsed / 1000.0 << "s.";
                     ep.timeout = true;
@@ -484,11 +484,14 @@ void run_peer(const string &server_address) {
                             exit(1);
                         }
                     }
-                    reached_watermark_low(agent_stub.get(), true);  // notify learning agent
+                    if (!ep.agent_notified) {
+                        reached_watermark_low(agent_stub.get(), true);  // notify learning agent
+                    }
 
                     // pause block formation and consensus
-                    while (!ep.consensus_paused)
+                    while (last_log_index < ep.T_h && !ep.consensus_paused)
                         ;
+                    LOG(INFO) << "Episode " << ep.episode << ": consensus is paused.";
                     ep.freeze = true;
                     proposal_queue.clear();
                     ordering_queue.clear();
@@ -496,7 +499,7 @@ void run_peer(const string &server_address) {
 
                     while (!ep.block_formation_paused)
                         ;
-                    LOG(INFO) << "Episode " << ep.episode << ": block formation is paused.";
+                    LOG(INFO) << "Episode " << ep.episode << ": block formation is paused, last_block_index = " << block_index << ".";
 
                     // get the new watermark
                     while (ep.num_received_indexes() < follower_stubs.size())
@@ -509,8 +512,8 @@ void run_peer(const string &server_address) {
                     bool no_progress = false;
                     if (block_index == ep.B_start) {
                         no_progress = true;
-                        queue<string>().swap(ep.pending_request_queue);
                     }
+                    queue<string>().swap(ep.pending_request_queue); // always clear the pending request queue on leader
                     for (int i = 0; i < follower_stubs.size(); i++) {
                         ClientContext context;
                         PeerExchange exchange;

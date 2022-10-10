@@ -1,8 +1,8 @@
 {
     "arch": {
-        "blocksize": 50,
+        "blocksize": 30,
         "early_execution": true,
-        "reorder": false
+        "reorder": true
     },
     "sysconfig": {
         "leveldb_dir": "/mydata/testdb",
