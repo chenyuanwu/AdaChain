@@ -61,10 +61,10 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000, experiences_windo
     actions = []
 
 
-    for dim_1 in blocksizes:
-        for dim_2 in early_execution:
-            for dim_3 in reorder:
-                actions.append(np.array([dim_1, dim_2, dim_3]))
+    for blocksize in blocksizes:
+        for early_ex in early_execution:
+            for reor in reorder:
+                actions.append(np.array([blocksize, early_ex, reor]))
     actions_matrix = np.vstack(actions)
     enumeration_matrix = np.hstack((np.zeros((actions_matrix.shape[0], 4)), actions_matrix))
 
@@ -125,11 +125,11 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000, experiences_windo
         execution_delay = (execution_delay_total_ms / num_total_trans) * 1000
         
         csv_writer.writerow([write_ratio, hot_key_ratio, trans_arrival_rate,
-                        execution_delay, dim_1, early_execution, reorder, throughput_current])
+                        execution_delay, blocksize, early_ex, reor, throughput_current])
         data_store.flush()
 
         # notify all peers about the action
-        action = blockchain_pb2.Action(blocksize=int(blocksizes),
+        action = blockchain_pb2.Action(blocksize=int(blocksize),
                                        early_execution=early_execution, reorder=reorder)
         all_tasks = [t.submit(start_new_episode, stub, action) for stub in peer_comm_stubs]
         futures.wait(all_tasks, return_when=futures.ALL_COMPLETED)
