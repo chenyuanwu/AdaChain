@@ -60,7 +60,6 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000, experiences_windo
     reorder = [False, True]
     actions = []
 
-
     for blocksize in blocksizes:
         for early_ex in early_execution:
             for reor in reorder:
@@ -78,9 +77,13 @@ def run_agent(peer_config, peer_comm_stubs, num_episodes=1000, experiences_windo
             num_finished_peers = 0
         episode_end_time = time.time()
         if episode_start_time is not None:
-            time_records[-1].append(round(episode_end_time - episode_start_time, 6))       
-     
+            time_records[-1].append(round(episode_end_time - episode_start_time, 6))     
 
+        #csv_writer.writerow(experiences_X[-1].tolist() + [experiences_y[-1]] + time_records[-1])
+        csv_writer.writerow([write_ratio, hot_key_ratio, trans_arrival_rate,
+                        execution_delay, blocksize, early_ex, reor, throughput_current])
+        data_store.flush()
+          
         """ Extract feature from blocks """        
         blocks = []
         while True:
