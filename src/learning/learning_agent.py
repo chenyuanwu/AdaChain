@@ -14,7 +14,7 @@ import blockchain_pb2
 import blockchain_pb2_grpc
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 
 block_id_start = 0
 block_id_end = 0
@@ -147,6 +147,7 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
 
     # set the enumeration matrix as input to the predictor
     rf = RandomForestRegressor()
+    # rf = GradientBoostingRegressor()
     # seed_model_and_experience('ts_episode_100_6.csv', rf, experiences_window, experiences_X, experiences_y)
     # optimal_action_predicted = []
     blocksizes = [1] + list(range(10, 200, 10)) + list(range(200, 1000, 50))
@@ -186,7 +187,7 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
             size, = struct.unpack('I', data)
             data = block_store.read(size)
             block_id += 1
-            if block_id >= block_id_start:
+            if block_id > block_id_start:
                 block = blockchain_pb2.Block()
                 block.ParseFromString(data)
                 blocks.append(block)
@@ -255,6 +256,8 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
         originator_to_message = {}
         committed_messages = 0
         communication_overhead = round(time.time() - communication_start, 6)
+        logging.info('local info of episode %d: num_blocks_read = %d, trans_arrival_rate = %f, num_total_trans = %d, seconds = %f',
+                     episode + 1, len(blocks), local_trans_arrival_rate, num_total_trans, seconds)
 
         """ Retrain """
         assert (len(experiences_X) == len(experiences_y))

@@ -373,12 +373,11 @@ void start_new_episode(uint64_t last_log_index) {
     }
     while (ep.next_action.blocksize() == 0)
         ;
-    if (!ep.equal_curr_action(ep.next_action)) {
-        ep.freeze = true;
-        proposal_queue.clear();
-        ordering_queue.clear();
-        execution_queue.clear();
-    }
+    ep.freeze = true;
+    proposal_queue.clear();
+    ordering_queue.clear();
+    execution_queue.clear();
+    
     arch.max_block_size = ep.next_action.blocksize();
     arch.is_xov = ep.next_action.early_execution();
     arch.reorder = ep.next_action.reorder();
@@ -413,7 +412,7 @@ void run_peer(const string &server_address) {
     /* spawn the raft threads on leader, block formation thread, and execution threads */
     ep.B_h = peer_config["sysconfig"]["trans_watermark_high"].GetInt() / arch.max_block_size;
     ep.B_l = peer_config["sysconfig"]["trans_watermark_low"].GetInt() / arch.max_block_size;
-    ep.B_start = 1;
+    ep.B_start = 0;
     ep.T_h = ep.B_h.load() * arch.max_block_size;
     ep.curr_action.set_blocksize(arch.max_block_size);
     ep.curr_action.set_early_execution(arch.is_xov);
