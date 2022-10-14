@@ -1,181 +1,191 @@
-#include "consensus.h"
+#include "client.h"
 
-atomic<unsigned long> commit_index(0);
-atomic<unsigned long> last_log_index(0);
-deque<atomic<unsigned long>> next_index;
-deque<atomic<unsigned long>> match_index;
-extern Queue<TransactionProposal> proposal_queue;
-extern Queue<string> ordering_queue;
-extern Queue<TransactionProposal> execution_queue;
-extern atomic<long> total_ops;
-extern atomic<long> readn;
-extern atomic<long> writen;
+INITIALIZE_EASYLOGGINGPP
 
+Document peer_config;
+Document client_config;
+pthread_barrier_t prep_barrier;
+atomic_bool end_flag(false);
 
+void *client_thread(void *arg) {
+    struct CliThreadContext ctx = *(struct CliThreadContext *)arg;
+    shared_ptr<grpc::Channel> peer_channel = grpc::CreateChannel(ctx.peer_grpc_endpoint, grpc::InsecureChannelCredentials());
+    unique_ptr<PeerComm::Stub> stub(PeerComm::NewStub(peer_channel));
 
-void *log_replication_thread(void *arg) {
-    struct RaftThreadContext ctx = *(struct RaftThreadContext *)arg;
-    //LOG(INFO) << "[server_index = " << ctx.server_index << "]log replication thread is running for follower " << ctx.grpc_endpoint << ".";
-    shared_ptr<grpc::Channel> channel = grpc::CreateChannel(ctx.grpc_endpoint, grpc::InsecureChannelCredentials());
-    unique_ptr<PeerComm::Stub> stub(PeerComm::NewStub(channel));
-
-    ifstream log("./log/raft.log", ios::in);
-    assert(log.is_open());
-
-    while (true) {
-        if (last_log_index >= next_index[ctx.server_index]) {
-            /* send AppendEntries RPC */
+    /* prepopulate */
+    for (int i = 0; i < ctx.num_keys; i++) {
+        {
             ClientContext context;
-            AppendRequest app_req;
-            AppendResponse app_rsp;
-
-            app_req.set_leader_commit(commit_index);
-            int index = 0;
-            for (; index < ctx.log_entry_batch && next_index[ctx.server_index] + index <= last_log_index; index++) {
-                uint32_t size;
-                log.read((char *)&size, sizeof(uint32_t));
-                char *entry_ptr = (char *)malloc(size);
-                log.read(entry_ptr, size);
-                app_req.add_log_entries(entry_ptr, size);
-                free(entry_ptr);
-            }
-
-            Status status = stub->append_entries(&context, app_req, &app_rsp);
+            PrepopulateResponse response;
+            TransactionProposal proposal;
+            string key = "checking_" + to_string(i);          // for smallbank workload
+            string value = to_string(rand() % BALANCE_HIGH);  // guarantee the same value for a particular key across all peers
+            proposal.add_keys(key);
+            proposal.add_values(value);
+            Status status = stub->prepopulate(&context, proposal, &response);
             if (!status.ok()) {
-                LOG(ERROR) << "[server_index = " << ctx.server_index << "]gRPC failed with error message: " << status.error_message() << ".";
-                continue;
+                LOG(ERROR) << "prepopulate node " << ctx.peer_grpc_endpoint << ": key " << key << " failed with error [" << status.error_message() << "].";
+            }
+        }
+        {
+            ClientContext context;
+            PrepopulateResponse response;
+            TransactionProposal proposal;
+            string key = "saving_" + to_string(i);
+            string value = to_string(rand() % BALANCE_HIGH);
+            proposal.add_keys(key);
+            proposal.add_values(value);
+            Status status = stub->prepopulate(&context, proposal, &response);
+            if (!status.ok()) {
+                LOG(ERROR) << "prepopulate node " << ctx.peer_grpc_endpoint << ": key " << key << " failed with error [" << status.error_message() << "].";
+            }
+        }
+    }
+    LOG(INFO) << "finished prepopulating node " << ctx.peer_grpc_endpoint << ".";
+
+    /* start benchmarking */
+    random_device rd;
+    mt19937 gen(rd());
+    bernoulli_distribution is_hot(ctx.hot_key_ratio);
+    bernoulli_distribution is_update(ctx.write_ratio);
+    uniform_int_distribution<int> trans(0, 4);
+    int hot_keys_range = ctx.num_hot_keys;
+    uniform_int_distribution<int> hot_key(0, hot_keys_range - 1);
+    uniform_int_distribution<int> cold_key(hot_keys_range, ctx.num_keys - 1);
+
+    pthread_barrier_wait(&prep_barrier);  // set a barrier here
+
+    {
+        ClientContext context;
+        google::protobuf::Empty req;
+        google::protobuf::Empty rsp;
+        Status status = stub->start_benchmarking(&context, req, &rsp);
+        if (!status.ok()) {
+            LOG(ERROR) << "grpc failed in start_benchmarking.";
+        } else {
+            LOG(INFO) << "client thread starts benchmarking.";
+        }
+    }
+
+    while (!end_flag) {
+        usleep(ctx.interval);
+
+        for (int i = 0; (!end_flag) && (i < ctx.trans_per_interval); i++) {
+            Request req;
+            TransactionProposal *proposal = req.mutable_proposal();
+            int trans_choice = -1;
+            if (is_update(gen)) {
+                trans_choice = trans(gen);
+                if (trans_choice == 0) {
+                    proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_TransactSavings);
+                } else if (trans_choice == 1) {
+                    proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_DepositChecking);
+                } else if (trans_choice == 2) {
+                    proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_SendPayment);
+                } else if (trans_choice == 3) {
+                    proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_WriteCheck);
+                } else if (trans_choice == 4) {
+                    proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_Amalgamate);
+                }
             } else {
-                LOG(DEBUG) << "[server_index = " << ctx.server_index << "]send append_entries RPC. last_log_index = "
-                           << last_log_index.load() << ". next_index = " << next_index[ctx.server_index].load()
-                           << ". commit_index = " << commit_index.load() << ".";
+                proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_Query);
             }
 
-            next_index[ctx.server_index] += index;
-            match_index[ctx.server_index] = next_index[ctx.server_index] - 1;
-            // LOG(DEBUG) << "[server_index = " << ctx.server_index << "]match_index is " << match_index[ctx.server_index].load() << ".";
+            if (is_hot(gen)) {
+                proposal->add_keys(to_string(hot_key(gen)));
+                if (trans_choice == 2) {
+                    proposal->add_keys(to_string(hot_key(gen)));
+                }
+            } else {
+                proposal->add_keys(to_string(cold_key(gen)));
+                if (trans_choice == 2) {
+                    proposal->add_keys(to_string(cold_key(gen)));
+                }
+            }
+            proposal->set_execution_delay(ctx.execution_delay);
+
+            ClientContext context;
+            google::protobuf::Empty rsp;
+            Status status = stub->send_to_peer(&context, req, &rsp);
+            if (!status.ok()) {
+                LOG(ERROR) << "grpc failed in send_to_peer.";
+            }
         }
     }
-}
 
-//Leader takes commands from clients and appends them to its log as new entries
-void *leader_main_thread(void *arg) {
-    struct RaftThreadContext ctx = *(struct RaftThreadContext *)arg;
-    ofstream log("./log/raft.log", ios::out | ios::binary);
-    while (true) {
-        int i = 0;
-        for (; i < ctx.log_entry_batch; i++) {
-            string req = ordering_queue.pop();
-            uint32_t size = req.size();
-            log.write((char *)&size, sizeof(uint32_t));
-            log.write(req.c_str(), size);
-        }
-        log.flush();
-        last_log_index += i;
-    }
-}
-
-/* implementation of AppendEntriesRPC */
-Status PeerCommImpl::append_entries(ServerContext *context, const AppendRequest *request, AppendResponse *response) {
-    int i = 0;
-    for (; i < request->log_entries_size(); i++) {
-        uint32_t size = request->log_entries(i).size();
-        log.write((char *)&size, sizeof(uint32_t));
-        log.write(request->log_entries(i).c_str(), size);
-        last_log_index++;
-    }
-    log.flush();
-
-    uint64_t leader_commit = request->leader_commit();
-    if (leader_commit > commit_index) {
-        if (leader_commit > last_log_index) {
-            commit_index = last_log_index.load();
+    {
+        ClientContext context;
+        google::protobuf::Empty req;
+        google::protobuf::Empty rsp;
+        Status status = stub->end_benchmarking(&context, req, &rsp);
+        if (!status.ok()) {
+            LOG(ERROR) << "grpc failed in end_benchmarking.";
         } else {
-            commit_index = leader_commit;
+            LOG(INFO) << "client thread stops benchmarking.";
+        }
+    }
+    return nullptr;
+}
+
+int main(int argc, char *argv[]) {
+    string peer_configfile = "config/peer_config.json";
+    string client_configfile = "config/client_config.json";
+
+    ifstream ifs(peer_configfile);
+    IStreamWrapper isw(ifs);
+    peer_config.ParseStream(isw);
+
+    ifstream ifs_(client_configfile);
+    IStreamWrapper isw_(ifs_);
+    client_config.ParseStream(isw_);
+
+    el::Configurations conf("./config/logger.conf");
+    el::Loggers::reconfigureLogger("default", conf);
+
+    vector<string> peers;
+    peers.push_back(peer_config["sysconfig"]["leader"].GetString());
+    const Value &followers = peer_config["sysconfig"]["followers"];
+    for (int i = 0; i < followers.Size(); i++) {
+        peers.push_back(followers[i].GetString());
+    }
+
+    int num_peers = peers.size();
+    pthread_barrier_init(&prep_barrier, NULL, num_peers + 1);
+
+    pthread_t client_tids[num_peers];
+    struct CliThreadContext *ctxs = (struct CliThreadContext *)calloc(num_peers, sizeof(struct CliThreadContext));
+    for (int i = 0; i < num_peers; i++) {
+        ctxs[i].peer_grpc_endpoint = peers[i];
+        ctxs[i].num_keys = client_config["num_keys"].GetInt();
+        ctxs[i].num_hot_keys = client_config["num_hot_keys"].GetInt();
+        ctxs[i].execution_delay = client_config["execution_delay"].GetInt();
+        ctxs[i].trans_per_interval = client_config["trans_per_interval"].GetInt() / num_peers;
+        ctxs[i].interval = client_config["interval"].GetInt();
+        ctxs[i].write_ratio = client_config["write_ratio"].GetDouble();
+        ctxs[i].hot_key_ratio = client_config["hot_key_ratio"].GetDouble();
+        pthread_create(&client_tids[i], NULL, client_thread, &ctxs[i]);
+        /* stick thread to a core for better performance */
+        int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
+        int core_id = i % num_cores;
+        cpu_set_t cpuset;
+        CPU_ZERO(&cpuset);
+        CPU_SET(core_id, &cpuset);
+        int ret = pthread_setaffinity_np(client_tids[i], sizeof(cpu_set_t), &cpuset);
+        if (ret) {
+            LOG(ERROR) << "pthread_setaffinity_np failed with '" << strerror(ret) << "'.";
         }
     }
 
-    LOG(DEBUG) << "AppendEntriesRPC finished: last_log_index = " << last_log_index.load() << ", commit_index = " << commit_index.load() << ".";
-
-    return Status::OK;
-}
-
-Status PeerCommImpl::send_to_peer(ServerContext *context, const Request *request, google::protobuf::Empty *response) {
-    if (request->has_endorsement()) {
-        ordering_queue.add(request->endorsement().SerializeAsString());
-    } else if (request->has_proposal()) {
-        proposal_queue.add(request->proposal());
+    /* set a barrier here and then wait for benchmarking completion */
+    pthread_barrier_wait(&prep_barrier);
+    sleep(15);
+    end_flag = true;
+    for (int i = 0; i < num_peers; i++) {
+        void *status;
+        pthread_join(client_tids[i], &status);
     }
 
-    return Status::OK;
-}
+    pthread_barrier_destroy(&prep_barrier);
 
-Status PeerCommImpl::send_to_peer_stream(ServerContext *context, ServerReader<Request> *reader, google::protobuf::Empty *response) {
-    Request request;
-
-    while (reader->Read(&request)) {
-        if (request.has_endorsement()) {
-            ordering_queue.add(request.endorsement().SerializeAsString());
-        } else if (request.has_proposal()) {
-            proposal_queue.add(request.proposal());
-        }
-    }
-
-    return Status::OK;
-}
-
-Status PeerCommImpl::prepopulate(ServerContext *context, const TransactionProposal *proposal, PrepopulateResponse *response) {
-    LOG(DEBUG) << "prepopulate key " << proposal->keys(0) << ".";
-    struct RecordVersion record_version = {
-        .version_blockid = 0,
-        .version_transid = 0,
-    };
-
-    kv_put(proposal->keys(0), proposal->values(0), record_version, true, nullptr);
-
-    return Status::OK;
-}
-
-Status PeerCommImpl::start_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) {
-    //LOG(INFO) << "starts benchmarking.";
-    start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
-
-    return Status::OK;
-}
-
-Status PeerCommImpl::end_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) {
-    end = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
-    uint64_t time = (end - start).count();
-    double throughput = ((double)total_ops.load() / time) * 1000;
-    double readwriteratio = (double)readn.load() / ((double)readn.load() + (double)writen.load());
-    double writereadratio = (double)writen.load() / ((double)readn.load() + (double)writen.load());
-
-    LOG(INFO) << "throughput = " << throughput << "			     Read write ratio: R/(R+W) = " << readwriteratio;
-
-
-    return Status::OK;
-}
-
-void spawn_raft_threads(const Value &followers, int batch_size) {
-    /* spawn the leader main thread */
-    pthread_t leader_main_tid;
-    struct RaftThreadContext *ctx = (struct RaftThreadContext *)calloc(1, sizeof(struct RaftThreadContext));
-    ctx[0].log_entry_batch = batch_size;
-    pthread_create(&leader_main_tid, NULL, leader_main_thread, &ctx[0]);
-    pthread_detach(leader_main_tid);
-
-    /* spawn log replication threads */
-    assert(followers.IsArray());
-    int num_followers = followers.Size();
-    pthread_t *repl_tids;
-    repl_tids = (pthread_t *)malloc(sizeof(pthread_t) * num_followers);
-    struct RaftThreadContext *ctxs = (struct RaftThreadContext *)calloc(num_followers, sizeof(struct RaftThreadContext));
-    for (int i = 0; i < num_followers; i++) {
-        next_index.emplace_back(1);
-        match_index.emplace_back(0);
-        ctxs[i].grpc_endpoint = followers[i].GetString();
-        ctxs[i].server_index = i;
-        ctxs[i].log_entry_batch = batch_size;
-        pthread_create(&repl_tids[i], NULL, log_replication_thread, &ctxs[i]);
-        pthread_detach(repl_tids[i]);
-    }
+    return 0;
 }

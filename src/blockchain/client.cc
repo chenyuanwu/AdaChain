@@ -174,7 +174,6 @@ int main(int argc, char *argv[]) {
         if (ret) {
             LOG(ERROR) << "pthread_setaffinity_np failed with '" << strerror(ret) << "'.";
         }
-        pthread_detach(client_tids[i]);
     }
 
     /* set a barrier here and then wait for benchmarking completion */

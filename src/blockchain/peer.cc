@@ -89,7 +89,6 @@ void *block_formation_thread(void *arg) {
     queue<string> request_queue;
 
     while (true) {
-        if (block_index < ep.B_n) {
             if (is_leader) {
                 int N = commit_index + 1;
                 int count = 0;
@@ -248,7 +247,7 @@ void *block_formation_thread(void *arg) {
                     block.clear_transactions();
                 }
             }
-        }
+        
     }
 
     return nullptr;

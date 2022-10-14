@@ -1,6 +1,6 @@
 {
     "arch": {
-        "blocksize": 50,
+        "blocksize": 100,
         "early_execution": true,
         "reorder": false
     },
