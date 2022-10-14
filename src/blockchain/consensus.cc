@@ -56,7 +56,7 @@ void *leader_main_thread(void *arg) {
     ofstream log(string(peer_config["sysconfig"]["log_dir"].GetString()) + "/raft.log", ios::out | ios::binary);
     while (true) {
             int i = 0;
-            for (; i < arch.max_block_size; i++) {
+            for (; i < ctx.log_entry_batch; i++) {
                 string req = ordering_queue.pop();
                 uint32_t size = req.size();
                 log.write((char *)&size, sizeof(uint32_t));
@@ -76,9 +76,7 @@ Status PeerCommImpl::append_entries(ServerContext *context, const AppendRequest 
         log.write(request->log_entries(i).c_str(), size);
         last_log_index++;
     }
-    if (i != 0) {
         log.flush();
-    }
 
     uint64_t leader_commit = request->leader_commit();
     if (leader_commit > commit_index) {
@@ -98,13 +96,7 @@ Status PeerCommImpl::send_to_peer(ServerContext *context, const Request *request
     if (request->has_endorsement()) {
         ordering_queue.add(request->endorsement().SerializeAsString());
     } else if (request->has_proposal()) {
-        if (!request->proposal().has_received_ts()) {
-            TransactionProposal proposal = request->proposal();
-            set_timestamp(proposal.mutable_received_ts());
-            proposal_queue.add(proposal);
-        } else {
             proposal_queue.add(request->proposal());
-        }
     }
 
     return Status::OK;
@@ -145,8 +137,6 @@ Status PeerCommImpl::prepopulate(ServerContext *context, const TransactionPropos
 Status PeerCommImpl::start_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) {
     LOG(INFO) << "starts benchmarking.";
     start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
-    ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
-
     return Status::OK;
 }
 
@@ -155,28 +145,6 @@ Status PeerCommImpl::end_benchmarking(ServerContext *context, const google::prot
     uint64_t time = (end - start).count();
     double throughput = ((double)ep.total_ops.load() / time) * 1000;
     LOG(INFO) << "throughput = " << throughput << "tps.";
-
-    return Status::OK;
-}
-
-Status PeerCommImpl::start_new_episode(ServerContext *context, const Action *action, google::protobuf::Empty *response) {
-    // set the arch for the new episode
-    arch.max_block_size = action->blocksize();
-    arch.is_xov = action->early_execution();
-    arch.reorder = action->reorder();
-
-    // start the new episode
-    ep.episode++;
-    uint64_t B_n_delta = peer_config["sysconfig"]["trans_water_mark"].GetInt() / arch.max_block_size;
-    ep.B_n += B_n_delta;
-    ep.T_n += B_n_delta * arch.max_block_size;
-    ep.freeze = false;
-
-    LOG(INFO) << "Episode " << ep.episode << " starts: blocksize = " << arch.max_block_size << ", early_execution = "
-              << arch.is_xov << ", reorder = " << arch.reorder << ", B_n = " << ep.B_n << ", T_n = " << ep.T_n << ".";
-
-    ep.total_ops = 0;
-    ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
 
     return Status::OK;
 }
@@ -204,12 +172,4 @@ void spawn_raft_threads(const Value &followers, int batch_size) {
         pthread_create(&repl_tids[i], NULL, log_replication_thread, &ctxs[i]);
         pthread_detach(repl_tids[i]);
     }
-}
-
-void set_timestamp(google::protobuf::Timestamp *ts) {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-
-    ts->set_seconds(tv.tv_sec);
-    ts->set_nanos(tv.tv_usec * 1000);
 }
