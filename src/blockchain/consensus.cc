@@ -25,8 +25,8 @@ void *log_replication_thread(void *arg) {
 
             app_req.set_leader_commit(commit_index);
             int index = 0;
-            for (; index < arch.max_block_size && next_index[ctx.server_index] + index <= last_log_index; index++) {
-                uint32_t size;
+            for (; index < ctx.log_entry_batch && next_index[ctx.server_index] + index <= last_log_index; index++) {
+                                uint32_t size;
                 log.read((char *)&size, sizeof(uint32_t));
                 char *entry_ptr = (char *)malloc(size);
                 log.read(entry_ptr, size);
@@ -47,7 +47,7 @@ void *log_replication_thread(void *arg) {
             next_index[ctx.server_index] += index;
             match_index[ctx.server_index] = next_index[ctx.server_index] - 1;
             // LOG(DEBUG) << "[server_index = " << ctx.server_index << "]match_index is " << match_index[ctx.server_index].load() << ".";
-        }
+        } 
     }
 }
 
@@ -145,6 +145,7 @@ Status PeerCommImpl::prepopulate(ServerContext *context, const TransactionPropos
 Status PeerCommImpl::start_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) {
     LOG(INFO) << "starts benchmarking.";
     start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+    ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
 
     return Status::OK;
 }
@@ -164,7 +165,19 @@ Status PeerCommImpl::start_new_episode(ServerContext *context, const Action *act
     arch.is_xov = action->early_execution();
     arch.reorder = action->reorder();
 
-    
+    // start the new episode
+    ep.episode++;
+    uint64_t B_n_delta = peer_config["sysconfig"]["trans_water_mark"].GetInt() / arch.max_block_size;
+    ep.B_n += B_n_delta;
+    ep.T_n += B_n_delta * arch.max_block_size;
+    ep.freeze = false;
+
+    LOG(INFO) << "Episode " << ep.episode << " starts: blocksize = " << arch.max_block_size << ", early_execution = "
+              << arch.is_xov << ", reorder = " << arch.reorder << ", B_n = " << ep.B_n << ", T_n = " << ep.T_n << ".";
+
+    ep.total_ops = 0;
+    ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+
     return Status::OK;
 }
 
