@@ -305,10 +305,6 @@ void *simulation_handler(void *arg) {
             } else {
                 smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, &endorsement);
             }
-            ep.total_ops++;
-            endorsement.set_aborted(false);
-
-            oxii_helper.C_add(proposal_id, endorsement);
         }
     }
 
@@ -325,9 +321,6 @@ void run_peer(const string &server_address) {
     LOG(INFO) << "RPC server listening on " << server_address << ".";
 
     /* spawn the raft threads on leader, block formation thread, and execution threads */
-    ep.B_n = peer_config["sysconfig"]["trans_water_mark"].GetInt() / arch.max_block_size;
-    ep.T_n = ep.B_n.load() * arch.max_block_size;
-
     unique_ptr<PeerComm::Stub> stub;
     if (is_leader) {
         spawn_raft_threads(peer_config["sysconfig"]["followers"], peer_config["arch"]["blocksize"].GetInt());
@@ -361,15 +354,9 @@ void run_peer(const string &server_address) {
         pthread_detach(exec_tids[i]);
     }
 
-    /* setup the grpc client for learning agent */
-    unique_ptr<AgentComm::Stub> agent_stub;
-    agent_stub = AgentComm::NewStub(grpc::CreateChannel(peer_config["sysconfig"]["agent"].GetString(),
-                                                        grpc::InsecureChannelCredentials()));
-
     /* process transaction proposals from queue */
-    bool is_cleaned = false;
+    bool is_xov = peer_config["arch"]["early_execution"].GetBool();
     while (true) {
-        if (block_index < ep.B_n) {
             TransactionProposal proposal = proposal_queue.pop();
             if (arch.is_xov) {
                 execution_queue.add(proposal);
@@ -383,40 +370,9 @@ void run_peer(const string &server_address) {
                     TransactionProposal *proposal_ = req.mutable_proposal();
                     *proposal_ = proposal;
                     Status status = stub->send_to_peer(&context, req, &rsp);
-                    if (!status.ok()) {
-                        LOG(ERROR) << "grpc failed in run_peer.";
-                    }
-                }
-            }
-            if (is_cleaned) {
-                is_cleaned = false;
-            }
-        } else {
-            if (!is_cleaned) {
-                ep.end = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
-                uint64_t time = (ep.end - ep.start).count();
-                double throughput = ((double)ep.total_ops.load() / time) * 1000;
-
-                LOG(INFO) << "Episode " << ep.episode << " ends: duration = " << time / 1000.0 << "s, throughput = " << throughput << "tps, "
-                          << "trans_count(T_n) = " << transaction_count << ", last_log_index = " << last_log_index << ".";
-
-                ep.freeze = true;
-                proposal_queue.clear();
-                ordering_queue.clear();
-                execution_queue.clear();
-
-                ClientContext context;  // notify learning agent the end of current episode
-                Reward reward;
-                google::protobuf::Empty rsp;
-                reward.set_is_leader(is_leader);
-                reward.set_throughput(throughput);
-                Status status = agent_stub->end_current_episode(&context, reward, &rsp);
                 if (!status.ok()) {
                     LOG(ERROR) << "grpc failed in run_peer.";
-                    exit(1);
                 }
-
-                is_cleaned = true;
             }
         }
     }

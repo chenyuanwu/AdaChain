@@ -1,19 +1,25 @@
 #include "consensus.h"
 
-#include "common.h"
-
 atomic<unsigned long> commit_index(0);
 atomic<unsigned long> last_log_index(0);
 deque<atomic<unsigned long>> next_index;
 deque<atomic<unsigned long>> match_index;
+extern Queue<TransactionProposal> proposal_queue;
+extern Queue<string> ordering_queue;
+extern Queue<TransactionProposal> execution_queue;
+extern atomic<long> total_ops;
+extern atomic<long> readn;
+extern atomic<long> writen;
+
+
 
 void *log_replication_thread(void *arg) {
     struct RaftThreadContext ctx = *(struct RaftThreadContext *)arg;
-    LOG(INFO) << "[server_index = " << ctx.server_index << "]log replication thread is running for follower " << ctx.grpc_endpoint << ".";
+    //LOG(INFO) << "[server_index = " << ctx.server_index << "]log replication thread is running for follower " << ctx.grpc_endpoint << ".";
     shared_ptr<grpc::Channel> channel = grpc::CreateChannel(ctx.grpc_endpoint, grpc::InsecureChannelCredentials());
     unique_ptr<PeerComm::Stub> stub(PeerComm::NewStub(channel));
 
-    ifstream log(string(peer_config["sysconfig"]["log_dir"].GetString()) + "/raft.log", ios::in);
+    ifstream log("./log/raft.log", ios::in);
     assert(log.is_open());
 
     while (true) {
@@ -25,7 +31,7 @@ void *log_replication_thread(void *arg) {
 
             app_req.set_leader_commit(commit_index);
             int index = 0;
-            for (; index < arch.max_block_size && next_index[ctx.server_index] + index <= last_log_index; index++) {
+            for (; index < ctx.log_entry_batch && next_index[ctx.server_index] + index <= last_log_index; index++) {
                 uint32_t size;
                 log.read((char *)&size, sizeof(uint32_t));
                 char *entry_ptr = (char *)malloc(size);
@@ -47,34 +53,26 @@ void *log_replication_thread(void *arg) {
             next_index[ctx.server_index] += index;
             match_index[ctx.server_index] = next_index[ctx.server_index] - 1;
             // LOG(DEBUG) << "[server_index = " << ctx.server_index << "]match_index is " << match_index[ctx.server_index].load() << ".";
-        } else if (last_log_index) {
-            usleep(1000);
-            ClientContext context;
-            AppendRequest app_req;
-            AppendResponse app_rsp;
-
-            app_req.set_leader_commit(commit_index);
-
-            Status status = stub->append_entries(&context, app_req, &app_rsp);  // heartbeat
         }
     }
 }
 
+//Leader takes commands from clients and appends them to its log as new entries
 void *leader_main_thread(void *arg) {
     struct RaftThreadContext ctx = *(struct RaftThreadContext *)arg;
-    ofstream log(string(peer_config["sysconfig"]["log_dir"].GetString()) + "/raft.log", ios::out | ios::binary);
+    ofstream log("./log/raft.log", ios::out | ios::binary);
     while (true) {
-            int i = 0;
-            for (; i < arch.max_block_size; i++) {
-                string req = ordering_queue.pop();
-                uint32_t size = req.size();
-                log.write((char *)&size, sizeof(uint32_t));
-                log.write(req.c_str(), size);
-            }
-            log.flush();
-            last_log_index += i;
+        int i = 0;
+        for (; i < ctx.log_entry_batch; i++) {
+            string req = ordering_queue.pop();
+            uint32_t size = req.size();
+            log.write((char *)&size, sizeof(uint32_t));
+            log.write(req.c_str(), size);
         }
+        log.flush();
+        last_log_index += i;
     }
+}
 
 /* implementation of AppendEntriesRPC */
 Status PeerCommImpl::append_entries(ServerContext *context, const AppendRequest *request, AppendResponse *response) {
@@ -85,9 +83,7 @@ Status PeerCommImpl::append_entries(ServerContext *context, const AppendRequest 
         log.write(request->log_entries(i).c_str(), size);
         last_log_index++;
     }
-    if (i != 0) {
-        log.flush();
-    }
+    log.flush();
 
     uint64_t leader_commit = request->leader_commit();
     if (leader_commit > commit_index) {
@@ -107,13 +103,7 @@ Status PeerCommImpl::send_to_peer(ServerContext *context, const Request *request
     if (request->has_endorsement()) {
         ordering_queue.add(request->endorsement().SerializeAsString());
     } else if (request->has_proposal()) {
-        if (!request->proposal().has_received_ts()) {
-            TransactionProposal proposal = request->proposal();
-            set_timestamp(proposal.mutable_received_ts());
-            proposal_queue.add(proposal);
-        } else {
-            proposal_queue.add(request->proposal());
-        }
+        proposal_queue.add(request->proposal());
     }
 
     return Status::OK;
@@ -126,13 +116,7 @@ Status PeerCommImpl::send_to_peer_stream(ServerContext *context, ServerReader<Re
         if (request.has_endorsement()) {
             ordering_queue.add(request.endorsement().SerializeAsString());
         } else if (request.has_proposal()) {
-            if (!request.proposal().has_received_ts()) {
-                TransactionProposal proposal = request.proposal();
-                set_timestamp(proposal.mutable_received_ts());
-                proposal_queue.add(proposal);
-            } else {
-                proposal_queue.add(request.proposal());
-            }
+            proposal_queue.add(request.proposal());
         }
     }
 
@@ -152,9 +136,8 @@ Status PeerCommImpl::prepopulate(ServerContext *context, const TransactionPropos
 }
 
 Status PeerCommImpl::start_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) {
-    LOG(INFO) << "starts benchmarking.";
+    //LOG(INFO) << "starts benchmarking.";
     start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
-    ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
 
     return Status::OK;
 }
@@ -162,30 +145,12 @@ Status PeerCommImpl::start_benchmarking(ServerContext *context, const google::pr
 Status PeerCommImpl::end_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) {
     end = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
     uint64_t time = (end - start).count();
-    double throughput = ((double)ep.total_ops.load() / time) * 1000;
-    LOG(INFO) << "throughput = " << throughput << "tps.";
+    double throughput = ((double)total_ops.load() / time) * 1000;
+    double readwriteratio = (double)readn.load() / ((double)readn.load() + (double)writen.load());
+    double writereadratio = (double)writen.load() / ((double)readn.load() + (double)writen.load());
 
-    return Status::OK;
-}
+    LOG(INFO) << "throughput = " << throughput << "			     Read write ratio: R/(R+W) = " << readwriteratio;
 
-Status PeerCommImpl::start_new_episode(ServerContext *context, const Action *action, google::protobuf::Empty *response) {
-    // set the arch for the new episode
-    arch.max_block_size = action->blocksize();
-    arch.is_xov = action->early_execution();
-    arch.reorder = action->reorder();
-
-    // start the new episode
-    ep.episode++;
-    uint64_t B_n_delta = peer_config["sysconfig"]["trans_water_mark"].GetInt() / arch.max_block_size;
-    ep.B_n += B_n_delta;
-    ep.T_n += B_n_delta * arch.max_block_size;
-    ep.freeze = false;
-
-    LOG(INFO) << "Episode " << ep.episode << " starts: blocksize = " << arch.max_block_size << ", early_execution = "
-              << arch.is_xov << ", reorder = " << arch.reorder << ", B_n = " << ep.B_n << ", T_n = " << ep.T_n << ".";
-
-    ep.total_ops = 0;
-    ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
 
     return Status::OK;
 }
@@ -213,12 +178,4 @@ void spawn_raft_threads(const Value &followers, int batch_size) {
         pthread_create(&repl_tids[i], NULL, log_replication_thread, &ctxs[i]);
         pthread_detach(repl_tids[i]);
     }
-}
-
-void set_timestamp(google::protobuf::Timestamp *ts) {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-
-    ts->set_seconds(tv.tv_sec);
-    ts->set_nanos(tv.tv_usec * 1000);
 }

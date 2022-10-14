@@ -92,42 +92,14 @@ void *client_thread(void *arg) {
             }
 
             if (is_hot(gen)) {
-                string user1 = to_string(hot_key(gen));
-                if (trans_choice == 0) {
-                    proposal->add_keys("saving_" + user1);
-                } else if (trans_choice == 1) {
-                    proposal->add_keys("checking_" + user1);
-                } else if (trans_choice == 2) {
-                    proposal->add_keys("checking_" + user1);
-                    string user2 = to_string(hot_key(gen));
-                    proposal->add_keys("checking_" + user2);
-                } else if (trans_choice == 3) {
-                    proposal->add_keys("checking_" + user1);
-                } else if (trans_choice == 4) {
-                    proposal->add_keys("checking_" + user1);
-                    proposal->add_keys("saving_" + user1);
-                } else if (trans_choice == -1) {
-                    proposal->add_keys("checking_" + user1);
-                    proposal->add_keys("saving_" + user1);
+                proposal->add_keys(to_string(hot_key(gen)));
+                if (trans_choice == 2) {
+                    proposal->add_keys(to_string(hot_key(gen)));
                 }
             } else {
-                string user1 = to_string(cold_key(gen));
-                if (trans_choice == 0) {
-                    proposal->add_keys("saving_" + user1);
-                } else if (trans_choice == 1) {
-                    proposal->add_keys("checking_" + user1);
-                } else if (trans_choice == 2) {
-                    proposal->add_keys("checking_" + user1);
-                    string user2 = to_string(cold_key(gen));
-                    proposal->add_keys("checking_" + user2);
-                } else if (trans_choice == 3) {
-                    proposal->add_keys("checking_" + user1);
-                } else if (trans_choice == 4) {
-                    proposal->add_keys("checking_" + user1);
-                    proposal->add_keys("saving_" + user1);
-                } else if (trans_choice == -1) {
-                    proposal->add_keys("checking_" + user1);
-                    proposal->add_keys("saving_" + user1);
+                proposal->add_keys(to_string(cold_key(gen)));
+                if (trans_choice == 2) {
+                    proposal->add_keys(to_string(cold_key(gen)));
                 }
             }
             proposal->set_execution_delay(ctx.execution_delay);
@@ -137,22 +109,21 @@ void *client_thread(void *arg) {
             Status status = stub->send_to_peer(&context, req, &rsp);
             if (!status.ok()) {
                 LOG(ERROR) << "grpc failed in send_to_peer.";
-                exit(1);
             }
         }
     }
 
-    // {
-    //     ClientContext context;
-    //     google::protobuf::Empty req;
-    //     google::protobuf::Empty rsp;
-    //     Status status = stub->end_benchmarking(&context, req, &rsp);
-    //     if (!status.ok()) {
-    //         LOG(ERROR) << "grpc failed in end_benchmarking.";
-    //     } else {
-    //         LOG(INFO) << "client thread stops benchmarking.";
-    //     }
-    // }
+    {
+        ClientContext context;
+        google::protobuf::Empty req;
+        google::protobuf::Empty rsp;
+        Status status = stub->end_benchmarking(&context, req, &rsp);
+        if (!status.ok()) {
+            LOG(ERROR) << "grpc failed in end_benchmarking.";
+        } else {
+            LOG(INFO) << "client thread stops benchmarking.";
+        }
+    }
     return nullptr;
 }
 
@@ -208,15 +179,12 @@ int main(int argc, char *argv[]) {
 
     /* set a barrier here and then wait for benchmarking completion */
     pthread_barrier_wait(&prep_barrier);
-    // sleep(15);
-    // end_flag = true;
-    // for (int i = 0; i < num_peers; i++) {
-    //     void *status;
-    //     pthread_join(client_tids[i], &status);
-    // }
-
-    while (true)
-        ;
+    sleep(15);
+    end_flag = true;
+    for (int i = 0; i < num_peers; i++) {
+        void *status;
+        pthread_join(client_tids[i], &status);
+    }
 
     pthread_barrier_destroy(&prep_barrier);
 
