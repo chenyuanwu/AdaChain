@@ -141,23 +141,27 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
     csv_writer = csv.writer(data_store)
     csv_writer.writerow(
         ['write_ratio', 'hot_key_ratio', 'trans_arrival_rate', 'execution_delay (us)', 'blocksize', 'early_execution',
-         'reorder', 'throughput', 'feature_extraction_overhead (s)', 'training_overhead (s)', 'inference_overhead (s)',
+         'reorder', 'blocksize * early_execution', 'throughput', 'feature_extraction_overhead (s)', 'training_overhead (s)', 'inference_overhead (s)',
          'communication_overhead (s)', 'episode_duration (s)'])
     block_store = open(peer_config['sysconfig']['log_dir'] + '/blockchain.log', 'rb')
 
     # set the enumeration matrix as input to the predictor
-    rf = RandomForestRegressor()
+    rf = RandomForestRegressor(max_depth=5)
     # rf = GradientBoostingRegressor()
     # seed_model_and_experience('ts_episode_100_6.csv', rf, experiences_window, experiences_X, experiences_y)
     # optimal_action_predicted = []
-    blocksizes = [1] + list(range(10, 200, 10)) + list(range(200, 1000, 50))
+    blocksizes = [1, 10, 20] + list(range(50, 1000, 50))
     early_execution = [False, True]
     reorder = [False, True]
     actions = []
     for dim_1 in blocksizes:
         for dim_2 in early_execution:
             for dim_3 in reorder:
-                actions.append(np.array([dim_1, dim_2, dim_3]))
+                if dim_2:
+                    dim_4 = dim_1
+                else:
+                    dim_4 = -1 * dim_1
+                actions.append(np.array([dim_1, dim_2, dim_3, dim_4]))
     actions_matrix = np.vstack(actions)
     enumeration_matrix = np.hstack((np.zeros((actions_matrix.shape[0], 4)), actions_matrix))
     logging.info('learning agent has been initialized.')
@@ -267,7 +271,8 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
         if episode:
             training_start = time.time()
             bootstrapped_idx = np.random.choice(len(experiences_X), len(experiences_X), replace=True)
-            training_X = np.vstack(experiences_X)[bootstrapped_idx, :]
+            feature_idx = np.array([True, True, True, True, False, False, True, True])
+            training_X = np.vstack(experiences_X)[bootstrapped_idx, :][:, feature_idx]
             training_y = np.array(experiences_y)[bootstrapped_idx]
             rf.fit(training_X, training_y)
             training_overhead = round(time.time() - training_start, 6)
@@ -282,7 +287,8 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
         if len(experiences_X) > 0:
             inference_start = time.time()
             enumeration_matrix[:, 0:4] = np.array([write_ratio, hot_key_ratio, trans_arrival_rate, execution_delay])
-            prediction = rf.predict(enumeration_matrix)
+            feature_idx = np.array([True, True, True, True, False, False, True, True])
+            prediction = rf.predict(enumeration_matrix[:, feature_idx])
             # best_index = np.argmax(prediction)
             while True:
                 best_index = np.random.choice(np.flatnonzero(np.isclose(prediction, prediction.max())), replace=True)
@@ -299,8 +305,12 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
             best_blocksize = initial_blocksize
             best_early_execution = initial_early_execution
             best_reorder = initial_reorder
+            if best_early_execution:
+                product = best_blocksize
+            else:
+                product = -1 * best_blocksize
             experiences_X.append(np.array([write_ratio, hot_key_ratio, trans_arrival_rate, execution_delay,
-                                           best_blocksize, best_early_execution, best_reorder]))
+                                           best_blocksize, best_early_execution, best_reorder, product]))
             inference_overhead = 0
             # optimal_action_predicted.append(0)
 
