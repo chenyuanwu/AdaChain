@@ -273,6 +273,11 @@ void *block_formation_thread(void *arg) {
                         ep.block_formation_paused = true;
                     }
                 }
+            } else if (trans_index == 0) {
+                /* check if block formation should be paused */
+                if (ep.timeout) {
+                    ep.block_formation_paused = true;
+                }
             }
         }
     }
@@ -491,14 +496,14 @@ void run_peer(const string &server_address) {
                     while (last_log_index < ep.T_h && !ep.consensus_paused)
                         ;
                     LOG(INFO) << "Episode " << ep.episode << ": consensus is paused.";
-                    ep.freeze = true;
-                    proposal_queue.clear();
-                    ordering_queue.clear();
-                    execution_queue.clear();
 
                     while (!ep.block_formation_paused)
                         ;
                     LOG(INFO) << "Episode " << ep.episode << ": block formation is paused, last_block_index = " << block_index << ".";
+                    ep.freeze = true;
+                    proposal_queue.clear();
+                    ordering_queue.clear();
+                    execution_queue.clear();
 
                     // get the new watermark
                     while (ep.num_received_indexes() < follower_stubs.size())
@@ -544,15 +549,13 @@ void run_peer(const string &server_address) {
             }
 
             // pause block formation and consensus
+            while (!ep.block_formation_paused)
+                ;
+            LOG(INFO) << "Episode " << ep.episode << ": block formation is paused.";
             ep.freeze = true;
             proposal_queue.clear();
             ordering_queue.clear();
             execution_queue.clear();
-
-            while (!ep.block_formation_paused)
-                ;
-            assert(block_index < ep.B_h);
-            LOG(INFO) << "Episode " << ep.episode << ": block formation is paused.";
 
             // exchange B_n
             {
@@ -568,7 +571,7 @@ void run_peer(const string &server_address) {
             }
 
             // resume block formation to reach the new watermark
-            while (block_index != ep.B_h)
+            while (block_index != ep.B_h || ep.timeout)
                 ;
 
             // notify the leader about reaching the new watermark and get the last raft log index
