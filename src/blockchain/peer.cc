@@ -39,10 +39,11 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
     // logger->debug("******validating transaction[block_id = %v, trans_id = %v]******",
     //           w_record_version.version_blockid, w_record_version.version_transid);
     bool is_valid = true;
+    uint64_t blockid = 0;
 
     for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
         struct RecordVersion r_record_version;
-        kv_get(transaction->read_set(read_id).read_key(), nullptr, &r_record_version);
+        kv_get(transaction->read_set(read_id).read_key(), nullptr, &r_record_version, blockid);
 
         // logger->debug("read_key = %v\nstored_read_version = [block_id = %v, trans_id = %v]\n"
         //           "current_key_version = [block_id = %v, trans_id = %v]",
@@ -306,8 +307,7 @@ void *block_formation_thread(void *arg) {
 
 void *simulation_handler(void *arg) {
     struct ExecThreadContext ctx = *(struct ExecThreadContext *)arg;
-    int thread_index = ctx.thread_index;
-    bool 
+    int thread_index = ctx.thread_index; 
     unique_ptr<PeerComm::Stub> stub;
     if (!is_leader) {
         stub = PeerComm::NewStub(leader_channel);
