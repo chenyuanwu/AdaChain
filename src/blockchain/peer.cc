@@ -127,7 +127,11 @@ void *block_formation_thread(void *arg) {
                     trans_index++;
                 }
 
-                if (trans_index >= arch.max_block_size || !ep.pending_request_queue.empty()) {
+                /*
+                Block Pipelining - Wait for block B2 before reordering
+                Waiting happens by waiting till request queue has transactions from 2 blocks
+                */
+                if (trans_index >= arch.max_block_size*arch.block_pipe_num || !ep.pending_request_queue.empty()) {
                     if (ep.pending_request_queue.empty()) {
                         ep.pending_request_queue = request_queue;
                     } else {
@@ -143,18 +147,32 @@ void *block_formation_thread(void *arg) {
                                 ep.block_formation_paused = true;
                                 continue;
                             }
-
+                            //iterating over all the transactions in the request_queue with B1, B2
                             for (uint64_t i = 0; i < block.transactions_size(); i++) {
-                                struct RecordVersion record_version = {
-                                    .version_blockid = block_index,
-                                    .version_transid = i,
-                                };
-                                if ((!block.mutable_transactions(i)->aborted()) &&
-                                    validate_transaction(record_version, block.mutable_transactions(i))) {
-                                    ep.total_ops++;
-                                    block.mutable_transactions(i)->set_aborted(false);
-                                } else {
-                                    block.mutable_transactions(i)->set_aborted(true);
+                                 //Only recording the 1st block with Block size = max_block_size
+                                 //Hence cutting B1 out
+                                if(i<arch.max_block_size) {
+                                    struct RecordVersion record_version = {
+                                        .version_blockid = block_index,
+                                        .version_transid = i,
+                                    };
+                                    if ((!block.mutable_transactions(i)->aborted()) &&
+                                        validate_transaction(record_version, block.mutable_transactions(i))) {
+                                        ep.total_ops++;
+                                        block.mutable_transactions(i)->set_aborted(false);
+                                    } else {
+                                        block.mutable_transactions(i)->set_aborted(true);
+                                    }
+                                }
+                                //push the remaining transactions back into request_queue
+                                else
+                                {
+                                    request_queue.push(block.transactions(i).SerializeAsString());
+                                }
+                                //If block pipelining is enabled then - clearing the second half content of block
+                                if(arch.block_pipe_num>1)
+                                {
+                                    block.mutable_transactions()->DeleteSubrange(arch.max_block_size, request_queue.size());
                                 }
                             }
                         } else {
@@ -262,7 +280,7 @@ void *block_formation_thread(void *arg) {
                     prev_block_hash = sha256(block.SerializeAsString());
 
                     block_index++;
-                    trans_index = 0;
+                    trans_index = request_queue.size();
 
                     block.clear_block_id();
                     block.clear_transactions();
@@ -671,6 +689,7 @@ int main(int argc, char *argv[]) {
     arch.max_block_size = peer_config["arch"]["blocksize"].GetInt();  // number of transactions
     arch.is_xov = peer_config["arch"]["early_execution"].GetBool();
     arch.reorder = peer_config["arch"]["reorder"].GetBool();
+    arch.block_pipe_num = peer_config["arch"]["block_pipe_num"].GetInt();  // number of transactions
 
     el::Configurations conf("../../config/logger.conf");
     el::Loggers::reconfigureLogger("default", conf);
