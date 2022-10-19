@@ -19,6 +19,7 @@ OXIIHelper oxii_helper;
 shared_ptr<grpc::Channel> leader_channel;
 bool is_leader = false;
 uint64_t block_index = 0;
+atomic<long long> last_block_id = 0; //probably same as block_index
 uint64_t trans_total = 0;
 
 string sha256(const string str) {
@@ -278,7 +279,7 @@ void *block_formation_thread(void *arg) {
                     block_store.write(serialized_block.c_str(), size);
                     block_store.flush();
                     prev_block_hash = sha256(block.SerializeAsString());
-
+                    last_block_id = block_index;
                     block_index++;
                     trans_index = request_queue.size();
 
@@ -306,7 +307,7 @@ void *block_formation_thread(void *arg) {
 void *simulation_handler(void *arg) {
     struct ExecThreadContext ctx = *(struct ExecThreadContext *)arg;
     int thread_index = ctx.thread_index;
-
+    bool 
     unique_ptr<PeerComm::Stub> stub;
     if (!is_leader) {
         stub = PeerComm::NewStub(leader_channel);
@@ -319,13 +320,26 @@ void *simulation_handler(void *arg) {
             Endorsement *endorsement = req.mutable_endorsement();
             assert(proposal.has_received_ts());
             *(endorsement->mutable_received_ts()) = proposal.received_ts();
-
+            bool checking_condition=true;
             if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-                ycsb_get(proposal.keys(), endorsement);
+                checking_condition =  ycsb_get(proposal.keys(), endorsement, last_block_id);
+                if (!checking_condition && arch.early_abort) {
+                   endorsement->set_aborted(true);
+                }
+                else {
+                endorsement->set_aborted(false);
+                }
             } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
                 ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
             } else {
-                smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement);
+                checking_condition =  smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement);
+                if(!checking_condition && arch.early_abort) {
+                    endorsement->set_aborted(true);
+                } 
+                else 
+                {
+                endorsement->set_aborted(false);
+                }
             }
 
             if (is_leader) {
@@ -348,15 +362,25 @@ void *simulation_handler(void *arg) {
 
             *(endorsement.mutable_received_ts()) = proposal.received_ts();
             if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-                ycsb_get(proposal.keys(), &endorsement);
+                checking_condition =  ycsb_get(proposal.keys(), &endorsement, last_block_id);
+                if (!checking_condition && arch.early_abort) {
+                   endorsement->set_aborted(true);
+                }
+                else {
+                endorsement->set_aborted(false);
+                }
             } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
                 ycsb_put(proposal.keys(), proposal.values(), record_version, true, &endorsement);
             } else {
-                smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, &endorsement);
+                checking_condition =  smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, &endorsement, last_block_id);
+                if (!checking_condition && arch.early_abort) {
+                   endorsement->set_aborted(true);
+                }
+                else {
+                endorsement->set_aborted(false);
+                }
             }
             ep.total_ops++;
-            endorsement.set_aborted(false);
-
             oxii_helper.C_add(proposal_id, endorsement);
         }
     }
@@ -689,7 +713,9 @@ int main(int argc, char *argv[]) {
     arch.max_block_size = peer_config["arch"]["blocksize"].GetInt();  // number of transactions
     arch.is_xov = peer_config["arch"]["early_execution"].GetBool();
     arch.reorder = peer_config["arch"]["reorder"].GetBool();
-    arch.block_pipe_num = peer_config["arch"]["block_pipe_num"].GetInt();  // number of transactions
+    arch.block_pipe_num = peer_config["arch"]["block_pipe_num"].GetInt();
+    arch.early_abort = peer_config["arch"]["early_abort"].GetBool();
+
 
     el::Configurations conf("../../config/logger.conf");
     el::Loggers::reconfigureLogger("default", conf);

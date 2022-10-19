@@ -3,10 +3,17 @@
 
 #include "leveldb/db.h"
 
-void ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement) {
+bool ycsb_get(const RepeatedPtrField<string> &keys, Endorsement *endorsement, long long last_block_id) {
+    uint64_t block_id = 0;
     set_timestamp(endorsement->mutable_execution_start_ts());
-    kv_get(keys[0], endorsement);
+    kv_get(keys[0], endorsement, nullptr, block_id);
     set_timestamp(endorsement->mutable_execution_end_ts());
+     if(block_id > last_block_id){
+        return false;
+    }
+    else {
+        return true;
+    }
 }
 
 void ycsb_put(const RepeatedPtrField<string> &keys, const RepeatedPtrField<string> &values, struct RecordVersion record_version,
@@ -17,7 +24,7 @@ void ycsb_put(const RepeatedPtrField<string> &keys, const RepeatedPtrField<strin
 }
 
 /* interface of versioned key value store over leveldb */
-string kv_get(const string &key, Endorsement *endorsement, struct RecordVersion *record_version) {
+string kv_get(const string &key, Endorsement *endorsement, struct RecordVersion *record_version, uint64_t &block_id) {
     string value;
     leveldb::Status s = db->Get(leveldb::ReadOptions(), key, &value);
 
@@ -25,7 +32,7 @@ string kv_get(const string &key, Endorsement *endorsement, struct RecordVersion 
     uint64_t read_version_transid = 0;
     memcpy(&read_version_blockid, value.c_str(), sizeof(uint64_t));
     memcpy(&read_version_transid, value.c_str() + sizeof(uint64_t), sizeof(uint64_t));
-
+    block_id = read_version_blockid;    
     if (endorsement != nullptr) {
         ReadItem *read_item = endorsement->add_read_set();
         read_item->set_read_key(key);
@@ -72,88 +79,132 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
                struct RecordVersion record_version, Endorsement *endorsement) {
     set_timestamp(endorsement->mutable_execution_start_ts());
     if (type == TransactionProposal::Type::TransactionProposal_Type_TransactSavings) {
-        string key = keys[0];
-        string value = kv_get(key, endorsement);
-        int balance = stoi(value);
-        balance += 1000;
+    string key = "saving_" + keys[0];
+    uint64_t block_id = 0;
+    string value = kv_get(key, endorsement, nullptr, block_id);
+    if(block_id > last_block_id)  {
 
-        if (execution_delay > 0) {
-            usleep(execution_delay);
-        }
+        return false;
+    }
+    
+    int balance = stoi(value);
+    balance += 1000;
+
+    if (execution_delay > 0) {
+        usleep(execution_delay);
+    }
+
+    kv_put(key, to_string(balance), record_version, expose_write, endorsement);
+} else if (type == TransactionProposal::Type::TransactionProposal_Type_DepositChecking) {
+    uint64_t block_id = 0;
+    string key = "checking_" + keys[0];
+    string value = kv_get(key, endorsement, nullptr, block_id);
+    if(block_id > last_block_id){
+        return false;
+    }
+    
+    uint64_t balance = stoi(value);
+    balance += 1000;
+
+    if (execution_delay > 0) {
+        usleep(execution_delay);
+    }
+
+    kv_put(key, to_string(balance), record_version, expose_write, endorsement);
+} else if (type == TransactionProposal::Type::TransactionProposal_Type_SendPayment) {
+    string sender_key = "checking_" + keys[0];
+    string receiver_key = "checking_" + keys[1];
+    uint64_t block_id = 0;
+
+    string sender_value = kv_get(sender_key, endorsement,  nullptr, block_id);
+    if(block_id > last_block_id){
+        return false;
+    }
+    
+    string receiver_value = kv_get(receiver_key, endorsement, nullptr, block_id);
+    if(block_id > last_block_id){
+        return false;
+    }
+    
+    uint64_t sender_balance = stoi(sender_value);
+    uint64_t receiver_balance = stoi(receiver_value);
+
+    if (execution_delay > 0) {
+        usleep(execution_delay);
+    }
+
+    if (sender_balance >= 5) {
+        sender_balance -= 5;
+        receiver_balance += 5;
+
+        kv_put(sender_key, to_string(sender_balance), record_version, expose_write, endorsement);
+        kv_put(receiver_key, to_string(receiver_balance), record_version, expose_write, endorsement);
+    }
+} else if (type == TransactionProposal::Type::TransactionProposal_Type_WriteCheck) {
+    string key = "checking_" + keys[0];
+    uint64_t block_id = 0;
+
+    string value = kv_get(key, endorsement, nullptr, block_id);
+    if(block_id > last_block_id)  {
+        //endorsement->set_aborted(true);
+        //LOG(INFO) << "aborted in simulation handler";
+        return false;
+    }
+    
+    uint64_t balance = stoi(value);
+
+    if (execution_delay > 0) {
+        usleep(execution_delay);
+    }
+
+    if (balance >= 100) {
+        balance -= 100;
 
         kv_put(key, to_string(balance), record_version, expose_write, endorsement);
-    } else if (type == TransactionProposal::Type::TransactionProposal_Type_DepositChecking) {
-        string key = keys[0];
-        string value = kv_get(key, endorsement);
-        uint64_t balance = stoi(value);
-        balance += 1000;
+    }
+} else if (type == TransactionProposal::Type::TransactionProposal_Type_Amalgamate) {
+    string checking_key = "checking_" + keys[0];
+    string saving_key = "saving_" + keys[0];
+    uint64_t block_id = 0;
 
-        if (execution_delay > 0) {
-            usleep(execution_delay);
-        }
+    string checking_value = kv_get(checking_key, endorsement, nullptr, block_id);
+    if(block_id > last_block_id) {
+        return false;
+    }
+    string saving_value = kv_get(saving_key, endorsement, nullptr, block_id);
+    if(block_id > last_block_id)  {
+        return false;
+    }
+    
+    uint64_t checking_balance = stoi(checking_value);
+    uint64_t saving_balance = stoi(saving_value);
+    checking_balance = checking_balance + saving_balance;
+    saving_balance = 0;
 
-        kv_put(key, to_string(balance), record_version, expose_write, endorsement);
-    } else if (type == TransactionProposal::Type::TransactionProposal_Type_SendPayment) {
-        string sender_key = keys[0];
-        string receiver_key = keys[1];
+    if (execution_delay > 0) {
+        usleep(execution_delay);
+    }
 
-        string sender_value = kv_get(sender_key, endorsement);
-        string receiver_value = kv_get(receiver_key, endorsement);
-        uint64_t sender_balance = stoi(sender_value);
-        uint64_t receiver_balance = stoi(receiver_value);
+    kv_put(checking_key, to_string(checking_balance), record_version, expose_write, endorsement);
+    kv_put(saving_key, to_string(saving_balance), record_version, expose_write, endorsement);
+} else if (type == TransactionProposal::Type::TransactionProposal_Type_Query) {
+    string checking_key = "checking_" + keys[0];
+    string saving_key = "saving_" + keys[0];
+    uint64_t block_id = 0;
 
-        if (execution_delay > 0) {
-            usleep(execution_delay);
-        }
+    string checking_value = kv_get(checking_key, endorsement, nullptr, block_id);
+    if(block_id > last_block_id)  {
+        return false;
+    }
+    string saving_value = kv_get(saving_key, endorsement, nullptr, block_id);
+    if(block_id > last_block_id) {
+        return false;
+    }
 
-        if (sender_balance >= 5) {
-            sender_balance -= 5;
-            receiver_balance += 5;
-
-            kv_put(sender_key, to_string(sender_balance), record_version, expose_write, endorsement);
-            kv_put(receiver_key, to_string(receiver_balance), record_version, expose_write, endorsement);
-        }
-    } else if (type == TransactionProposal::Type::TransactionProposal_Type_WriteCheck) {
-        string key = keys[0];
-        string value = kv_get(key, endorsement);
-        uint64_t balance = stoi(value);
-
-        if (execution_delay > 0) {
-            usleep(execution_delay);
-        }
-
-        if (balance >= 100) {
-            balance -= 100;
-
-            kv_put(key, to_string(balance), record_version, expose_write, endorsement);
-        }
-    } else if (type == TransactionProposal::Type::TransactionProposal_Type_Amalgamate) {
-        string checking_key = keys[0];
-        string saving_key = keys[1];
-
-        string checking_value = kv_get(checking_key, endorsement);
-        string saving_value = kv_get(saving_key, endorsement);
-        uint64_t checking_balance = stoi(checking_value);
-        uint64_t saving_balance = stoi(saving_value);
-        checking_balance = checking_balance + saving_balance;
-        saving_balance = 0;
-
-        if (execution_delay > 0) {
-            usleep(execution_delay);
-        }
-
-        kv_put(checking_key, to_string(checking_balance), record_version, expose_write, endorsement);
-        kv_put(saving_key, to_string(saving_balance), record_version, expose_write, endorsement);
-    } else if (type == TransactionProposal::Type::TransactionProposal_Type_Query) {
-        string checking_key = keys[0];
-        string saving_key = keys[1];
-
-        string checking_value = kv_get(checking_key, endorsement);
-        string saving_value = kv_get(saving_key, endorsement);
-
-        if (execution_delay > 0) {
-            usleep(execution_delay);
-        }
+    if (execution_delay > 0) {
+        usleep(execution_delay);
+    }
     }
     set_timestamp(endorsement->mutable_execution_end_ts());
+    return true;
 }
