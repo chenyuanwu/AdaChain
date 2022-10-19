@@ -279,8 +279,9 @@ void *block_formation_thread(void *arg) {
                     block_store.write((char *)&size, sizeof(uint32_t));
                     block_store.write(serialized_block.c_str(), size);
                     block_store.flush();
-                    prev_block_hash = sha256(block.SerializeAsString());
+
                     last_block_id = block_index;
+		    prev_block_hash = sha256(block.SerializeAsString());
                     block_index++;
                     trans_index = request_queue.size();
 
@@ -308,6 +309,7 @@ void *block_formation_thread(void *arg) {
 void *simulation_handler(void *arg) {
     struct ExecThreadContext ctx = *(struct ExecThreadContext *)arg;
     int thread_index = ctx.thread_index; 
+    bool checking_condition = true; 
     unique_ptr<PeerComm::Stub> stub;
     if (!is_leader) {
         stub = PeerComm::NewStub(leader_channel);
@@ -320,36 +322,43 @@ void *simulation_handler(void *arg) {
             Endorsement *endorsement = req.mutable_endorsement();
             assert(proposal.has_received_ts());
             *(endorsement->mutable_received_ts()) = proposal.received_ts();
-            bool checking_condition=true;
+           
             if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
                 checking_condition =  ycsb_get(proposal.keys(), endorsement, last_block_id);
-                if (!checking_condition && arch.early_abort) {
+                if (!checking_condition && arch.early_abort) 
+		{
                    endorsement->set_aborted(true);
                 }
-                else {
-                endorsement->set_aborted(false);
-                }
-            } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-                ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
-            } else {
-                checking_condition =  smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement);
-                if(!checking_condition && arch.early_abort) {
-                    endorsement->set_aborted(true);
-                } 
                 else 
-                {
+		{
                 endorsement->set_aborted(false);
                 }
+            } 
+	    else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+                ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
+                endorsement->set_aborted(false);
+            } 
+	    else {
+                checking_condition =  smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement);
+                	if(!checking_condition && arch.early_abort) {
+                    		endorsement->set_aborted(true);
+                	}	 
+                	else 
+                	{
+        	     		endorsement->set_aborted(false);
+                	}
             }
 
-            if (is_leader) {
+            if (is_leader) 
+	    {
                 ordering_queue.add(endorsement->SerializeAsString());
-            } else {
-                ClientContext context;
-                google::protobuf::Empty rsp;
-                Status status = stub->send_to_peer(&context, req, &rsp);
-                if (!status.ok()) {
-                    LOG(ERROR) << "grpc failed in simulation handler.";
+            } 
+	    else {
+                	ClientContext context;
+                	google::protobuf::Empty rsp;
+                	Status status = stub->send_to_peer(&context, req, &rsp);
+                	if (!status.ok()) {
+                    	LOG(ERROR) << "grpc failed in simulation handler.";
                 }
             }
         } else if (arch.reorder) {
@@ -364,21 +373,26 @@ void *simulation_handler(void *arg) {
             if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
                 checking_condition =  ycsb_get(proposal.keys(), &endorsement, last_block_id);
                 if (!checking_condition && arch.early_abort) {
-                   endorsement->set_aborted(true);
+                	endorsement.set_aborted(true);
                 }
-                else {
-                endorsement->set_aborted(false);
+                else 
+		{
+                	endorsement.set_aborted(false);
                 }
-            } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+            } 
+	    else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
                 ycsb_put(proposal.keys(), proposal.values(), record_version, true, &endorsement);
-            } else {
-                checking_condition =  smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, &endorsement, last_block_id);
-                if (!checking_condition && arch.early_abort) {
-                   endorsement->set_aborted(true);
-                }
-                else {
-                endorsement->set_aborted(false);
-                }
+                endorsement.set_aborted(false);
+            } 
+	    else 
+	    {
+                	checking_condition =  smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, &endorsement, last_block_id);
+                	if (!checking_condition && arch.early_abort) {
+                  	endorsement.set_aborted(true);
+                	}
+                	else {
+                	endorsement.set_aborted(false);
+                	}
             }
             ep.total_ops++;
             oxii_helper.C_add(proposal_id, endorsement);
