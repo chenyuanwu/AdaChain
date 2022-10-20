@@ -151,7 +151,7 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
     # seed_model_and_experience('ts_episode_100_6.csv', rf, experiences_window, experiences_X, experiences_y)
     # optimal_action_predicted = []
     actions = []
-    actions.append(np.array([10, True, False, 10]))
+    actions.append(np.array([10, True, True, 10]))
     actions_matrix = np.vstack(actions)
     enumeration_matrix = np.hstack((np.zeros((actions_matrix.shape[0], 4)), actions_matrix))
     logging.info('learning agent has been initialized.')
@@ -293,9 +293,9 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
         #     inference_overhead = round(time.time() - inference_start, 6)
         #     # optimal_action_predicted.append(prediction[2])
         # else:
-            best_blocksize = initial_blocksize
-            best_early_execution = initial_early_execution
-            best_reorder = initial_reorder
+            best_blocksize = 10
+            best_early_execution = True
+            best_reorder = True
             if best_early_execution:
                 product = best_blocksize
             else:
