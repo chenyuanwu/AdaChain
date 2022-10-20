@@ -293,23 +293,17 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
         #     inference_overhead = round(time.time() - inference_start, 6)
         #     # optimal_action_predicted.append(prediction[2])
         # else:
-            best_blocksize = 10
-            best_early_execution = True
-            best_reorder = True
-            if best_early_execution:
-                product = best_blocksize
-            else:
-                product = -1 * best_blocksize
+          
         experiences_X.append(np.array([write_ratio, hot_key_ratio, trans_arrival_rate, execution_delay,
-                                            best_blocksize, best_early_execution, best_reorder, product]))
+                                            10, True, True, 10]))
         inference_overhead = 0
             # optimal_action_predicted.append(0)
         csv_writer.writerow(experiences_X[0].tolist() + [experiences_y[0]] + time_records[0])
         data_store.flush()
 
         # notify the peer about the action
-        action = blockchain_pb2.Action(blocksize=int(best_blocksize),
-                                       early_execution=best_early_execution, reorder=best_reorder)
+        action = blockchain_pb2.Action(blocksize=int(10),
+                                       early_execution=True, reorder=True)
         new_episode_info(peer_stub, action)
         episode_start_time = time.time()
         time_records.append([feature_extraction_overhead, training_overhead, inference_overhead, communication_overhead])
