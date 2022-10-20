@@ -269,8 +269,7 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
 
         #     # save the latest experience to csv file
     
-        csv_writer.writerow(experiences_X[-1].tolist() + [experiences_y[-1]] + time_records[-1])
-        data_store.flush()
+        
         # else:
         #     training_overhead = 0
 
@@ -278,6 +277,7 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
         if len(experiences_X) > 0:
         #     inference_start = time.time()
             enumeration_matrix[:, 0:4] = np.array([write_ratio, hot_key_ratio, trans_arrival_rate, execution_delay])
+
         #     feature_idx = np.array([True, True, True, True, False, False, True, True])
         #     prediction = rf.predict(enumeration_matrix[:, feature_idx])
         #     # best_index = np.argmax(prediction)
@@ -304,6 +304,8 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
                                             best_blocksize, best_early_execution, best_reorder, product]))
         inference_overhead = 0
             # optimal_action_predicted.append(0)
+        csv_writer.writerow(experiences_X[0].tolist() + [experiences_y[0]] + time_records[0])
+        data_store.flush()
 
         # notify the peer about the action
         action = blockchain_pb2.Action(blocksize=int(best_blocksize),
