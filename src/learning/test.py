@@ -142,7 +142,7 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
     csv_writer.writerow(
         ['write_ratio', 'hot_key_ratio', 'trans_arrival_rate', 'execution_delay (us)', 'blocksize', 'early_execution',
          'reorder', 'blocksize * early_execution', 'throughput', 'feature_extraction_overhead (s)', 'training_overhead (s)', 'inference_overhead (s)',
-         'communication_overhead (s)', 'episode_duration (s)'])
+         'communication_overhead (s)'])
     block_store = open(peer_config['sysconfig']['log_dir'] + '/blockchain.log', 'rb')
 
     # set the enumeration matrix as input to the predictor
@@ -299,6 +299,9 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
         inference_overhead = 0
             # optimal_action_predicted.append(0)
         csv_writer.writerow(experiences_X[0].tolist() + [experiences_y[0]] + time_records[0])
+        csv_writer.writerow(write_ratio, hot_key_ratio, trans_arrival_rate, execution_delay, 10, True,
+         True, 10, throughput, feature_extraction_overhead, training_overhead, inference_overhead,
+         communication_overhead)
         data_store.flush()
 
         # notify the peer about the action
