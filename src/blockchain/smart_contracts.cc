@@ -69,11 +69,16 @@ int kv_put(const string &key, const string &value, struct RecordVersion record_v
 }
 
 void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type type, int execution_delay, bool expose_write,
-               struct RecordVersion record_version, Endorsement *endorsement) {
+               struct RecordVersion record_version, Endorsement *endorsement, uint64_t last_block_id) {
     set_timestamp(endorsement->mutable_execution_start_ts());
+    RecordVersion version_read;
     if (type == TransactionProposal::Type::TransactionProposal_Type_TransactSavings) {
         string key = keys[0];
-        string value = kv_get(key, endorsement);
+        string value = kv_get(key, endorsement, &version_read);
+        if (arch.early_abort && version_read.version_blockid > last_block_id) {
+            endorsement->set_aborted(true);
+            return;
+        }
         int balance = stoi(value);
         balance += 1000;
 
@@ -84,7 +89,11 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         kv_put(key, to_string(balance), record_version, expose_write, endorsement);
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_DepositChecking) {
         string key = keys[0];
-        string value = kv_get(key, endorsement);
+        string value = kv_get(key, endorsement, &version_read);
+        if (arch.early_abort && version_read.version_blockid > last_block_id) {
+            endorsement->set_aborted(true);
+            return;
+        }
         uint64_t balance = stoi(value);
         balance += 1000;
 
@@ -97,8 +106,16 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         string sender_key = keys[0];
         string receiver_key = keys[1];
 
-        string sender_value = kv_get(sender_key, endorsement);
-        string receiver_value = kv_get(receiver_key, endorsement);
+        string sender_value = kv_get(sender_key, endorsement, &version_read);
+        if (arch.early_abort && version_read.version_blockid > last_block_id) {
+            endorsement->set_aborted(true);
+            return;
+        }
+        string receiver_value = kv_get(receiver_key, endorsement, &version_read);
+        if (arch.early_abort && version_read.version_blockid > last_block_id) {
+            endorsement->set_aborted(true);
+            return;
+        }
         uint64_t sender_balance = stoi(sender_value);
         uint64_t receiver_balance = stoi(receiver_value);
 
@@ -115,7 +132,11 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         }
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_WriteCheck) {
         string key = keys[0];
-        string value = kv_get(key, endorsement);
+        string value = kv_get(key, endorsement, &version_read);
+        if (arch.early_abort && version_read.version_blockid > last_block_id) {
+            endorsement->set_aborted(true);
+            return;
+        }
         uint64_t balance = stoi(value);
 
         if (execution_delay > 0) {
@@ -131,8 +152,16 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         string checking_key = keys[0];
         string saving_key = keys[1];
 
-        string checking_value = kv_get(checking_key, endorsement);
-        string saving_value = kv_get(saving_key, endorsement);
+        string checking_value = kv_get(checking_key, endorsement, &version_read);
+        if (arch.early_abort && version_read.version_blockid > last_block_id) {
+            endorsement->set_aborted(true);
+            return;
+        }
+        string saving_value = kv_get(saving_key, endorsement, &version_read);
+        if (arch.early_abort && version_read.version_blockid > last_block_id) {
+            endorsement->set_aborted(true);
+            return;
+        }
         uint64_t checking_balance = stoi(checking_value);
         uint64_t saving_balance = stoi(saving_value);
         checking_balance = checking_balance + saving_balance;
@@ -148,8 +177,16 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         string checking_key = keys[0];
         string saving_key = keys[1];
 
-        string checking_value = kv_get(checking_key, endorsement);
-        string saving_value = kv_get(saving_key, endorsement);
+        string checking_value = kv_get(checking_key, endorsement, &version_read);
+        if (arch.early_abort && version_read.version_blockid > last_block_id) {
+            endorsement->set_aborted(true);
+            return;
+        }
+        string saving_value = kv_get(saving_key, endorsement, &version_read);
+        if (arch.early_abort && version_read.version_blockid > last_block_id) {
+            endorsement->set_aborted(true);
+            return;
+        }
 
         if (execution_delay > 0) {
             usleep(execution_delay);

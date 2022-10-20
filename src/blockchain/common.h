@@ -31,6 +31,7 @@ struct Architecture {
     size_t max_block_size;
     bool is_xov;
     bool reorder;
+    bool early_abort;
 };
 
 extern Architecture arch;
@@ -41,7 +42,7 @@ class Episode {
     pthread_mutex_t mutex;
 
    public:
-    Episode() : total_ops(0), freeze(false), agent_notified(false), timeout(false), block_formation_paused(false), consensus_paused(false), num_reached_new_watermark(0), episode(0) {
+    Episode() : total_ops(0), total_ops_entire_run(0), freeze(false), agent_notified(false), timeout(false), block_formation_paused(false), consensus_paused(false), num_reached_new_watermark(0), episode(0) {
         pthread_mutex_init(&mutex, NULL);
     }
     ~Episode() {
@@ -49,6 +50,7 @@ class Episode {
     }
 
     atomic<long> total_ops;
+    atomic<long long> total_ops_entire_run;
     atomic_bool freeze;
     atomic_bool agent_notified;
     atomic_bool timeout;

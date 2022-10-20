@@ -170,10 +170,7 @@ Status PeerCommImpl::start_benchmarking(ServerContext *context, const google::pr
 }
 
 Status PeerCommImpl::end_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) {
-    end = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
-    uint64_t time = (end - start).count();
-    double throughput = ((double)ep.total_ops.load() / time) * 1000;
-    LOG(INFO) << "throughput = " << throughput << "tps.";
+    LOG(INFO) << "effective transactions entire run = " << ep.total_ops_entire_run.load() << ".";
 
     return Status::OK;
 }

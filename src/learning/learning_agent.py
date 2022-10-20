@@ -105,11 +105,12 @@ def preprepare_handler(peer_config, preprepare_queue, agent_channels):
 def seed_model_and_experience(seed_file, model, experiences_window, experiences_X, experiences_y):
     df = pd.read_csv(seed_file)
     df.rename(columns=str.strip, inplace=True)
-    df_X = df.loc[:, 'write_ratio':'reorder'][-experiences_window:]
-    df_y = df['throughput'][-experiences_window:]
+    df_X = df.loc[:, 'write_ratio':'blocksize * early_execution']
+    df_y = df['throughput']
 
     bootstrapped_idx = np.random.choice(len(df_X), len(df_X), replace=True)
-    training_X = df_X.values[bootstrapped_idx, :]
+    feature_idx = np.array([True, True, True, True, True, True, True, False])
+    training_X = df_X.values[bootstrapped_idx, :][:, feature_idx]
     training_y = df_y.values[bootstrapped_idx]
     model.fit(training_X, training_y)
 
@@ -148,7 +149,7 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
     # set the enumeration matrix as input to the predictor
     rf = RandomForestRegressor(max_depth=5)
     # rf = GradientBoostingRegressor()
-    # seed_model_and_experience('ts_episode_100_6.csv', rf, experiences_window, experiences_X, experiences_y)
+    # seed_model_and_experience('ts_eval_2_window_no.csv', rf, experiences_window, experiences_X, experiences_y)
     # optimal_action_predicted = []
     blocksizes = [1, 10, 20] + list(range(50, 1000, 50))
     early_execution = [False, True]
@@ -222,8 +223,11 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
             local_hot_key_ratio = key_access_count[sorted_keys[0]] / sum(key_access_count.values())
 
             # measure the transaction arrival rate
-            seconds = blocks[-1].transactions[-1].received_ts.seconds - blocks[0].transactions[0].received_ts.seconds
-            nanos = blocks[-1].transactions[-1].received_ts.nanos - blocks[0].transactions[0].received_ts.nanos
+            for start_block_index in range(len(blocks)):
+                if len(blocks[start_block_index].transactions):
+                    break
+            seconds = blocks[-1].transactions[-1].received_ts.seconds - blocks[start_block_index].transactions[0].received_ts.seconds
+            nanos = blocks[-1].transactions[-1].received_ts.nanos - blocks[start_block_index].transactions[0].received_ts.nanos
             seconds = seconds + nanos * 1e-9
             local_trans_arrival_rate = num_total_trans / seconds
 
@@ -265,15 +269,19 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
 
         """ Retrain """
         assert (len(experiences_X) == len(experiences_y))
-        if len(experiences_X) > experiences_window:
+        while len(experiences_X) > experiences_window:
             experiences_X.pop(0)
             experiences_y.pop(0)
         if episode:
             training_start = time.time()
-            bootstrapped_idx = np.random.choice(len(experiences_X), len(experiences_X), replace=True)
-            feature_idx = np.array([True, True, True, True, False, False, True, True])
-            training_X = np.vstack(experiences_X)[bootstrapped_idx, :][:, feature_idx]
-            training_y = np.array(experiences_y)[bootstrapped_idx]
+            feature_idx = np.array([True, True, True, True, True, True, True, False])
+            if len(experiences_X) > 20:
+                bootstrapped_idx = np.random.choice(len(experiences_X), len(experiences_X), replace=True)
+                training_X = np.vstack(experiences_X)[bootstrapped_idx, :][:, feature_idx]
+                training_y = np.array(experiences_y)[bootstrapped_idx]
+            else:
+                training_X = np.vstack(experiences_X)[:, feature_idx]
+                training_y = np.array(experiences_y)
             rf.fit(training_X, training_y)
             training_overhead = round(time.time() - training_start, 6)
 
@@ -287,7 +295,7 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
         if len(experiences_X) > 0:
             inference_start = time.time()
             enumeration_matrix[:, 0:4] = np.array([write_ratio, hot_key_ratio, trans_arrival_rate, execution_delay])
-            feature_idx = np.array([True, True, True, True, False, False, True, True])
+            feature_idx = np.array([True, True, True, True, True, True, True, False])
             prediction = rf.predict(enumeration_matrix[:, feature_idx])
             # best_index = np.argmax(prediction)
             while True:

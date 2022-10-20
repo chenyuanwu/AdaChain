@@ -38,5 +38,5 @@ string kv_get(const string &key, Endorsement *endorsement = nullptr, struct Reco
 int kv_put(const string &key, const string &value, struct RecordVersion record_version, bool expose_write,
            Endorsement *endorsement = nullptr);
 void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type type, int execution_delay, bool expose_write,
-               struct RecordVersion record_version, Endorsement *endorsement = nullptr);
+               struct RecordVersion record_version, Endorsement *endorsement = nullptr, uint64_t last_block_id = 0);
 #endif
