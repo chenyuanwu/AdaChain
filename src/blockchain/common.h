@@ -63,6 +63,7 @@ class Episode {
     atomic<uint64_t> B_start;
     atomic<uint64_t> episode;
     chrono::milliseconds start;
+    chrono::milliseconds entire_run_start;
     vector<uint64_t> last_block_indexes;
     queue<string> pending_request_queue;
 

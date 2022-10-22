@@ -89,7 +89,7 @@ void *block_formation_thread(void *arg) {
     queue<string> request_queue;
 
     while (true) {
-        if ((!ep.block_formation_paused) && block_index < ep.B_h) {
+        if (((!ep.block_formation_paused) && block_index < ep.B_h) || !peer_config["sysconfig"]["learning"].GetBool()) {
             if (is_leader) {
                 int N = commit_index + 1;
                 int count = 0;
@@ -477,7 +477,7 @@ void run_peer(const string &server_address) {
         if (is_leader && loop_count == 100) {
             chrono::milliseconds curr = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
             int64_t time_elapsed = (curr - ep.start).count();
-            if (time_elapsed >= peer_config["sysconfig"]["timeout"].GetInt() * 1000) {
+            if (peer_config["sysconfig"]["learning"].GetBool() && time_elapsed >= peer_config["sysconfig"]["timeout"].GetInt() * 1000) {
                 if ((block_index < ep.B_h && arch.is_xov && arch.reorder) || (block_index < ep.B_l && !(arch.is_xov && arch.reorder))) {
                     // start the slow path: notify other peers and the learning agent
                     LOG(INFO) << "Episode " << ep.episode << " timeout: time_elapsed = " << time_elapsed / 1000.0 << "s.";
@@ -545,8 +545,18 @@ void run_peer(const string &server_address) {
                               << arch.is_xov << ", reorder = " << arch.reorder << ", new B_h = " << ep.B_h << ", new T_h = " << ep.T_h << ".";
                 }
             }
+            if ((!peer_config["sysconfig"]["learning"].GetBool()) && time_elapsed >= 5000) {
+                // log performance every 5s for non learning systems
+                double throughput = ((double)ep.total_ops.load() / time_elapsed) * 1000;
+                chrono::milliseconds curr = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+                int64_t time_since_run_start = (curr - ep.entire_run_start).count();
+                LOG(INFO) << time_since_run_start / 1000.0 << "," << throughput;
+                ep.total_ops_entire_run += ep.total_ops;
+                ep.total_ops = 0;
+                ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+            }
         }
-        if ((!is_leader) && ep.timeout) {
+        if (peer_config["sysconfig"]["learning"].GetBool() && (!is_leader) && ep.timeout) {
             if (!ep.agent_notified) {
                 reached_watermark_low(agent_stub.get(), true);  // notify learning agent
             }
@@ -592,10 +602,10 @@ void run_peer(const string &server_address) {
                       << arch.is_xov << ", reorder = " << arch.reorder << ", new B_h = " << ep.B_h << ", new T_h = " << ep.T_h << ".";
         }
 
-        if ((!ep.agent_notified) && block_index >= ep.B_l) {
+        if (peer_config["sysconfig"]["learning"].GetBool() && (!ep.agent_notified) && block_index >= ep.B_l) {
             reached_watermark_low(agent_stub.get(), false);  // notify learning agent about reaching watermark low
         }
-        if (block_index < ep.B_h) {
+        if (block_index < ep.B_h || !peer_config["sysconfig"]["learning"].GetBool()) {
             TransactionProposal proposal = proposal_queue.pop();
             if (arch.is_xov) {
                 execution_queue.add(proposal);
@@ -617,7 +627,7 @@ void run_peer(const string &server_address) {
             if (is_cleaned) {
                 is_cleaned = false;
             }
-        } else {
+        } else if (peer_config["sysconfig"]["learning"].GetBool()) {
             if (!is_cleaned) {
                 LOG(INFO) << "Episode " << ep.episode << " reached W_h: last_log_index = " << last_log_index << ", trans_total = " << trans_total << ".";
 

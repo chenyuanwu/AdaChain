@@ -65,7 +65,7 @@ void *leader_main_thread(void *arg) {
     ofstream log(string(peer_config["sysconfig"]["log_dir"].GetString()) + "/raft.log", ios::out | ios::binary);
     string tagged_entry_str;
     while (true) {
-        if (last_log_index < ep.T_h && !ep.consensus_paused) {
+        if ((last_log_index < ep.T_h && !ep.consensus_paused) || !peer_config["sysconfig"]["learning"].GetBool()) {
             int i = 0;
             for (; i < arch.max_block_size; i++) {
                 TaggedEntry tagged_entry;
@@ -165,6 +165,7 @@ Status PeerCommImpl::start_benchmarking(ServerContext *context, const google::pr
     LOG(INFO) << "starts benchmarking.";
     start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
     ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+    ep.entire_run_start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
 
     return Status::OK;
 }
