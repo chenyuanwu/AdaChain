@@ -1,10 +1,11 @@
 {
     "arch": {
-        "blocksize": 50,
+        "blocksize": 10,
         "early_execution": true,
-        "reorder": false
+        "reorder": true
     },
     "sysconfig": {
+        "learning": false,
         "leveldb_dir": "/mydata/testdb",
         "log_dir": "/mydata/log",
         "timeout": 15,

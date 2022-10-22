@@ -89,7 +89,7 @@ void *block_formation_thread(void *arg) {
     queue<string> request_queue;
 
     while (true) {
-        if ((!ep.block_formation_paused) && block_index < ep.B_h) {
+        if (((!ep.block_formation_paused) && block_index < ep.B_h) || !peer_config["sysconfig"]["learning"].GetBool()) {
             if (is_leader) {
                 int N = commit_index + 1;
                 int count = 0;
@@ -141,6 +141,8 @@ void *block_formation_thread(void *arg) {
                             if (!xov_reorder(request_queue, block)) {
                                 trans_index = 0;
                                 ep.block_formation_paused = true;
+                                block.clear_block_id();
+                                block.clear_transactions();
                                 continue;
                             }
 
@@ -307,7 +309,7 @@ void *simulation_handler(void *arg) {
             } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
                 ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
             } else {
-                smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement);
+                smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, block_index);
             }
 
             if (is_leader) {
@@ -382,7 +384,7 @@ void start_new_episode(uint64_t last_log_index) {
     proposal_queue.clear();
     ordering_queue.clear();
     execution_queue.clear();
-    
+
     arch.max_block_size = ep.next_action.blocksize();
     arch.is_xov = ep.next_action.early_execution();
     arch.reorder = ep.next_action.reorder();
@@ -401,6 +403,7 @@ void start_new_episode(uint64_t last_log_index) {
     ep.num_reached_new_watermark = 0;
     ep.clear_last_block_indexes();
 
+    ep.total_ops_entire_run += ep.total_ops;
     ep.total_ops = 0;
     ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
 }
@@ -474,8 +477,8 @@ void run_peer(const string &server_address) {
         if (is_leader && loop_count == 100) {
             chrono::milliseconds curr = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
             int64_t time_elapsed = (curr - ep.start).count();
-            if (time_elapsed >= peer_config["sysconfig"]["timeout"].GetInt() * 1000) {
-                if (block_index < ep.B_h) {
+            if (peer_config["sysconfig"]["learning"].GetBool() && time_elapsed >= peer_config["sysconfig"]["timeout"].GetInt() * 1000) {
+                if ((block_index < ep.B_h && arch.is_xov && arch.reorder) || (block_index < ep.B_l && !(arch.is_xov && arch.reorder))) {
                     // start the slow path: notify other peers and the learning agent
                     LOG(INFO) << "Episode " << ep.episode << " timeout: time_elapsed = " << time_elapsed / 1000.0 << "s.";
                     ep.timeout = true;
@@ -517,7 +520,7 @@ void run_peer(const string &server_address) {
                     if (block_index == ep.B_start) {
                         no_progress = true;
                     }
-                    queue<string>().swap(ep.pending_request_queue); // always clear the pending request queue on leader
+                    queue<string>().swap(ep.pending_request_queue);  // always clear the pending request queue on leader
                     for (int i = 0; i < follower_stubs.size(); i++) {
                         ClientContext context;
                         PeerExchange exchange;
@@ -542,8 +545,18 @@ void run_peer(const string &server_address) {
                               << arch.is_xov << ", reorder = " << arch.reorder << ", new B_h = " << ep.B_h << ", new T_h = " << ep.T_h << ".";
                 }
             }
+            if ((!peer_config["sysconfig"]["learning"].GetBool()) && time_elapsed >= 5000) {
+                // log performance every 5s for non learning systems
+                double throughput = ((double)ep.total_ops.load() / time_elapsed) * 1000;
+                chrono::milliseconds curr = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+                int64_t time_since_run_start = (curr - ep.entire_run_start).count();
+                LOG(INFO) << time_since_run_start / 1000.0 << "," << throughput;
+                ep.total_ops_entire_run += ep.total_ops;
+                ep.total_ops = 0;
+                ep.start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
+            }
         }
-        if ((!is_leader) && ep.timeout) {
+        if (peer_config["sysconfig"]["learning"].GetBool() && (!is_leader) && ep.timeout) {
             if (!ep.agent_notified) {
                 reached_watermark_low(agent_stub.get(), true);  // notify learning agent
             }
@@ -552,10 +565,6 @@ void run_peer(const string &server_address) {
             while (!ep.block_formation_paused)
                 ;
             LOG(INFO) << "Episode " << ep.episode << ": block formation is paused.";
-            ep.freeze = true;
-            proposal_queue.clear();
-            ordering_queue.clear();
-            execution_queue.clear();
 
             // exchange B_n
             {
@@ -593,10 +602,10 @@ void run_peer(const string &server_address) {
                       << arch.is_xov << ", reorder = " << arch.reorder << ", new B_h = " << ep.B_h << ", new T_h = " << ep.T_h << ".";
         }
 
-        if ((!ep.agent_notified) && block_index >= ep.B_l) {
+        if (peer_config["sysconfig"]["learning"].GetBool() && (!ep.agent_notified) && block_index >= ep.B_l) {
             reached_watermark_low(agent_stub.get(), false);  // notify learning agent about reaching watermark low
         }
-        if (block_index < ep.B_h) {
+        if (block_index < ep.B_h || !peer_config["sysconfig"]["learning"].GetBool()) {
             TransactionProposal proposal = proposal_queue.pop();
             if (arch.is_xov) {
                 execution_queue.add(proposal);
@@ -618,7 +627,7 @@ void run_peer(const string &server_address) {
             if (is_cleaned) {
                 is_cleaned = false;
             }
-        } else {
+        } else if (peer_config["sysconfig"]["learning"].GetBool()) {
             if (!is_cleaned) {
                 LOG(INFO) << "Episode " << ep.episode << " reached W_h: last_log_index = " << last_log_index << ", trans_total = " << trans_total << ".";
 
@@ -671,6 +680,7 @@ int main(int argc, char *argv[]) {
     arch.max_block_size = peer_config["arch"]["blocksize"].GetInt();  // number of transactions
     arch.is_xov = peer_config["arch"]["early_execution"].GetBool();
     arch.reorder = peer_config["arch"]["reorder"].GetBool();
+    arch.early_abort = false;
 
     el::Configurations conf("../../config/logger.conf");
     el::Loggers::reconfigureLogger("default", conf);
