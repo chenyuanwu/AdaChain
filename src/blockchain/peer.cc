@@ -496,8 +496,14 @@ void run_peer(const string &server_address) {
                     }
 
                     // pause block formation and consensus
-                    while (last_log_index < ep.T_h && !ep.consensus_paused)
-                        ;
+                    while (last_log_index < ep.T_h && !ep.consensus_paused) {
+                        if (ordering_queue.size() < arch.max_block_size) {
+                            TransactionProposal proposal = proposal_queue.pop();
+                            if (!arch.is_xov) {
+                                ordering_queue.add(proposal.SerializeAsString());
+                            }
+                        }
+                    }
                     LOG(INFO) << "Episode " << ep.episode << ": consensus is paused.";
 
                     while (!ep.block_formation_paused)

@@ -143,6 +143,14 @@ class Queue {
         queue_.clear();
         pthread_mutex_unlock(&mutex);
     }
+
+    size_t size() {
+        pthread_mutex_lock(&mutex);
+        size_t queue_size = queue_.size();
+        pthread_mutex_unlock(&mutex);
+
+        return queue_size;
+    }
 };
 
 extern Queue<TransactionProposal> proposal_queue;
