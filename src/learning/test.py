@@ -151,7 +151,7 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
     # seed_model_and_experience('ts_episode_100_6.csv', rf, experiences_window, experiences_X, experiences_y)
     # optimal_action_predicted = []
     actions = []
-    actions.append(np.array([10, True, True, 10]))
+    actions.append(np.array([25, True, True, 25]))
     actions_matrix = np.vstack(actions)
     enumeration_matrix = np.hstack((np.zeros((actions_matrix.shape[0], 4)), actions_matrix))
     logging.info('learning agent has been initialized.')
@@ -295,7 +295,7 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
         # else:
           
         experiences_X.append(np.array([write_ratio, hot_key_ratio, trans_arrival_rate, execution_delay,
-                                            10, True, True, 10]))
+                                            25, True, True, 25]))
         inference_overhead = 0
             # optimal_action_predicted.append(0)
         csv_writer.writerow(experiences_X[0].tolist() + [experiences_y[0]] + time_records[0])
@@ -305,7 +305,7 @@ def run_agent(my_address, peer_config, agent_channels, peer_channel, num_episode
         data_store.flush()
 
         # notify the peer about the action
-        action = blockchain_pb2.Action(blocksize=int(10),
+        action = blockchain_pb2.Action(blocksize=int(25),
                                        early_execution=True, reorder=True)
         new_episode_info(peer_stub, action)
         episode_start_time = time.time()
