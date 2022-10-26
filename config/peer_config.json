@@ -1,9 +1,8 @@
 {
     "arch": {
-        "blocksize": 50,
+        "blocksize": 25,
         "early_execution": true,
-        "reorder": false,
-        "early_abort": false,
+        "reorder": true,
         "block_pipe_num" : 1
     },
     "sysconfig": {
