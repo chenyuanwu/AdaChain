@@ -1,0 +1,9 @@
+{
+"write_ratio": 0.9,
+"hot_key_ratio": 0.95,
+"num_keys": 10000,
+"num_hot_keys": 1,
+"trans_per_interval": 100,
+"interval": 50000,
+"execution_delay": 0
+}

@@ -1,10 +1,10 @@
 {
     "arch": {
-        "blocksize": 50,
+        "blocksize": 10,
         "early_execution": true,
-        "reorder": false,
-        "block_pipe_num" : 1,
-        "early_abort": false
+        "reorder": true,
+	"early_abort": true,
+	"block_pipe_num" : 1
     },
     "sysconfig": {
         "leveldb_dir": "/mydata/testdb",
