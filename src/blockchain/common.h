@@ -31,6 +31,8 @@ struct Architecture {
     size_t max_block_size;
     bool is_xov;
     bool reorder;
+    size_t block_pipe_num;
+    bool early_abort
 };
 
 extern Architecture arch;

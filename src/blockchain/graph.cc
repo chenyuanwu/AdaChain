@@ -210,14 +210,22 @@ void build_conflict_graph_xov(const vector<Endorsement>& transactions, Graph& co
 bool xov_reorder(queue<string>& request_queue, Block& block) {
     Graph conflict_graph;
     vector<Endorsement> S;  // the index represents the transaction id
+    vector<Endorsement> S_aborted;  // record early aborted transactions
     while (request_queue.size()) {
         Endorsement endorsement;
         if (!endorsement.ParseFromString(request_queue.front()) ||
             !endorsement.GetReflection()->GetUnknownFields(endorsement).empty()) {
             LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
         } else {
+            if(endorsement.aborted()) { 
+                //LOG(INFO) << "SO APPARETLY ABORTED";
+                endorsement.set_aborted(true);
+                S_aborted.push_back(endorsement); 
+
+        } else {
             endorsement.set_aborted(false);
             S.push_back(endorsement);
+        }
         }
         request_queue.pop();
     }
@@ -285,7 +293,6 @@ bool xov_reorder(queue<string>& request_queue, Block& block) {
     }
 
     vector<Endorsement> S_prime;    // step 5
-    vector<Endorsement> S_aborted;  // record early aborted transactions
     Graph conflict_graph_prime;     // cycle-free conflict graph
     for (int i = 0; i < S.size(); i++) {
         if (!S[i].aborted()) {

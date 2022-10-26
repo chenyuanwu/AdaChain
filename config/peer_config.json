@@ -3,7 +3,8 @@
         "blocksize": 50,
         "early_execution": true,
         "reorder": false,
-        "block_pipe_num" : 1
+        "block_pipe_num" : 1,
+        "early_abort": false
     },
     "sysconfig": {
         "leveldb_dir": "/mydata/testdb",

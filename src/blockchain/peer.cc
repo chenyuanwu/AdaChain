@@ -38,10 +38,11 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
     // logger->debug("******validating transaction[block_id = %v, trans_id = %v]******",
     //           w_record_version.version_blockid, w_record_version.version_transid);
     bool is_valid = true;
+    uint64_t blockid = 0;
 
     for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
         struct RecordVersion r_record_version;
-        kv_get(transaction->read_set(read_id).read_key(), nullptr, &r_record_version);
+        kv_get(transaction->read_set(read_id).read_key(), nullptr, &r_record_version, blockid);
 
         // logger->debug("read_key = %v\nstored_read_version = [block_id = %v, trans_id = %v]\n"
         //           "current_key_version = [block_id = %v, trans_id = %v]",
@@ -81,6 +82,7 @@ void *block_formation_thread(void *arg) {
 
     unsigned long last_applied = 0;
     int majority = (peer_config["sysconfig"]["followers"].Size() / 2) + 1;
+    uint64_t block_index = 0;
     uint64_t trans_index = 0;
 
     Block block;
@@ -131,7 +133,7 @@ void *block_formation_thread(void *arg) {
                 Block Pipelining - Wait for block B2 before reordering
                 Waiting happens by waiting till request queue has transactions from 2 blocks
                 */
-                if (trans_index >= arch.max_block_size*arch.block_pipe_num || !ep.pending_request_queue.empty()) {
+                if ((trans_index >= arch.max_block_size*arch.block_pipe_num) || !ep.pending_request_queue.empty()) {
                     if (ep.pending_request_queue.empty()) {
                         ep.pending_request_queue = request_queue;
                     } else {
@@ -278,6 +280,7 @@ void *block_formation_thread(void *arg) {
                     block_store.write(serialized_block.c_str(), size);
                     block_store.flush();
                     prev_block_hash = sha256(block.SerializeAsString());
+                    last_block_id = block_index;
 
                     block_index++;
                     trans_index = request_queue.size();
@@ -319,15 +322,26 @@ void *simulation_handler(void *arg) {
             Endorsement *endorsement = req.mutable_endorsement();
             assert(proposal.has_received_ts());
             *(endorsement->mutable_received_ts()) = proposal.received_ts();
-
+            bool checking_condition=true;
             if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-                ycsb_get(proposal.keys(), endorsement);
-            } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-                ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
+                checking_condition = ycsb_get(proposal.keys(), endorsement, last_block_id);
+            if (!checking_condition && early_abort) {
+                endorsement->set_aborted(true);
             } else {
-                smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement);
+                endorsement->set_aborted(false);
             }
-
+        }
+        else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+                ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
+        }
+        else {
+            checking_condition =  smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id);
+            if(!checking_condition && early_abort) {
+                endorsement->set_aborted(true);
+            } else {
+                endorsement->set_aborted(false);
+            }
+        }
             if (is_leader) {
                 ordering_queue.add(endorsement->SerializeAsString());
             } else {
