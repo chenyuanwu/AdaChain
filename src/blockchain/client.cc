@@ -73,61 +73,90 @@ void *client_thread(void *arg) {
         for (int i = 0; (!end_flag) && (i < ctx.trans_per_interval); i++) {
             Request req;
             TransactionProposal *proposal = req.mutable_proposal();
+            //clients request multiple endorsers to execute their transaction and the returned execution results must be identical
+            #TransactionProposal *#oracleproposal = req.mutable_proposal();
+ 
             int trans_choice = -1;
             if (is_update(gen)) {
                 trans_choice = trans(gen);
                 if (trans_choice == 0) {
                     proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_TransactSavings);
+                    #oracleproposal->set_type(TransactionProposal::Type::TransactionProposal_Type_TransactSavings);
                 } else if (trans_choice == 1) {
                     proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_DepositChecking);
+                    #oracleproposal->set_type(TransactionProposal::Type::TransactionProposal_Type_DepositChecking);
                 } else if (trans_choice == 2) {
                     proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_SendPayment);
+                    #oracleproposal->set_type(TransactionProposal::Type::TransactionProposal_Type_SendPayment);
                 } else if (trans_choice == 3) {
                     proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_WriteCheck);
+                    #oracleproposal->set_type(TransactionProposal::Type::TransactionProposal_Type_WriteCheck);
+
                 } else if (trans_choice == 4) {
                     proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_Amalgamate);
+                    #oracleproposal->set_type(TransactionProposal::Type::TransactionProposal_Type_WriteCheck);
+
                 }
             } else {
                 proposal->set_type(TransactionProposal::Type::TransactionProposal_Type_Query);
+                #oracleproposal->set_type(TransactionProposal::Type::TransactionProposal_Type_Query);
             }
 
             if (is_hot(gen)) {
                 string user1 = to_string(hot_key(gen));
                 if (trans_choice == 0) {
                     proposal->add_keys("saving_" + user1);
+                    #oracleproposal->add_keys("saving_" + user1);
                 } else if (trans_choice == 1) {
                     proposal->add_keys("checking_" + user1);
+                    #oracleproposal->add_keys("checking_" + user1);
                 } else if (trans_choice == 2) {
                     proposal->add_keys("checking_" + user1);
+                    #oracleproposal->add_keys("checking_" + user1);
                     string user2 = to_string(hot_key(gen));
                     proposal->add_keys("checking_" + user2);
+                    #oracleproposal->add_keys("checking_" + user2);
                 } else if (trans_choice == 3) {
                     proposal->add_keys("checking_" + user1);
+                    #oracleproposal->add_keys("checking_" + user1);
                 } else if (trans_choice == 4) {
                     proposal->add_keys("checking_" + user1);
+                    #oracleproposal->add_keys("checking_" + user1);
                     proposal->add_keys("saving_" + user1);
+                    #oracleproposal->add_keys("saving_" + user1);
                 } else if (trans_choice == -1) {
                     proposal->add_keys("checking_" + user1);
+                    #oracleproposal->add_keys("checking_" + user1);
                     proposal->add_keys("saving_" + user1);
+                    #oracleproposal->add_keys("saving_" + user1);
                 }
             } else {
                 string user1 = to_string(cold_key(gen));
                 if (trans_choice == 0) {
                     proposal->add_keys("saving_" + user1);
+                    #oracleproposal->add_keys("saving_" + user1);
                 } else if (trans_choice == 1) {
                     proposal->add_keys("checking_" + user1);
+                    #oracleproposal->add_keys("checking_" + user1);
                 } else if (trans_choice == 2) {
                     proposal->add_keys("checking_" + user1);
+                    #oracleproposal->add_keys("checking_" + user1);
                     string user2 = to_string(cold_key(gen));
                     proposal->add_keys("checking_" + user2);
+                    #oracleproposal->add_keys("checking_" + user2);
                 } else if (trans_choice == 3) {
                     proposal->add_keys("checking_" + user1);
+                    #oracleproposal->add_keys("checking_" + user1);
                 } else if (trans_choice == 4) {
                     proposal->add_keys("checking_" + user1);
+                    #oracleproposal->add_keys("checking_" + user1);
                     proposal->add_keys("saving_" + user1);
+                    oraclproposal->add_keys("saving_" + user1);
                 } else if (trans_choice == -1) {
                     proposal->add_keys("checking_" + user1);
                     proposal->add_keys("saving_" + user1);
+                    #oracleproposal->add_keys("checking_" + user1);
+                    #oracleproposal->add_keys("saving_" + user1);
                 }
             }
             proposal->set_execution_delay(ctx.execution_delay);

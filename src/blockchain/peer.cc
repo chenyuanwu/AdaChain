@@ -45,19 +45,36 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
         struct RecordVersion r_record_version;
         kv_get(transaction->read_set(read_id).read_key(), nullptr, &r_record_version, blockid);
 
-        // logger->debug("read_key = %v\nstored_read_version = [block_id = %v, trans_id = %v]\n"
-        //           "current_key_version = [block_id = %v, trans_id = %v]",
-        //           transaction->read_set(read_id).read_key().c_str(),
-        //           transaction->read_set(read_id).block_seq_num(),
-        //           transaction->read_set(read_id).trans_seq_num(),
-        //           r_record_version.version_blockid, r_record_version.version_transid);
-
         if (r_record_version.version_blockid != transaction->read_set(read_id).block_seq_num() ||
             r_record_version.version_transid != transaction->read_set(read_id).trans_seq_num()) {
             is_valid = false;
             break;
         }
     }
+
+    // XOX deterministic second execution phase - execution step to execute the patch-up code added to smart contracts
+    //When the RW validation finds a conflict between a transaction’s RW set and the world state, 
+    //that transaction will be re-executed and possibly salvaged using the patch-up code.
+    //We introduce a step that re executes transaction with such an RW set conflict based on the most up-to-date world state. 
+    //It can resolve conflicts due to a lack of knowledge of concurrent transactions during preorder execution. 
+    if(!is_valid)
+    {
+        /* execute */
+        uint64_t proposal_id = proposal.id();
+        
+        *(transaction->mutable_received_ts()) = proposal.received_ts();
+        if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
+            ycsb_get(proposal.keys(), transaction);
+        } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+            ycsb_put(proposal.keys(), proposal.values(), r_record_version, true, transaction);
+        } else {
+            smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, r_record_version, endorsement);
+        }
+        ep.total_ops++;
+        transaction->set_aborted(false);
+        is_valid = true;
+    }
+    
 
     if (is_valid) {
         for (int write_id = 0; write_id < transaction->write_set_size(); write_id++) {

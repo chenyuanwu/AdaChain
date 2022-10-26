@@ -82,6 +82,33 @@ int kv_put(const string &key, const string &value, struct RecordVersion record_v
     return 0;
 }
 
+//Analogous to existing calls to kv_get and kv_put that record the read and write set key-value pairs, respectively, we add a new call PutOracle to the chaincode API.
+int PutOracle(const string &key, const string &value, struct RecordVersion record_version, bool expose_write,
+           Endorsement *endorsement) {
+    if (endorsement != nullptr) {
+        WriteItem *write_item = endorsement->add_write_set();
+        write_item->set_write_key(key);
+        write_item->set_write_value(value);
+    }
+    if (expose_write) {
+        uint64_t my_version_blockid = record_version.version_blockid;
+        uint64_t my_version_transid = record_version.version_transid;
+        char *ver = (char *)malloc(2 * sizeof(uint64_t));
+
+        bzero(ver, 2 * sizeof(uint64_t));
+        memcpy(ver, &my_version_blockid, sizeof(uint64_t));
+        memcpy(ver + sizeof(uint64_t), &my_version_transid, sizeof(uint64_t));
+        string internal_value(ver, 2 * sizeof(uint64_t));
+        free(ver);
+
+        internal_value += value;
+        leveldb::Status s = db->Put(leveldb::WriteOptions(), key, internal_value);
+    }
+
+    return 0;
+}
+
+
 bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type type, int execution_delay, bool expose_write,
                struct RecordVersion record_version, Endorsement *endorsement, uint64_t last_block_id) {
     if (type == TransactionProposal::Type::TransactionProposal_Type_TransactSavings) {
