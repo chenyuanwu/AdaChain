@@ -32,7 +32,7 @@ struct Architecture {
     bool is_xov;
     bool reorder;
     size_t block_pipe_num;
-    bool early_abort
+    bool early_abort;
 };
 
 extern Architecture arch;
