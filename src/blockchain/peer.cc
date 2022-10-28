@@ -72,7 +72,7 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
     if(!is_valid)
     {
         //Patch-up code take a transaction’s read set and oracle set as input
-        second_execution = patch_up_code(const transaction); 
+        second_execution = patch_up_code(transaction); 
         /* Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
         If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain.*/
         //updated RW set is compared to the old one. if all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
