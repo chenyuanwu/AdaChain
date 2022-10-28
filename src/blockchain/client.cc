@@ -128,7 +128,6 @@ void *client_thread(void *arg) {
                 } else if (trans_choice == 4) {
                     proposal->add_keys("checking_" + user1);
                     proposal->add_keys("saving_" + user1);
-                    oraclproposal->add_keys("saving_" + user1);
                 } else if (trans_choice == -1) {
                     proposal->add_keys("checking_" + user1);
                     proposal->add_keys("saving_" + user1);
