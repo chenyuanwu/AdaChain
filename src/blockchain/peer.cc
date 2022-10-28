@@ -47,13 +47,14 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
     //This makes it possible for transactions to result in invalid state transitions even though 
     //they were executed successfully before ordering. 
     //It necessitates a validation step after ordering so transitions can be invalidated deterministically based on detected conflicts.
+    //THIS IS THE RW SET
+    //ORACLE DATE = R_RECORD_VERSION
     for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
         struct RecordVersion r_record_version;
         kv_get(transaction->read_set(read_id).read_key(), nullptr, &r_record_version, blockid);
 
         if (r_record_version.version_blockid != transaction->read_set(read_id).block_seq_num() ||
             r_record_version.version_transid != transaction->read_set(read_id).trans_seq_num()) {
-            oracle = r_record_version;
             is_valid = false;
             break;
         }
@@ -65,16 +66,12 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
     
     //We introduce a step that re executes transaction with such an RW set conflict based on the most up-to-date world state. 
     //so now transction->read_set will be the latest world state and added back to the execution queue
-
     //It can resolve conflicts due to a lack of knowledge of concurrent transactions during preorder execution. 
-    
-    //
     //Patch-up code take a transaction’s read set and oracle set as input
     if(!is_valid)
     {
-        //We introduce a step that re executes transaction with such an RW set conflict based on the most up-to-date world state
         //Patch-up code take a transaction’s read set and oracle set as input
-        patch_up_code(transaction, oracle); 
+        patch_up_code(transaction); 
         /* Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
         If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain.*/
         //updated RW set is compared to the old one. if all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
