@@ -46,9 +46,6 @@ message WriteItem {
     bytes write_key = 1;
     bytes write_value = 2;
 }
-//We extend the transaction response by an additional oracle set.
-//Any external data are recorded in the form of key- value pairs and are added to the response to the client. 
-//Now, if the oracle sets for the same transaction executed by different endorsers differ, the client has to discard the transaction.
 
 message Endorsement {
     repeated ReadItem read_set = 1;
@@ -60,17 +57,12 @@ message Endorsement {
     google.protobuf.Timestamp received_ts = 7;
     google.protobuf.Timestamp execution_start_ts = 8;
     google.protobuf.Timestamp execution_end_ts = 9;
-    //We extend the transaction response by an additional oracle set. Any external data are recorded in the form of key-value pairs
-    // are added to the response to the client. 
-    repeated WriteItem oracle_write_set = 10;
-    repeated ReadItem oracle_read_set = 11;
 }
 
 message TransactionProposal {
     enum Type {
         Get = 0;
         Put = 1;
-        PutOracle = 2;
         TransactSavings = 2;
         DepositChecking = 3;
         SendPayment = 4;

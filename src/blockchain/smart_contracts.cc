@@ -106,6 +106,43 @@ int PutOracle(const string &key, const string &value, struct RecordVersion recor
     }
 
     return 0;
+
+/*
+Patch-up code take a transaction’s read set(world state) and oracle set as input. 
+The read set is used to get the current key values from the latest version of the world state. 
+what does this mean?
+
+Based on this and the oracle set, the smart contract then performs the necessary computations to generate a new write set. 
+
+?If the transaction is not allowed by the logic of the smart contract based on the updated values, it is discarded. 
+
+Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
+If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain.
+*/
+
+//Patch-up code take a transaction’s read set and oracle set as input. 
+bool patch_up_code(Endorsement *transaction, struct RecordVersion *record_version){
+        //The read set is used to get the current key values from the latest version of the world state. 
+    for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
+        struct RecordVersion r_record_version;
+        kv_get(transaction->read_set(read_id).read_key(), nullptr, &r_record_version, blockid);
+        transaction->read_set(read_id).block_seq_num() = r_record_version.version_blockid;
+        transaction->read_set(read_id).trans_seq_num() = r_record_version.version_transid; 
+        }
+    }
+    
+    for (int write_id = 0; write_id < transaction->write_set_size(); write_id++) {
+        struct RecordVersion w_record_version,
+        kv_put(transaction->write_set(write_id).write_key(), transaction->write_set(write_id).write_value(),
+                w_record_version, true, nullptr);
+    }
+
+    /* Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
+    If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain.*/
+    //updated RW set is compared to the old one. if all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
+
+return true;
+           
 }
 
 
