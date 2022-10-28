@@ -97,10 +97,11 @@ If all the keys are a subset of the old RW set, the result is valid and can be c
 //Patch-up code take a transaction’s read set and oracle set as input. 
 //RECORD_VERSION = WORLD STATE
 //TRANSACTION IS OLD STATE
-bool patch_up_code(Endorsement *transaction){
-    uint64_t block_id = 0;
+bool patch_up_code(const Endorsement *transaction){
+    uint64_t blockid = 0;
+    struct RecordVersion r_record_version;
+
     for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
-        struct RecordVersion r_record_version;
         kv_get(transaction->read_set(read_id).read_key(), nullptr, &r_record_version, blockid);
         //r_record_version is the new world state
     }

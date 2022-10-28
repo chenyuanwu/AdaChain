@@ -100,54 +100,38 @@ void *client_thread(void *arg) {
                     proposal->add_keys("saving_" + user1);
                 } else if (trans_choice == 1) {
                     proposal->add_keys("checking_" + user1);
-                    #oracleproposal->add_keys("checking_" + user1);
                 } else if (trans_choice == 2) {
                     proposal->add_keys("checking_" + user1);
-                    #oracleproposal->add_keys("checking_" + user1);
                     string user2 = to_string(hot_key(gen));
                     proposal->add_keys("checking_" + user2);
-                    #oracleproposal->add_keys("checking_" + user2);
                 } else if (trans_choice == 3) {
                     proposal->add_keys("checking_" + user1);
-                    #oracleproposal->add_keys("checking_" + user1);
                 } else if (trans_choice == 4) {
                     proposal->add_keys("checking_" + user1);
-                    #oracleproposal->add_keys("checking_" + user1);
                     proposal->add_keys("saving_" + user1);
-                    #oracleproposal->add_keys("saving_" + user1);
                 } else if (trans_choice == -1) {
                     proposal->add_keys("checking_" + user1);
-                    #oracleproposal->add_keys("checking_" + user1);
                     proposal->add_keys("saving_" + user1);
-                    #oracleproposal->add_keys("saving_" + user1);
                 }
             } else {
                 string user1 = to_string(cold_key(gen));
                 if (trans_choice == 0) {
                     proposal->add_keys("saving_" + user1);
-                    #oracleproposal->add_keys("saving_" + user1);
                 } else if (trans_choice == 1) {
                     proposal->add_keys("checking_" + user1);
-                    #oracleproposal->add_keys("checking_" + user1);
                 } else if (trans_choice == 2) {
                     proposal->add_keys("checking_" + user1);
-                    #oracleproposal->add_keys("checking_" + user1);
                     string user2 = to_string(cold_key(gen));
                     proposal->add_keys("checking_" + user2);
-                    #oracleproposal->add_keys("checking_" + user2);
                 } else if (trans_choice == 3) {
                     proposal->add_keys("checking_" + user1);
-                    #oracleproposal->add_keys("checking_" + user1);
                 } else if (trans_choice == 4) {
                     proposal->add_keys("checking_" + user1);
-                    #oracleproposal->add_keys("checking_" + user1);
                     proposal->add_keys("saving_" + user1);
                     oraclproposal->add_keys("saving_" + user1);
                 } else if (trans_choice == -1) {
                     proposal->add_keys("checking_" + user1);
                     proposal->add_keys("saving_" + user1);
-                    #oracleproposal->add_keys("checking_" + user1);
-                    #oracleproposal->add_keys("saving_" + user1);
                 }
             }
             proposal->set_execution_delay(ctx.execution_delay);
