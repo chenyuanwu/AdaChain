@@ -76,11 +76,12 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
         /* Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
         If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain.*/
         //updated RW set is compared to the old one. if all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
-        is_valid = second_execution;
+        //is_valid = second_execution;
     }
     
     //the world state computed at the time of state transition commitment is known to execution engines only after some delay, and all transactions are inevitably executed on a stale view of the world state. 
-    if (is_valid && !second_execution) {
+    //if (is_valid && !second_execution) {
+    if (is_valid) {
         for (int write_id = 0; write_id < transaction->write_set_size(); write_id++) {
             kv_put(transaction->write_set(write_id).write_key(), transaction->write_set(write_id).write_value(),
                    w_record_version, true, nullptr);
