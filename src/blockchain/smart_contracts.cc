@@ -96,7 +96,7 @@ If all the keys are a subset of the old RW set, the result is valid and can be c
 //RECORD_VERSION = WORLD STATE
 //TRANSACTION IS OLD STATE
 
-bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_version, const struct TransactionProposal *proposal) {
+bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_version, const TransactionProposal *proposal) {
     uint64_t block_id = 0;
     uint64_t last_block_id = 0;
 
