@@ -177,7 +177,7 @@ void *block_formation_thread(void *arg) {
                             for (uint64_t i = 0; i < block.transactions_size(); i++) {
                                  //Only recording the 1st block with Block size = max_block_size
                                  //Hence cutting B1 out
-                                TransactionProposal *proposal;
+                                TransactionProposal proposal;
                                 if(i<arch.max_block_size) {
                                     struct RecordVersion record_version = {
                                         .version_blockid = block_index,
@@ -285,7 +285,7 @@ void *block_formation_thread(void *arg) {
                                         LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
                                         block.mutable_transactions()->RemoveLast();
                                     } else {
-                                        TransactionProposal *proposal;
+                                        TransactionProposal proposal;
                                         if (validate_transaction(record_version, endorsement, proposal)) {
                                             ep.total_ops++;
                                             endorsement->set_aborted(false);
