@@ -96,7 +96,7 @@ If all the keys are a subset of the old RW set, the result is valid and can be c
 //RECORD_VERSION = WORLD STATE
 //TRANSACTION IS OLD STATE
 
-bool patch_up_code(const Endorsement *endorsement, const string &key, struct RecordVersion r_record_version){
+bool patch_up_code(const Endorsement *endorsement, const string &key, struct RecordVersion record_version){
     uint64_t blockid = 0;
     uint64_t proposal_id = proposal.id();
     //Endorsement endorsement;
@@ -109,9 +109,8 @@ bool patch_up_code(const Endorsement *endorsement, const string &key, struct Rec
     } else {
         smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, &endorsement);
     }
-
     ep.total_ops++;
-    endorsement.set_aborted(false);
+    endorsement->set_aborted(false);
 
     /* Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
     If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain.*/
