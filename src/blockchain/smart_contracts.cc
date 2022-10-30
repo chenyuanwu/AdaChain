@@ -99,9 +99,24 @@ If all the keys are a subset of the old RW set, the result is valid and can be c
 bool patch_up_code(const Endorsement *endorsement, const string &key, struct RecordVersion record_version, struct TransactionProposal *proposal) {
     uint64_t blockid = 0;
     if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-        ycsb_get(key, &endorsement);
+        set_timestamp(endorsement->mutable_execution_start_ts());
+        kv_get(key, endorsement, nullptr, block_id); 
+        if((last_block_id!=0) && (block_id > last_block_id)){
+            //endorsement->set_aborted(true);
+            //LOG(INFO) << "aborted in simulation handler";
+            return false;
+        }
+        else {
+            //endorsement->set_aborted(false);
+            return true;
+        }
+
+        set_timestamp(endorsement->mutable_execution_end_ts());
     } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-        ycsb_put(key, nullptr, record_version, true, &endorsement);
+        string value;
+        set_timestamp(endorsement->mutable_execution_start_ts());
+        kv_put(key, value, record_version, expose_write, endorsement);
+        set_timestamp(endorsement->mutable_execution_end_ts());
     } else {
         smallbank(key, proposal.type(), proposal.execution_delay(), true, record_version, &endorsement);
     }
