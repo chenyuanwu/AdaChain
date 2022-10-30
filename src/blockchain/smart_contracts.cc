@@ -99,7 +99,6 @@ If all the keys are a subset of the old RW set, the result is valid and can be c
 bool patch_up_code(Endorsement *endorsement, const string &key, struct RecordVersion record_version, struct TransactionProposal *proposal) {
     uint64_t block_id = 0;
     uint64_t last_block_id = 0;
-    const RepeatedPtrField<string> &keys = key;
 
     if (proposal->type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
         kv_get(key, endorsement, nullptr, block_id); 
@@ -133,7 +132,7 @@ bool patch_up_code(Endorsement *endorsement, const string &key, struct RecordVer
                 usleep(proposal->execution_delay());
             }
 
-            kv_put(key, to_string(balance), record_version, expose_write, endorsement);
+            kv_put(key, to_string(balance), record_version, true, endorsement);
         } else if (type == TransactionProposal::Type::TransactionProposal_Type_DepositChecking) {
             uint64_t block_id = 0;
 
@@ -153,7 +152,7 @@ bool patch_up_code(Endorsement *endorsement, const string &key, struct RecordVer
                 usleep(proposal->execution_delay());
             }
 
-            kv_put(key, to_string(balance), record_version, expose_write, endorsement);
+            kv_put(key, to_string(balance), record_version, true, endorsement);
         } else if (type == TransactionProposal::Type::TransactionProposal_Type_SendPayment) {
             string sender_key = key;
             string receiver_key = key;
@@ -186,8 +185,8 @@ bool patch_up_code(Endorsement *endorsement, const string &key, struct RecordVer
                 sender_balance -= 5;
                 receiver_balance += 5;
 
-                kv_put(sender_key, to_string(sender_balance), record_version, expose_write, endorsement);
-                kv_put(receiver_key, to_string(receiver_balance), record_version, expose_write, endorsement);
+                kv_put(sender_key, to_string(sender_balance), record_version, true, endorsement);
+                kv_put(receiver_key, to_string(receiver_balance), record_version, true, endorsement);
             }
         } else if (type == TransactionProposal::Type::TransactionProposal_Type_WriteCheck) {
 
@@ -209,7 +208,7 @@ bool patch_up_code(Endorsement *endorsement, const string &key, struct RecordVer
             if (balance >= 100) {
                 balance -= 100;
 
-                kv_put(key, to_string(balance), record_version, expose_write, endorsement);
+                kv_put(key, to_string(balance), record_version, true, endorsement);
             }
         } else if (type == TransactionProposal::Type::TransactionProposal_Type_Amalgamate) {
             string checking_key = key;
@@ -234,8 +233,8 @@ bool patch_up_code(Endorsement *endorsement, const string &key, struct RecordVer
                 usleep(proposal->execution_delay());
             }
 
-            kv_put(checking_key, to_string(checking_balance), record_version, expose_write, endorsement);
-            kv_put(saving_key, to_string(saving_balance), record_version, expose_write, endorsement);
+            kv_put(checking_key, to_string(checking_balance), record_version, true, endorsement);
+            kv_put(saving_key, to_string(saving_balance), record_version, true, endorsement);
         } else if (type == TransactionProposal::Type::TransactionProposal_Type_Query) {
             string checking_key = key;
             string saving_key = key;
