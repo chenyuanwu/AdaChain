@@ -4,8 +4,8 @@
         "early_execution": true,
         "xox": true,
         "reorder": false,
-	"early_abort": false,
-	"block_pipe_num" : 1
+	    "early_abort": false,
+	    "block_pipe_num" : 1
     },
     "sysconfig": {
         "leveldb_dir": "/mydata/testdb",
