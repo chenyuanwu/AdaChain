@@ -372,9 +372,10 @@ void *simulation_handler(void *arg) {
         if (arch.is_xov) {
             Request req;
             Endorsement *endorsement = req.mutable_endorsement();
-            assert(proposal.has_received_ts());
+            //assert(proposal.has_received_ts());
             *(endorsement->mutable_received_ts()) = proposal.received_ts();
-           
+            //print proposal.type()
+            LOG(INFO) << "Proposal type is:" << proposal.type << ".";
             if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
                 checking_condition =  ycsb_get(proposal.keys(), endorsement, last_block_id);
                 if (!checking_condition && arch.early_abort) 
