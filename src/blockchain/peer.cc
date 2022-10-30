@@ -35,7 +35,7 @@ string sha256(const string str) {
     return ss.str();
 }
 
-bool validate_transaction(struct RecordVersion w_record_version, const Endorsement *transaction, const TransactionProposal *proposal) {
+bool validate_transaction(struct RecordVersion w_record_version, const Endorsement *transaction, const TransactionProposal proposal) {
     // logger->debug("******validating transaction[block_id = %v, trans_id = %v]******",
     //           w_record_version.version_blockid, w_record_version.version_transid);
     bool is_valid = true;
@@ -57,7 +57,7 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
         if (r_record_version.version_blockid != transaction->read_set(read_id).block_seq_num() ||
             r_record_version.version_transid != transaction->read_set(read_id).trans_seq_num()) {
             if(arch.is_xox && arch.is_xov){
-                is_valid = patch_up_code(transaction, r_record_version, &proposal);
+                is_valid = patch_up_code(transaction, r_record_version, proposal);
                 }
             else{
                 is_valid = false;
