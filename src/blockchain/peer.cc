@@ -56,8 +56,14 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
 
         if (r_record_version.version_blockid != transaction->read_set(read_id).block_seq_num() ||
             r_record_version.version_transid != transaction->read_set(read_id).trans_seq_num()) {
-            is_valid = false;
-            break;
+            if(arch.is_xox && arch.is_xov){
+                patch_up_code(transaction, read_set(read_id), r_record_version);
+            }
+            else
+            {
+                is_valid = false;
+                break;
+            }
         }
     }
 
@@ -69,15 +75,15 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
     //so now transction->read_set will be the latest world state and added back to the execution queue
     //It can resolve conflicts due to a lack of knowledge of concurrent transactions during preorder execution. 
     //Patch-up code take a transaction’s read set and oracle set as input
-    if(!is_valid)
-    {
-        //Patch-up code take a transaction’s read set and oracle set as input
-        second_execution = patch_up_code(transaction); 
-        /* Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
-        If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain.*/
-        //updated RW set is compared to the old one. if all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
-        //is_valid = second_execution;
-    }
+    // if(!is_valid && arch.is_xov)
+    // {
+    //     //Patch-up code take a transaction’s read set and oracle set as input
+    //     second_execution = patch_up_code(transaction, read_id_o); 
+    //     /* Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
+    //     If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain.*/
+    //     //updated RW set is compared to the old one. if all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
+    //     //is_valid = second_execution;
+    // }
     
     //the world state computed at the time of state transition commitment is known to execution engines only after some delay, and all transactions are inevitably executed on a stale view of the world state. 
     //if (is_valid && !second_execution) {
@@ -733,6 +739,7 @@ int main(int argc, char *argv[]) {
     peer_config.ParseStream(isw);
     arch.max_block_size = peer_config["arch"]["blocksize"].GetInt();  // number of transactions
     arch.is_xov = peer_config["arch"]["early_execution"].GetBool();
+    arch.is_xox = peer_config["arch"]["xox"].GetBool();
     arch.reorder = peer_config["arch"]["reorder"].GetBool();
     arch.block_pipe_num = peer_config["arch"]["block_pipe_num"].GetInt();
     arch.early_abort = peer_config["arch"]["early_abort"].GetBool();

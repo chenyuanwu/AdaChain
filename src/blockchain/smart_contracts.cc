@@ -83,11 +83,9 @@ int kv_put(const string &key, const string &value, struct RecordVersion record_v
 }
 
 /*
-Patch-up code take a transaction’s read set(world state) and oracle set as input. 
+Patch-up code take a transaction’s read set and oracle set as input. 
 The read set is used to get the current key values from the latest version of the world state. 
-
 Based on this and the oracle set, the smart contract then performs the necessary computations to generate a new write set. 
-
 ?If the transaction is not allowed by the logic of the smart contract based on the updated values, it is discarded. 
 
 Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
@@ -97,19 +95,23 @@ If all the keys are a subset of the old RW set, the result is valid and can be c
 //Patch-up code take a transaction’s read set and oracle set as input. 
 //RECORD_VERSION = WORLD STATE
 //TRANSACTION IS OLD STATE
-bool patch_up_code(const Endorsement *transaction){
+
+bool patch_up_code(const Endorsement *endorsement, const string &key, struct RecordVersion r_record_version){
     uint64_t blockid = 0;
-    struct RecordVersion r_record_version;
+    uint64_t proposal_id = proposal.id();
+    //Endorsement endorsement;
 
-    for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
-        kv_get(transaction->read_set(read_id).read_key(), nullptr, &r_record_version, blockid);
-        //r_record_version is the new world state
+    *(endorsement.mutable_received_ts()) = proposal.received_ts();
+    if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
+        ycsb_get(proposal.keys(), &endorsement);
+    } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+        ycsb_put(proposal.keys(), proposal.values(), record_version, true, &endorsement);
+    } else {
+        smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, &endorsement);
     }
 
-    for (int write_id = 0; write_id < transaction->write_set_size(); write_id++) {
-        kv_put(transaction->write_set(write_id).write_key(), transaction->write_set(write_id).write_value(),
-                r_record_version, true, nullptr);
-    }
+    ep.total_ops++;
+    endorsement.set_aborted(false);
 
     /* Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
     If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain.*/
