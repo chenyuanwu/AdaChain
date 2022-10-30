@@ -111,11 +111,11 @@ bool patch_up_code(Endorsement *endorsement, const string &key, struct RecordVer
             //endorsement->set_aborted(false);
             return true;
         }
-    } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+    } else if (proposal->type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
         string value;
-        kv_put(key, value, record_version, expose_write, endorsement);
+        kv_put(key, value, record_version, true, endorsement);
     } else {
-        smallbank(key, proposal.type(), proposal.execution_delay(), true, record_version, &endorsement);
+        smallbank(key, proposal->type(), proposal->execution_delay(), true, record_version, &endorsement);
     }
     ep.total_ops++;
     endorsement->set_aborted(false);
