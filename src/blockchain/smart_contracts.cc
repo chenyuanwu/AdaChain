@@ -117,7 +117,6 @@ bool patch_up_code(Endorsement *transaction, struct RecordVersion record_version
                     smallbank(proposal->keys(), proposal->type(), proposal->execution_delay(), false, RecordVersion(), endorsement);
                 }
      }
-    endorsement->set_aborted(false);
     /* Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
     If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain.*/
     //new read set compared to the old one to check if all the new keys are subset of old keys
