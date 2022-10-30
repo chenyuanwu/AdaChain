@@ -98,6 +98,8 @@ If all the keys are a subset of the old RW set, the result is valid and can be c
 
 bool patch_up_code(Endorsement *endorsement, const string &key, struct RecordVersion record_version, struct TransactionProposal *proposal) {
     uint64_t block_id = 0;
+    uint64_t last_block_id = 0;
+
     if (proposal->type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
         kv_get(key, endorsement, nullptr, block_id); 
         if((last_block_id!=0) && (block_id > last_block_id)){
