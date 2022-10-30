@@ -96,18 +96,14 @@ If all the keys are a subset of the old RW set, the result is valid and can be c
 //RECORD_VERSION = WORLD STATE
 //TRANSACTION IS OLD STATE
 
-bool patch_up_code(const Endorsement *endorsement, const string &key, struct RecordVersion record_version){
+bool patch_up_code(const Endorsement *endorsement, const string &key, struct RecordVersion record_version, struct TransactionProposal *proposal) {
     uint64_t blockid = 0;
-    uint64_t proposal_id = proposal.id();
-    //Endorsement endorsement;
-
-    *(endorsement.mutable_received_ts()) = proposal.received_ts();
     if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-        ycsb_get(proposal.keys(), &endorsement);
+        ycsb_get(key(), &endorsement);
     } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-        ycsb_put(proposal.keys(), proposal.values(), record_version, true, &endorsement);
+        ycsb_put(key(), nullptr, record_version, true, &endorsement);
     } else {
-        smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, &endorsement);
+        smallbank(key(), proposal.type(), proposal.execution_delay(), true, record_version, &endorsement);
     }
     ep.total_ops++;
     endorsement->set_aborted(false);

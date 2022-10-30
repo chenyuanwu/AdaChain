@@ -272,8 +272,7 @@ void *block_formation_thread(void *arg) {
                                         LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
                                         block.mutable_transactions()->RemoveLast();
                                     } else {
-                                        *(endorsement->mutable_received_ts()) = proposal.received_ts();
-                                        if (validate_transaction(record_version, endorsement)) {
+                                        if (validate_transaction(record_version, endorsement, proposal)) {
                                             ep.total_ops++;
                                             endorsement->set_aborted(false);
                                         } else {
