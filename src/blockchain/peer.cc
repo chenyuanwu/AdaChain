@@ -259,7 +259,7 @@ void *block_formation_thread(void *arg) {
                                 //if xox 
                                 if(arch.is_xox)
                                 {
-                                    TransactionProposal proposal;
+                                    const TransactionProposal proposal;
                                     if (!proposal.ParseFromString(request_queue.front()) ||
                                         !proposal.GetReflection()->GetUnknownFields(proposal).empty()) {
                                         LOG(WARNING) << "block formation thread: error in deserialising transaction proposal.";
@@ -478,6 +478,7 @@ void start_new_episode(uint64_t last_log_index) {
     
     arch.max_block_size = ep.next_action.blocksize();
     arch.is_xov = ep.next_action.early_execution();
+    
     arch.reorder = ep.next_action.reorder();
     ep.curr_action = ep.next_action;
     ep.next_action.Clear();
