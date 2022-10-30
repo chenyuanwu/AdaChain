@@ -275,6 +275,8 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
                struct RecordVersion record_version, Endorsement *endorsement, uint64_t last_block_id) {
     if (type == TransactionProposal::Type::TransactionProposal_Type_TransactSavings) {
         uint64_t block_id = 0;
+        string key = keys[0];
+
         string value = kv_get(key, endorsement, nullptr, block_id);
         if((last_block_id!=0) && (block_id > last_block_id))  {
             //endorsement->set_aborted(true);
