@@ -96,169 +96,28 @@ If all the keys are a subset of the old RW set, the result is valid and can be c
 //RECORD_VERSION = WORLD STATE
 //TRANSACTION IS OLD STATE
 
-bool patch_up_code(Endorsement *endorsement, const string &key, struct RecordVersion record_version, struct TransactionProposal *proposal) {
+bool patch_up_code(Endorsement *transaction, struct RecordVersion record_version, struct TransactionProposal *proposal) {
     uint64_t block_id = 0;
     uint64_t last_block_id = 0;
 
-    if (proposal->type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-        kv_get(key, endorsement, nullptr, block_id); 
-        if((last_block_id!=0) && (block_id > last_block_id)){
-            //endorsement->set_aborted(true);
-            //LOG(INFO) << "aborted in simulation handler";
-            return false;
-        }
-        else {
-            //endorsement->set_aborted(false);
-            return true;
-        }
-    } else if (proposal->type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-        string value;
-        kv_put(key, value, record_version, true, endorsement);
-    } else {
-        TransactionProposal::Type type = proposal->type();
-        if (type == TransactionProposal::Type::TransactionProposal_Type_TransactSavings) {
-            uint64_t block_id = 0;
-            string value = kv_get(key, endorsement, nullptr, block_id);
-            if((last_block_id!=0) && (block_id > last_block_id))  {
-                //endorsement->set_aborted(true);
-                //LOG(INFO) << "aborted in simulation handler";
-                return false;
-            }
-            
-            int balance = stoi(value);
-            balance += 1000;
-
-            if (proposal->execution_delay() > 0) {
-                usleep(proposal->execution_delay());
-            }
-
-            kv_put(key, to_string(balance), record_version, true, endorsement);
-        } else if (type == TransactionProposal::Type::TransactionProposal_Type_DepositChecking) {
-            uint64_t block_id = 0;
-
-            
-            string value = kv_get(key, endorsement, nullptr, block_id);
-
-            if((last_block_id!=0) && (block_id > last_block_id)){
-                //endorsement->set_aborted(true);
-                //LOG(INFO) << "aborted in simulation handler";
-                return false;
-            }
-        
-            uint64_t balance = stoi(value);
-            balance += 1000;
-
-            if (proposal->execution_delay() > 0) {
-                usleep(proposal->execution_delay());
-            }
-
-            kv_put(key, to_string(balance), record_version, true, endorsement);
-        } else if (type == TransactionProposal::Type::TransactionProposal_Type_SendPayment) {
-            string sender_key = key;
-            string receiver_key = key;
-
-            uint64_t block_id = 0;
-
-
-            string sender_value = kv_get(sender_key, endorsement,  nullptr, block_id);
-            if((last_block_id!=0) && (block_id > last_block_id)){
-                //endorsement->set_aborted(true);
-                //LOG(INFO) << "aborted in simulation handler";
-                return false;
-            }
-            
-            string receiver_value = kv_get(receiver_key, endorsement, nullptr, block_id);
-            if((last_block_id!=0) && (block_id > last_block_id)){
-                //endorsement->set_aborted(true);
-                //LOG(INFO) << "aborted in simulation handler";
-                return false;
-            }
-            
-            uint64_t sender_balance = stoi(sender_value);
-            uint64_t receiver_balance = stoi(receiver_value);
-
-            if (proposal->execution_delay() > 0) {
-                usleep(proposal->execution_delay());
-            }
-
-            if (sender_balance >= 5) {
-                sender_balance -= 5;
-                receiver_balance += 5;
-
-                kv_put(sender_key, to_string(sender_balance), record_version, true, endorsement);
-                kv_put(receiver_key, to_string(receiver_balance), record_version, true, endorsement);
-            }
-        } else if (type == TransactionProposal::Type::TransactionProposal_Type_WriteCheck) {
-
-            uint64_t block_id = 0;
-
-            string value = kv_get(key, endorsement, nullptr, block_id);
-            if((last_block_id!=0) && (block_id > last_block_id))  {
-                //endorsement->set_aborted(true);
-                //LOG(INFO) << "aborted in simulation handler";
-                return false;
-            }
-            
-            uint64_t balance = stoi(value);
-
-            if (proposal->execution_delay() > 0) {
-                usleep(proposal->execution_delay());
-            }
-
-            if (balance >= 100) {
-                balance -= 100;
-
-                kv_put(key, to_string(balance), record_version, true, endorsement);
-            }
-        } else if (type == TransactionProposal::Type::TransactionProposal_Type_Amalgamate) {
-            string checking_key = key;
-            string saving_key = key;
-            uint64_t block_id = 0;
-
-            string checking_value = kv_get(checking_key, endorsement, nullptr, block_id);
-            if((last_block_id!=0) && (block_id > last_block_id)) {
-                return false;
-            }
-            string saving_value = kv_get(saving_key, endorsement, nullptr, block_id);
-            if((last_block_id!=0) && (block_id > last_block_id))  {
-                return false;
-            }
-            
-            uint64_t checking_balance = stoi(checking_value);
-            uint64_t saving_balance = stoi(saving_value);
-            checking_balance = checking_balance + saving_balance;
-            saving_balance = 0;
-
-            if (proposal->execution_delay() > 0) {
-                usleep(proposal->execution_delay());
-            }
-
-            kv_put(checking_key, to_string(checking_balance), record_version, true, endorsement);
-            kv_put(saving_key, to_string(saving_balance), record_version, true, endorsement);
-        } else if (type == TransactionProposal::Type::TransactionProposal_Type_Query) {
-            string checking_key = key;
-            string saving_key = key;
-            uint64_t block_id = 0;
-
-            string checking_value = kv_get(checking_key, endorsement, nullptr, block_id);
-            if((last_block_id!=0) && (block_id > last_block_id))  {
-                return false;
-            }
-            string saving_value = kv_get(saving_key, endorsement, nullptr, block_id);
-            if((last_block_id!=0) && (block_id > last_block_id)) {
-                return false;
-            }
-
-            if (proposal->execution_delay() > 0) {
-                usleep(proposal->execution_delay());
-            }
-        }
-        return true;    
-
-    }
-    ep.total_ops++;
+     while (true) {
+            Request req;
+            Endorsement *endorsement = req.mutable_endorsement();
+            assert(proposal->has_received_ts());
+            *(endorsement->mutable_received_ts()) = proposal->received_ts();
+           
+            if (proposal->type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
+                    ycsb_get(proposal->keys(), endorsement, last_block_id);
+                }
+            else if (proposal->type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+                    ycsb_put(proposal->keys(), proposal->values(), RecordVersion(), false, endorsement);
+                    endorsement->set_aborted(false);
+                }
+            else {
+                    smallbank(proposal->keys(), proposal->type(), proposal->execution_delay(), false, RecordVersion(), endorsement);
+                }
+     }
     endorsement->set_aborted(false);
-
     /* Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
     If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain.*/
     //new read set compared to the old one to check if all the new keys are subset of old keys
