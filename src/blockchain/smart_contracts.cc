@@ -103,7 +103,7 @@ bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_v
      while (true) {
             Request req;
             Endorsement *endorsement = req.mutable_endorsement();
-            assert(proposal.has_received_ts());
+            //assert(proposal.has_received_ts());
             *(endorsement->mutable_received_ts()) = proposal.received_ts();
            
             if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
