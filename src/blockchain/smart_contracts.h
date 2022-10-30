@@ -39,6 +39,6 @@ int kv_put(const string &key, const string &value, struct RecordVersion record_v
            Endorsement *endorsement = nullptr);
 bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type type, int execution_delay, bool expose_write,
                struct RecordVersion record_version, Endorsement *endorsement, uint64_t last_block_id=0);
-bool patch_up_code(const Endorsement *transaction, const string &key, struct RecordVersion r_record_version);
+bool patch_up_code(Endorsement *transaction, const string &key, struct RecordVersion r_record_version);
 
 #endif
