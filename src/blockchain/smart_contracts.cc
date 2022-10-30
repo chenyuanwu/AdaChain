@@ -103,18 +103,18 @@ bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_v
      while (true) {
             Request req;
             Endorsement *endorsement = req.mutable_endorsement();
-            assert(proposal->has_received_ts());
-            *(endorsement->mutable_received_ts()) = proposal->received_ts();
+            assert(proposal.has_received_ts());
+            *(endorsement->mutable_received_ts()) = proposal.received_ts();
            
-            if (proposal->type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-                    ycsb_get(proposal->keys(), endorsement, last_block_id);
+            if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
+                    ycsb_get(proposal.keys(), endorsement, last_block_id);
                 }
-            else if (proposal->type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-                    ycsb_put(proposal->keys(), proposal->values(), RecordVersion(), false, endorsement);
+            else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+                    ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
                     endorsement->set_aborted(false);
                 }
             else {
-                    smallbank(proposal->keys(), proposal->type(), proposal->execution_delay(), false, RecordVersion(), endorsement);
+                    smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement);
                 }
      }
     /* Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
