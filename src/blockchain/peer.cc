@@ -259,7 +259,7 @@ void *block_formation_thread(void *arg) {
                                 //if xox 
                                 if(arch.is_xox)
                                 {
-                                    const TransactionProposal proposal;
+                                    TransactionProposal proposal;
                                     if (!proposal.ParseFromString(request_queue.front()) ) {
                                         LOG(WARNING) << "block formation thread: error in deserialising transaction proposal.";
                                     } 
