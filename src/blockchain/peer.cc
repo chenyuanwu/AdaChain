@@ -56,8 +56,9 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
 
         if (r_record_version.version_blockid != transaction->read_set(read_id).block_seq_num() ||
             r_record_version.version_transid != transaction->read_set(read_id).trans_seq_num()) {
-            if(arch.is_xox && arch.is_xov){
+            if(arch.is_xov){
                 is_valid = patch_up_code(transaction, r_record_version, proposal);
+                break;
                 }
             else{
                 is_valid = false;
