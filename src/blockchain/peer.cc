@@ -259,18 +259,45 @@ void *block_formation_thread(void *arg) {
 
                             if (arch.is_xov) {
                                 /* validate */
-                                if (!endorsement->ParseFromString(request_queue.front()) ||
-                                    !endorsement->GetReflection()->GetUnknownFields(*endorsement).empty()) {
-                                    LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
-                                    block.mutable_transactions()->RemoveLast();
-                                } else {
-                                    if (validate_transaction(record_version, endorsement)) {
-                                        ep.total_ops++;
-                                        endorsement->set_aborted(false);
+                                //if xox 
+                                if(arch.is_xox)
+                                {
+                                    TransactionProposal proposal;
+                                    if (!proposal.ParseFromString(request_queue.front()) ||
+                                        !proposal.GetReflection()->GetUnknownFields(proposal).empty()) {
+                                        LOG(WARNING) << "block formation thread: error in deserialising transaction proposal.";
+                                    } 
+                                    if (!endorsement->ParseFromString(request_queue.front()) ||
+                                        !endorsement->GetReflection()->GetUnknownFields(*endorsement).empty()) {
+                                        LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
+                                        block.mutable_transactions()->RemoveLast();
                                     } else {
-                                        endorsement->set_aborted(true);
+                                        *(endorsement->mutable_received_ts()) = proposal.received_ts();
+                                        if (validate_transaction(record_version, endorsement)) {
+                                            ep.total_ops++;
+                                            endorsement->set_aborted(false);
+                                        } else {
+                                            endorsement->set_aborted(true);
+                                        }
                                     }
+
                                 }
+
+                                //if xov
+                                else{
+                                    if (!endorsement->ParseFromString(request_queue.front()) ||
+                                        !endorsement->GetReflection()->GetUnknownFields(*endorsement).empty()) {
+                                        LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
+                                        block.mutable_transactions()->RemoveLast();
+                                    } else {
+                                        if (validate_transaction(record_version, endorsement)) {
+                                            ep.total_ops++;
+                                            endorsement->set_aborted(false);
+                                        } else {
+                                            endorsement->set_aborted(true);
+                                        }
+                                    }
+                            }
                             } else {
                                 /* execute */
                                 TransactionProposal proposal;
