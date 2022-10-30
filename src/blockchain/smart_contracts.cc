@@ -116,7 +116,6 @@ bool patch_up_code(Endorsement *endorsement, const string &key, struct RecordVer
         string value;
         kv_put(key, value, record_version, true, endorsement);
     } else {
-        smallbank(key, proposal->type(), proposal->execution_delay(), true, record_version, &endorsement);
         TransactionProposal::Type type = proposal->type();
         if (type == TransactionProposal::Type::TransactionProposal_Type_TransactSavings) {
             uint64_t block_id = 0;
@@ -130,8 +129,8 @@ bool patch_up_code(Endorsement *endorsement, const string &key, struct RecordVer
             int balance = stoi(value);
             balance += 1000;
 
-            if (execution_delay > 0) {
-                usleep(execution_delay);
+            if (proposal->execution_delay() > 0) {
+                usleep(proposal->execution_delay());
             }
 
             kv_put(key, to_string(balance), record_version, expose_write, endorsement);
@@ -150,8 +149,8 @@ bool patch_up_code(Endorsement *endorsement, const string &key, struct RecordVer
             uint64_t balance = stoi(value);
             balance += 1000;
 
-            if (execution_delay > 0) {
-                usleep(execution_delay);
+            if (proposal->execution_delay() > 0) {
+                usleep(proposal->execution_delay());
             }
 
             kv_put(key, to_string(balance), record_version, expose_write, endorsement);
@@ -179,8 +178,8 @@ bool patch_up_code(Endorsement *endorsement, const string &key, struct RecordVer
             uint64_t sender_balance = stoi(sender_value);
             uint64_t receiver_balance = stoi(receiver_value);
 
-            if (execution_delay > 0) {
-                usleep(execution_delay);
+            if (proposal->execution_delay() > 0) {
+                usleep(proposal->execution_delay());
             }
 
             if (sender_balance >= 5) {
@@ -203,8 +202,8 @@ bool patch_up_code(Endorsement *endorsement, const string &key, struct RecordVer
             
             uint64_t balance = stoi(value);
 
-            if (execution_delay > 0) {
-                usleep(execution_delay);
+            if (proposal->execution_delay() > 0) {
+                usleep(proposal->execution_delay());
             }
 
             if (balance >= 100) {
@@ -231,8 +230,8 @@ bool patch_up_code(Endorsement *endorsement, const string &key, struct RecordVer
             checking_balance = checking_balance + saving_balance;
             saving_balance = 0;
 
-            if (execution_delay > 0) {
-                usleep(execution_delay);
+            if (proposal->execution_delay() > 0) {
+                usleep(proposal->execution_delay());
             }
 
             kv_put(checking_key, to_string(checking_balance), record_version, expose_write, endorsement);
@@ -251,8 +250,8 @@ bool patch_up_code(Endorsement *endorsement, const string &key, struct RecordVer
                 return false;
             }
 
-            if (execution_delay > 0) {
-                usleep(execution_delay);
+            if (proposal->execution_delay() > 0) {
+                usleep(proposal->execution_delay());
             }
         }
         return true;    
