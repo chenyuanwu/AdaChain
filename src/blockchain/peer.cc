@@ -35,7 +35,7 @@ string sha256(const string str) {
     return ss.str();
 }
 
-bool validate_transaction(struct RecordVersion w_record_version, const Endorsement *transaction) {
+bool validate_transaction(struct RecordVersion w_record_version, const Endorsement *transaction, const TransactionProposal *proposal) {
     // logger->debug("******validating transaction[block_id = %v, trans_id = %v]******",
     //           w_record_version.version_blockid, w_record_version.version_transid);
     bool is_valid = true;
@@ -57,7 +57,7 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
         if (r_record_version.version_blockid != transaction->read_set(read_id).block_seq_num() ||
             r_record_version.version_transid != transaction->read_set(read_id).trans_seq_num()) {
             if(arch.is_xox && arch.is_xov){
-                patch_up_code(transaction, read_set(read_id), r_record_version);
+                patch_up_code(transaction, read_set(read_id), r_record_version, proposal);
             }
             else
             {
@@ -181,13 +181,14 @@ void *block_formation_thread(void *arg) {
                             for (uint64_t i = 0; i < block.transactions_size(); i++) {
                                  //Only recording the 1st block with Block size = max_block_size
                                  //Hence cutting B1 out
+                                TransactionProposal *proposal;
                                 if(i<arch.max_block_size) {
                                     struct RecordVersion record_version = {
                                         .version_blockid = block_index,
                                         .version_transid = i,
                                     };
                                     if ((!block.mutable_transactions(i)->aborted()) &&
-                                        validate_transaction(record_version, block.mutable_transactions(i))) {
+                                        validate_transaction(record_version, block.mutable_transactions(i), proposal)) {
                                         ep.total_ops++;
                                         block.mutable_transactions(i)->set_aborted(false);
                                     } else {
@@ -289,7 +290,8 @@ void *block_formation_thread(void *arg) {
                                         LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
                                         block.mutable_transactions()->RemoveLast();
                                     } else {
-                                        if (validate_transaction(record_version, endorsement)) {
+                                        TransactionProposal *proposal;
+                                        if (validate_transaction(record_version, endorsement, proposal)) {
                                             ep.total_ops++;
                                             endorsement->set_aborted(false);
                                         } else {

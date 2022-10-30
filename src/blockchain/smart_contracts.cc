@@ -99,11 +99,11 @@ If all the keys are a subset of the old RW set, the result is valid and can be c
 bool patch_up_code(const Endorsement *endorsement, const string &key, struct RecordVersion record_version, struct TransactionProposal *proposal) {
     uint64_t blockid = 0;
     if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-        ycsb_get(key(), &endorsement);
+        ycsb_get(key, &endorsement);
     } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-        ycsb_put(key(), nullptr, record_version, true, &endorsement);
+        ycsb_put(key, nullptr, record_version, true, &endorsement);
     } else {
-        smallbank(key(), proposal.type(), proposal.execution_delay(), true, record_version, &endorsement);
+        smallbank(key, proposal.type(), proposal.execution_delay(), true, record_version, &endorsement);
     }
     ep.total_ops++;
     endorsement->set_aborted(false);
