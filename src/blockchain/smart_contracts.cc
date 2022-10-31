@@ -111,13 +111,10 @@ If all the keys are a subset of the old RW set, the result is valid and can be c
 bool patch_up_code(Endorsement *transaction, struct RecordVersion record_version,  TransactionProposal proposal) {
     uint64_t block_id = 0;
     uint64_t last_block_id = 0;
-// // 
-//     RepeatedPtrField<string> oldreadkeys;
-//     RepeatedPtrField<string> oldwritekeys;
-//     RepeatedPtrField<string> newreadvalues
-    repeated string oldreadkeys;
-    repeated string oldwritekeys;
-    repeated string newreadvalues;    
+// 
+    RepeatedPtrField<string> oldreadkeys;
+    RepeatedPtrField<string> oldwritekeys;
+    RepeatedPtrField<string> newreadvalues;    
     
     for (int write_id = 0; write_id < transaction->write_set_size(); write_id++) {
         oldwritekeys.add(transaction->write_set(write_id).write_key());
