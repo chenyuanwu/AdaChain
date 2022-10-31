@@ -101,7 +101,7 @@ bool patch_up_code(Endorsement *transaction, struct RecordVersion record_version
     uint64_t block_id = 0;
     uint64_t last_block_id = 0; 
     TransactionProposal proposalread;
-    //keys in write set
+    TransactionProposal proposalwrite;
 
     //keys in read set
     //The read set is used to get the current key values from the latest version of the world state. 
@@ -112,9 +112,10 @@ bool patch_up_code(Endorsement *transaction, struct RecordVersion record_version
         proposalread.add_values(kv_get(key, transaction, &r_record_version, block_id));
     }
 
-    // for (int i = 0; i < transaction->write_set_size(); i++) {
-    //     proposal2.add_keys(transaction->write_set(i).write_key());
-    // }
+    //keys in write set
+    for (int i = 0; i < transaction->write_set_size(); i++) {
+        proposalwrite.add_keys(transaction->write_set(i).write_key());
+    }
     /*
     Patch-up code take a transaction’s read set and oracle set as input. 
     ?If the transaction is not allowed by the logic of the smart contract based on the updated values, it is discarded. 
@@ -131,7 +132,42 @@ bool patch_up_code(Endorsement *transaction, struct RecordVersion record_version
         smallbank(proposalread.keys(), proposal.type(), proposal.execution_delay(), true, record_version, transaction);
     }    
 
-    //Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
+    //it generates an updated RW set - 
+    //old RW keys = proposalread.keys(), write keys = proposalwrite.keys()
+    //new RW keys = 
+    //which is then compared to the old one
+
+    //compare old readset keys and new readset keys
+    for (int i = 0; i < proposalread.keys_size(); i++) {
+        bool found = false;
+        for (int j = 0; j < transaction->read_set_size(); j++) {
+            if (transaction->read_set(j).read_key() == proposalread.keys(i)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            return false;
+        }
+    }
+
+    //compare old writeset keys and new writeset keys
+    for (int i = 0; i < proposalwrite.keys_size(); i++) {
+        bool found = false;
+        for (int j = 0; j < transaction->write_set_size(); j++) {
+            if (transaction->write_set(j).write_key() == proposalwrite.keys(i)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
     //If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
    
     // for (int read_id = 0; read_id<newreadkeys.size(); read_id++) {
