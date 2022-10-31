@@ -116,10 +116,10 @@ bool patch_up_code(Endorsement *transaction, struct RecordVersion record_version
     RepeatedPtrField<string> newreadvalues;
 
 
-    for (int write_id = 0; write_id < transaction->write_set_size(); write_id++) {
-        newwritekeys[write_id] = transaction->write_set(write_id).write_key();
-    }
-   int newwritekeyssize = transaction->write_set_size();
+//     for (int write_id = 0; write_id < transaction->write_set_size(); write_id++) {
+//         newwritekeys[write_id] = transaction->write_set(write_id).write_key();
+//     }
+//    int newwritekeyssize = transaction->write_set_size();
 
     /*
     Patch-up code take a transaction’s read set and oracle set as input. 
@@ -132,11 +132,11 @@ bool patch_up_code(Endorsement *transaction, struct RecordVersion record_version
     */
 
     //The read set is used to get the current key values from the latest version of the world state. 
-    for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
-        struct RecordVersion r_record_version;
-        newreadvalues[read_id]= kv_get(transaction->read_set(read_id).read_key(), transaction, &r_record_version, block_id);
-        newreadkeys[read_id] = transaction->read_set(read_id).read_key();
-    }
+    // for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
+    //     struct RecordVersion r_record_version;
+    //     newreadvalues[read_id]= kv_get(transaction->read_set(read_id).read_key(), transaction, &r_record_version, block_id);
+    //     newreadkeys[read_id] = transaction->read_set(read_id).read_key();
+    // }
     //Based on read set and the oracle set the smart contract then performs the necessary computations to generate a new write_set.
     //*(endorsement->mutable_received_ts()) = proposal.received_ts();
     // if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
