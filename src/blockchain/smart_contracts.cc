@@ -144,14 +144,14 @@ bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_v
 
     //*(endorsement->mutable_received_ts()) = proposal.received_ts();
     if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-        ycsb_get(newreadkeys, endorsement);
+        ycsb_get(newreadkeys, transaction);
     } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-        ycsb_put(newreadkeys, newreadvalues, record_version, true, endorsement);
+        ycsb_put(newreadkeys, newreadvalues, record_version, true, transaction);
     } else {
-        smallbank(newreadkeys, proposal.type(), proposal.execution_delay(), true, record_version, endorsement);
+        smallbank(newreadkeys, proposal.type(), proposal.execution_delay(), true, record_version, transaction);
     }
     ep.total_ops++;
-    endorsement->set_aborted(false);
+    transaction->set_aborted(false);
     
 
 
