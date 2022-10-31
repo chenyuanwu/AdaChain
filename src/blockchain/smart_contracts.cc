@@ -82,6 +82,17 @@ int kv_put(const string &key, const string &value, struct RecordVersion record_v
     return 0;
 }
 
+int PutOracle(const string &key, const string &value, Endorsement *endorsement) {
+
+    if (endorsement != nullptr) {
+        OracleItem *oracle_item = endorsement->add_oracle_set();
+        oracle_item->set_oracle_key(key);
+        oracle_item->set_oracle_value(value);
+    }
+
+    return 0;
+}
+
 //Analogous to existing calls to GetState and PutState that record the read and write set key-value pairs, respectively, 
 // //we add a new call PutOracle that record the oracle key-value pairs.
 // int PutOracle(const string &key, const string &value, struct RecordVersion record_version, 
@@ -110,29 +121,22 @@ If all the keys are a subset of the old RW set, the result is valid and can be c
 
 bool patch_up_code(Endorsement *transaction, struct RecordVersion record_version,  TransactionProposal proposal) {
     uint64_t block_id = 0;
-    uint64_t last_block_id = 0;
-// 
-    RepeatedPtrField<string> oldreadkeys;
-    RepeatedPtrField<string> oldwritekeys;
-    RepeatedPtrField<string> newreadvalues;    
-    
-    for (int write_id = 0; write_id < transaction->write_set_size(); write_id++) {
-        oldwritekeys.add(transaction->write_set(write_id).write_key());
-    }
-   //int newwritekeyssize = transaction->write_set_size();
+    uint64_t last_block_id = 0; 
 
+    //old RW set record in oracle set
+    for (int i = 0; i < transaction->write_set_size(); i++) {
+        string key = transaction->write_set(i).write_key();
+        string value = transaction->write_set(i).write_value();
+        PutOracle(key, value, transaction);
+    }
     /*
     Patch-up code take a transaction’s read set and oracle set as input. 
-    The read set is used to get the current key values from the latest version of the world state. 
-    Based on this and the oracle set, the smart contract then performs the necessary computations to generate a new write set. 
     ?If the transaction is not allowed by the logic of the smart contract based on the updated values, it is discarded. 
-
     Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
     If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain.
     */
-
     //The read set is used to get the current key values from the latest version of the world state. 
-    // for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
+    //for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
     //     struct RecordVersion r_record_version;
     //     newreadvalues[read_id]= kv_get(transaction->read_set(read_id).read_key(), transaction, &r_record_version, block_id);
     //     newreadkeys[read_id] = transaction->read_set(read_id).read_key();

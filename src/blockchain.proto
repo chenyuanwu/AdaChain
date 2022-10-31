@@ -47,6 +47,11 @@ message WriteItem {
     bytes write_value = 2;
 }
 
+message OracleItem {
+    string keys = 1;
+    bytes values = 2;
+}
+
 
 message Endorsement {
     repeated ReadItem read_set = 1;
@@ -58,6 +63,7 @@ message Endorsement {
     google.protobuf.Timestamp received_ts = 7;
     google.protobuf.Timestamp execution_start_ts = 8;
     google.protobuf.Timestamp execution_end_ts = 9;
+    repeated OracleItem oracle_set = 10;
     }
 
 message TransactionProposal {
