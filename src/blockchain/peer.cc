@@ -40,6 +40,7 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
     //           w_record_version.version_blockid, w_record_version.version_transid);
     bool is_valid = true;
     uint64_t blockid = 0;
+    struct RecordVersion r_record_version;
  
     //This makes it possible for transactions to result in invalid state transitions even though 
     //they were executed successfully before ordering. 
@@ -54,7 +55,7 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
             }}
     //XOX deterministic second execution phase - execution step to execute the patch-up code added to smart contracts
     //When the RW validation finds a conflict between a transaction’s RW set and the world state(r_record_version)
-    if(!valid && arch.is_xox){
+    if(!is_valid && arch.is_xox){
         is_valid = patch_up_code(transaction, r_record_version, proposal);
     }
     //We introduce a step that re executes transaction with such an RW set conflict based on the most up-to-date world state. 
