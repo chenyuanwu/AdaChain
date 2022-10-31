@@ -116,10 +116,10 @@ bool patch_up_code(Endorsement *transaction, struct RecordVersion record_version
     RepeatedPtrField<string> newreadvalues;
 
 
-//     for (int write_id = 0; write_id < transaction->write_set_size(); write_id++) {
-//         newwritekeys[write_id] = transaction->write_set(write_id).write_key();
-//     }
-//    int newwritekeyssize = transaction->write_set_size();
+    for (int write_id = 0; write_id < transaction->write_set_size(); write_id++) {
+        newwritekeys[write_id] = transaction->write_set(write_id).write_key();
+    }
+   int newwritekeyssize = transaction->write_set_size();
 
     /*
     Patch-up code take a transaction’s read set and oracle set as input. 
@@ -132,49 +132,49 @@ bool patch_up_code(Endorsement *transaction, struct RecordVersion record_version
     */
 
     //The read set is used to get the current key values from the latest version of the world state. 
-    // for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
-    //     struct RecordVersion r_record_version;
-    //     newreadvalues[read_id]= kv_get(transaction->read_set(read_id).read_key(), transaction, &r_record_version, block_id);
-    //     newreadkeys[read_id] = transaction->read_set(read_id).read_key();
-    // }
+    for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
+        struct RecordVersion r_record_version;
+        newreadvalues[read_id]= kv_get(transaction->read_set(read_id).read_key(), transaction, &r_record_version, block_id);
+        newreadkeys[read_id] = transaction->read_set(read_id).read_key();
+    }
     //Based on read set and the oracle set the smart contract then performs the necessary computations to generate a new write_set.
     //*(endorsement->mutable_received_ts()) = proposal.received_ts();
-    // if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-    //     ycsb_get(newreadkeys, transaction);
-    // } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-    //     ycsb_put(newreadkeys, newreadvalues, record_version, true, transaction);
-    // } else {
-    //     smallbank(newreadkeys, proposal.type(), proposal.execution_delay(), true, record_version, transaction);
-    // }    
+    if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
+        ycsb_get(newreadkeys, transaction);
+    } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+        ycsb_put(newreadkeys, newreadvalues, record_version, true, transaction);
+    } else {
+        smallbank(newreadkeys, proposal.type(), proposal.execution_delay(), true, record_version, transaction);
+    }    
 
     //Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
     //If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
    
-    // for (int read_id = 0; read_id<newreadkeys.size(); read_id++) {
-    // bool readfound = false;
-    // for (int new_read_id = 0; new_read_id < transaction->read_set_size(); new_read_id++) {
-    //     if (newreadkeys[read_id] == transaction->read_set(new_read_id).read_key()) {
-    //         readfound = true;
-    //         break;
-    //     }
-    // }
-    // if (!readfound) {
-    //     return false;
-    // }
-    // }
+    for (int read_id = 0; read_id<newreadkeys.size(); read_id++) {
+    bool readfound = false;
+    for (int new_read_id = 0; new_read_id < transaction->read_set_size(); new_read_id++) {
+        if (newreadkeys[read_id] == transaction->read_set(new_read_id).read_key()) {
+            readfound = true;
+            break;
+        }
+    }
+    if (!readfound) {
+        return false;
+    }
+    }
 
-    // for (int write_id = 0; write_id < newwritekeyssize; write_id++) {
-    //     bool found = false;
-    //     for (int new_write_id = 0;new_write_id < transaction->write_set_size(); new_write_id++) {
-    //         if (newwritekeys[write_id]== transaction->write_set(new_write_id).write_key()) {
-    //             found = true;
-    //             break;
-    //         }
-    //     }
-    //     if (!found) {
-    //         return false;
-    //     }
-    // }
+    for (int write_id = 0; write_id < newwritekeyssize; write_id++) {
+        bool found = false;
+        for (int new_write_id = 0;new_write_id < transaction->write_set_size(); new_write_id++) {
+            if (newwritekeys[write_id]== transaction->write_set(new_write_id).write_key()) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            return false;
+        }
+    }
 
 return true;
     //updated RW set is compared to the old one. if all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
