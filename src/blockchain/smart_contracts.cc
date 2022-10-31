@@ -149,12 +149,7 @@ bool patch_up_code(Endorsement *transaction, struct RecordVersion record_version
         ycsb_put(newreadkeys, newreadvalues, record_version, true, transaction);
     } else {
         smallbank(newreadkeys, proposal.type(), proposal.execution_delay(), true, record_version, transaction);
-    }
-    ep.total_ops++;
-    transaction->set_aborted(false);
-    
-
-
+    }    
 
     //Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
     //If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
@@ -162,7 +157,7 @@ bool patch_up_code(Endorsement *transaction, struct RecordVersion record_version
     for (int read_id = 0; read_id<newreadkeys.size(); read_id++) {
     bool readfound = false;
     for (int new_read_id = 0; new_read_id < transaction->read_set_size(); new_read_id++) {
-        if (newreadkeys[read_id] == transaction->read_set(read_id).read_key()) {
+        if (newreadkeys[read_id] == transaction->read_set(new_read_id).read_key()) {
             readfound = true;
             break;
         }

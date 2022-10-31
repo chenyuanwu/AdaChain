@@ -35,7 +35,7 @@ string sha256(const string str) {
     return ss.str();
 }
 
-bool validate_transaction(struct RecordVersion w_record_version, const Endorsement *transaction, const TransactionProposal proposal) {
+bool validate_transaction(struct RecordVersion w_record_version, Endorsement *transaction, const TransactionProposal proposal) {
     // logger->debug("******validating transaction[block_id = %v, trans_id = %v]******",
     //           w_record_version.version_blockid, w_record_version.version_transid);
     bool is_valid = true;
@@ -297,7 +297,6 @@ void *block_formation_thread(void *arg) {
                                         ycsb_get(proposal.keys(), endorsement);
                                     } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
  
-                                        PutOracle(proposal.keys(),proposal.values(), record_version, true, endorsement) 
                                         ycsb_put(proposal.keys(), proposal.values(), record_version, true, endorsement);
 
                                     } else {
