@@ -82,6 +82,18 @@ int kv_put(const string &key, const string &value, struct RecordVersion record_v
     return 0;
 }
 
+//Analogous to existing calls to GetState and PutState that record the read and write set key-value pairs, respectively, 
+//we add a new call PutOracle that record the oracle key-value pairs.
+int PutOracle(const string &key, const string &value, struct RecordVersion record_version, 
+           Endorsement *endorsement) {
+    if (endorsement != nullptr) {
+        OracleItem *oracle_item = endorsement->add_oracle_set();
+        oracle_item->set_oracle_key(key);
+        oracle_item->set_oracle_value(value);
+    } 
+    return 0;
+}
+
 /*
 Patch-up code take a transaction’s read set and oracle set as input. 
 The read set is used to get the current key values from the latest version of the world state. 
@@ -99,27 +111,77 @@ If all the keys are a subset of the old RW set, the result is valid and can be c
 bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_version,  TransactionProposal proposal) {
     uint64_t block_id = 0;
     uint64_t last_block_id = 0;
+    RepeatedPtrField<string> &newreadkeys;
+    RepeatedPtrField<string> &newwritekeys;
+    RepeatedPtrField<bytes> &newreadvalues;
+    
+    /*
+    Patch-up code take a transaction’s read set and oracle set as input. 
+    The read set is used to get the current key values from the latest version of the world state. 
+    Based on this and the oracle set, the smart contract then performs the necessary computations to generate a new write set. 
+    ?If the transaction is not allowed by the logic of the smart contract based on the updated values, it is discarded. 
 
-     while (true) {
-            Request req;
-            Endorsement *endorsement = req.mutable_endorsement();
-            //assert(proposal.has_received_ts());
-            *(endorsement->mutable_received_ts()) = proposal.received_ts();
-           
-            // if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-            //         ycsb_get(proposal.keys(), endorsement, last_block_id);
-            //     }
-            // else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-            //         ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
-            //         endorsement->set_aborted(false);
-            //     }
-            // else {
-            //         smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement);
-            //     }
-     }
-    /* Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
-    If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain.*/
-    //new read set compared to the old one to check if all the new keys are subset of old keys
+    Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
+    If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain.
+    */
+
+    //The read set is used to get the current key values from the latest version of the world state. 
+    for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
+        struct RecordVersion r_record_version;
+
+        newreadvalues(read_id)= kv_get(transaction->read_set(read_id).read_key(), endorsement, &r_record_version, blockid);
+        newreadkeys(read_id) = transaction->read_set(read_id).read_key();
+    }
+
+    //Based on read set and the oracle set the smart contract then performs the necessary computations to generate a new write_set
+    
+
+    //*(endorsement->mutable_received_ts()) = proposal.received_ts();
+    if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
+        ycsb_get(newreadkeys(), endorsement);
+    } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+        ycsb_put(newreadkeys(), newreadvalues(), record_version, true, endorsement);
+    } else {
+        smallbank(newreadkeys(), proposal.type(), proposal.execution_delay(), true, record_version, endorsement);
+    }
+    ep.total_ops++;
+    endorsement->set_aborted(false);
+    
+
+
+
+    //Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
+    //If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
+   
+    for (int read_id = 0; read_id<newreadkeys().size(); read_id++) {
+    bool readfound = false;
+    for (int new_read_id = 0; new_read_id < transaction->read_set_size(); new_read_id++) {
+        if (newreadkeys(read_id) == transaction->read_set(read_id).read_key()) {
+            readfound = true;
+            break;
+        }
+    }
+    if (!readfound) {
+        return false;
+    }
+    }
+
+    for (int write_id = 0; write_id < transaction->oracle_set_size(); write_id++) {
+        bool found = false;
+        for (int new_write_id = 0;new_write_id < transaction->write_set_size(); new_write_id++) {
+            if (transaction->write_set(write_id).write_key() == transaction->write_set(new_write_id).write_key()) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            return false;
+        }
+    }
+
+return true;
+
+}
 
 
     //updated RW set is compared to the old one. if all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
@@ -150,6 +212,7 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         }
 
         kv_put(key, to_string(balance), record_version, expose_write, endorsement);
+        PutOracle(key, to_string(balance), record_version, expose_write, endorsement);
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_DepositChecking) {
         uint64_t block_id = 0;
         string key = keys[0];
@@ -170,6 +233,9 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         }
 
         kv_put(key, to_string(balance), record_version, expose_write, endorsement);
+        PutOracle(key, to_string(balance), record_version, expose_write, endorsement);
+
+
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_SendPayment) {
         string sender_key = keys[0];
         string receiver_key = keys[1];
@@ -204,6 +270,8 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
 
             kv_put(sender_key, to_string(sender_balance), record_version, expose_write, endorsement);
             kv_put(receiver_key, to_string(receiver_balance), record_version, expose_write, endorsement);
+            PutOracle(sender_key, to_string(sender_balance), record_version, expose_write, endorsement);
+            PutOracle(receiver_key, to_string(receiver_balance), record_version, expose_write, endorsement);
         }
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_WriteCheck) {
         string key = keys[0];
@@ -226,6 +294,7 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         if (balance >= 100) {
             balance -= 100;
 
+            OutOracle(key, to_string(balance), record_version, expose_write, endorsement);
             kv_put(key, to_string(balance), record_version, expose_write, endorsement);
         }
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_Amalgamate) {
@@ -253,6 +322,8 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
 
         kv_put(checking_key, to_string(checking_balance), record_version, expose_write, endorsement);
         kv_put(saving_key, to_string(saving_balance), record_version, expose_write, endorsement);
+        PutOracle(checking_key, to_string(checking_balance), record_version, expose_write, endorsement);
+        PutOracle(saving_key, to_string(saving_balance), record_version, expose_write, endorsement);
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_Query) {
         string checking_key = keys[0];
         string saving_key = keys[1];

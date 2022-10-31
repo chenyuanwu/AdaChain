@@ -40,36 +40,24 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
     //           w_record_version.version_blockid, w_record_version.version_transid);
     bool is_valid = true;
     uint64_t blockid = 0;
-    struct RecordVersion oracle;
-    bool second_execution = false;
  
-    //world state check
-    //transaction->read_set is the old d
     //This makes it possible for transactions to result in invalid state transitions even though 
     //they were executed successfully before ordering. 
     //It necessitates a validation step after ordering so transitions can be invalidated deterministically based on detected conflicts.
-    //THIS IS THE RW SET
-    //ORACLE DATE = R_RECORD_VERSION
     for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
         struct RecordVersion r_record_version;
         kv_get(transaction->read_set(read_id).read_key(), nullptr, &r_record_version, blockid);
-
         if (r_record_version.version_blockid != transaction->read_set(read_id).block_seq_num() ||
             r_record_version.version_transid != transaction->read_set(read_id).trans_seq_num()) {
-            if(arch.is_xov){
-                is_valid = patch_up_code(transaction, r_record_version, proposal);
-                break;
-                }
-            else{
-                is_valid = false;
-                break;
-            }}}
+            is_valid = false;
+            break;
+            }}
     //XOX deterministic second execution phase - execution step to execute the patch-up code added to smart contracts
     //When the RW validation finds a conflict between a transaction’s RW set and the world state(r_record_version)
-    //that transaction will be re-executed and possibly salvaged using the patch-up code.
-    
+    if(!valid && arch.is_xox){
+        is_valid = patch_up_code(transaction, r_record_version, proposal);
+    }
     //We introduce a step that re executes transaction with such an RW set conflict based on the most up-to-date world state. 
-    //so now transction->read_set will be the latest world state and added back to the execution queue
     //It can resolve conflicts due to a lack of knowledge of concurrent transactions during preorder execution. 
     //Patch-up code take a transaction’s read set and oracle set as input
     // if(!is_valid && arch.is_xov)
@@ -294,7 +282,7 @@ void *block_formation_thread(void *arg) {
                                             endorsement->set_aborted(true);
                                         }
                                     }
-                            }
+                                }
                             } else {
                                 /* execute */
                                 TransactionProposal proposal;
@@ -307,7 +295,10 @@ void *block_formation_thread(void *arg) {
                                     if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
                                         ycsb_get(proposal.keys(), endorsement);
                                     } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+ 
+                                        PutOracle(proposal.keys(),proposal.values(), record_version, true, endorsement) 
                                         ycsb_put(proposal.keys(), proposal.values(), record_version, true, endorsement);
+
                                     } else {
                                         smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, endorsement);
                                     }
@@ -375,7 +366,6 @@ void *simulation_handler(void *arg) {
             //assert(proposal.has_received_ts());
             *(endorsement->mutable_received_ts()) = proposal.received_ts();
             //print proposal.type()
-            LOG(INFO) << "Proposal type is:" << proposal.type << ".";
             if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
                 checking_condition =  ycsb_get(proposal.keys(), endorsement, last_block_id);
                 if (!checking_condition && arch.early_abort) 
@@ -388,6 +378,7 @@ void *simulation_handler(void *arg) {
             }
         }
         else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+                PutOracle(proposal.keys(),proposal.values(), RecordVersion(), false, endorsement) 
                 ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
                 endorsement->set_aborted(false);
             }
@@ -426,6 +417,7 @@ void *simulation_handler(void *arg) {
             if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
                 ycsb_get(proposal.keys(), &endorsement);
             } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+                PutOracle(proposal.keys(),proposal.values(), record_version, true, &endorsement) 
                 ycsb_put(proposal.keys(), proposal.values(), record_version, true, &endorsement);
             } else {
                 smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, &endorsement);
