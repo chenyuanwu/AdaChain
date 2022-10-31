@@ -83,16 +83,16 @@ int kv_put(const string &key, const string &value, struct RecordVersion record_v
 }
 
 //Analogous to existing calls to GetState and PutState that record the read and write set key-value pairs, respectively, 
-//we add a new call PutOracle that record the oracle key-value pairs.
-int PutOracle(const string &key, const string &value, struct RecordVersion record_version, 
-           Endorsement *endorsement) {
-    if (endorsement != nullptr) {
-        OracleItem *oracle_item = endorsement->add_oracle_set();
-        oracle_item->set_oracle_key(key);
-        oracle_item->set_oracle_value(value);
-    } 
-    return 0;
-}
+// //we add a new call PutOracle that record the oracle key-value pairs.
+// int PutOracle(const string &key, const string &value, struct RecordVersion record_version, 
+//            Endorsement *endorsement) {
+//     if (endorsement != nullptr) {
+//         OracleItem *oracle_item = endorsement->add_oracle_set();
+//         oracle_item->set_oracle_key(key);
+//         oracle_item->set_oracle_value(value);
+//     } 
+//     return 0;
+// }
 
 /*
 Patch-up code take a transaction’s read set and oracle set as input. 
@@ -114,7 +114,11 @@ bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_v
     RepeatedPtrField<string> &newreadkeys;
     RepeatedPtrField<string> &newwritekeys;
     RepeatedPtrField<bytes> &newreadvalues;
-    
+    RepeatedPtrField<string> &newwritekeys;
+    int oldwrite_set_size = transaction->write_set_size();
+    for (int write_id = 0; write_id < transaction->write_set_size(); write_id++) {
+        newwritekeys(write_id) = transaction->write_set(write_id).write_key();
+    }
     /*
     Patch-up code take a transaction’s read set and oracle set as input. 
     The read set is used to get the current key values from the latest version of the world state. 
@@ -166,10 +170,10 @@ bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_v
     }
     }
 
-    for (int write_id = 0; write_id < transaction->oracle_set_size(); write_id++) {
+    for (int write_id = 0; write_id < oldwrite_set_size; write_id++) {
         bool found = false;
         for (int new_write_id = 0;new_write_id < transaction->write_set_size(); new_write_id++) {
-            if (transaction->write_set(write_id).write_key() == transaction->write_set(new_write_id).write_key()) {
+            if (newwritekeys(write_id)== transaction->write_set(new_write_id).write_key()) {
                 found = true;
                 break;
             }
@@ -212,7 +216,7 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         }
 
         kv_put(key, to_string(balance), record_version, expose_write, endorsement);
-        PutOracle(key, to_string(balance), record_version, expose_write, endorsement);
+        // PutOracle(key, to_string(balance), record_version, expose_write, endorsement);
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_DepositChecking) {
         uint64_t block_id = 0;
         string key = keys[0];
@@ -233,7 +237,7 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         }
 
         kv_put(key, to_string(balance), record_version, expose_write, endorsement);
-        PutOracle(key, to_string(balance), record_version, expose_write, endorsement);
+        // PutOracle(key, to_string(balance), record_version, expose_write, endorsement);
 
 
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_SendPayment) {
@@ -270,8 +274,8 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
 
             kv_put(sender_key, to_string(sender_balance), record_version, expose_write, endorsement);
             kv_put(receiver_key, to_string(receiver_balance), record_version, expose_write, endorsement);
-            PutOracle(sender_key, to_string(sender_balance), record_version, expose_write, endorsement);
-            PutOracle(receiver_key, to_string(receiver_balance), record_version, expose_write, endorsement);
+            // PutOracle(sender_key, to_string(sender_balance), record_version, expose_write, endorsement);
+            // PutOracle(receiver_key, to_string(receiver_balance), record_version, expose_write, endorsement);
         }
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_WriteCheck) {
         string key = keys[0];
@@ -294,7 +298,7 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         if (balance >= 100) {
             balance -= 100;
 
-            OutOracle(key, to_string(balance), record_version, expose_write, endorsement);
+            // OutOracle(key, to_string(balance), record_version, expose_write, endorsement);
             kv_put(key, to_string(balance), record_version, expose_write, endorsement);
         }
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_Amalgamate) {
@@ -322,8 +326,8 @@ bool smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
 
         kv_put(checking_key, to_string(checking_balance), record_version, expose_write, endorsement);
         kv_put(saving_key, to_string(saving_balance), record_version, expose_write, endorsement);
-        PutOracle(checking_key, to_string(checking_balance), record_version, expose_write, endorsement);
-        PutOracle(saving_key, to_string(saving_balance), record_version, expose_write, endorsement);
+        // PutOracle(checking_key, to_string(checking_balance), record_version, expose_write, endorsement);
+        // PutOracle(saving_key, to_string(saving_balance), record_version, expose_write, endorsement);
     } else if (type == TransactionProposal::Type::TransactionProposal_Type_Query) {
         string checking_key = keys[0];
         string saving_key = keys[1];

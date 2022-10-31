@@ -378,7 +378,6 @@ void *simulation_handler(void *arg) {
             }
         }
         else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-                PutOracle(proposal.keys(),proposal.values(), RecordVersion(), false, endorsement) 
                 ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
                 endorsement->set_aborted(false);
             }
@@ -417,7 +416,6 @@ void *simulation_handler(void *arg) {
             if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
                 ycsb_get(proposal.keys(), &endorsement);
             } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-                PutOracle(proposal.keys(),proposal.values(), record_version, true, &endorsement) 
                 ycsb_put(proposal.keys(), proposal.values(), record_version, true, &endorsement);
             } else {
                 smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, &endorsement);
