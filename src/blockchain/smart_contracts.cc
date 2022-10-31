@@ -82,6 +82,8 @@ int kv_put(const string &key, const string &value, struct RecordVersion record_v
     return 0;
 }
 
+//Analogous to existing calls to GetState and PutState that record the read and write set key-value pairs, respectively, 
+// //we add a new call PutOracle that record the oracle key-value pairs.
 int PutOracle(const string &key, const string &value, Endorsement *endorsement) {
 
     if (endorsement != nullptr) {
@@ -93,17 +95,6 @@ int PutOracle(const string &key, const string &value, Endorsement *endorsement) 
     return 0;
 }
 
-//Analogous to existing calls to GetState and PutState that record the read and write set key-value pairs, respectively, 
-// //we add a new call PutOracle that record the oracle key-value pairs.
-// int PutOracle(const string &key, const string &value, struct RecordVersion record_version, 
-//            Endorsement *endorsement) {
-//     if (endorsement != nullptr) {
-//         OracleItem *oracle_item = endorsement->add_oracle_set();
-//         oracle_item->set_oracle_key(key);
-//         oracle_item->set_oracle_value(value);
-//     } 
-//     return 0;
-// }
 
 /*
 Patch-up code take a transaction’s read set and oracle set as input. 
