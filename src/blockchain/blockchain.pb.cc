@@ -78,25 +78,11 @@ struct WriteItemDefaultTypeInternal {
     WriteItem _instance;
   };
 };
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT ReadItemDefaultTypeInternal _ReadItem_default_instance_;
-constexpr OracleItem::OracleItem(
-  ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
-  : oracle_key_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string)
-  , oracle_value_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string){}
-struct OracleItemDefaultTypeInternal {
-  constexpr OracleItemDefaultTypeInternal()
-    : _instance(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized{}) {}
-  ~OracleItemDefaultTypeInternal() {}
-  union {
-    OracleItem _instance;
-  };
-};
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT WriteItemDefaultTypeInternal _WriteItem_default_instance_;
 constexpr Endorsement::Endorsement(
   ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
   : read_set_()
   , write_set_()
-  , oracle_set_()
   , transaction_id_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string)
   , endorser_signature_(&::PROTOBUF_NAMESPACE_ID::internal::fixed_address_empty_string)
   , received_ts_(nullptr)
@@ -273,8 +259,6 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_blockchain_2eproto::offsets[] 
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::WriteItem, write_key_),
   PROTOBUF_FIELD_OFFSET(::WriteItem, write_value_),
-  PROTOBUF_FIELD_OFFSET(::OraceItem, write_key_),
-  PROTOBUF_FIELD_OFFSET(::OraceItem, write_value_), 
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::Endorsement, _internal_metadata_),
   ~0u,  // no _extensions_
