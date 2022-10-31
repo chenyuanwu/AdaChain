@@ -111,7 +111,6 @@ If all the keys are a subset of the old RW set, the result is valid and can be c
 bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_version,  TransactionProposal proposal) {
     uint64_t block_id = 0;
     uint64_t last_block_id = 0;
-    RepeatedPtrField<string> newwritekeyssize = transaction->write_set_size();
     RepeatedPtrField<string> newreadkeys;
     RepeatedPtrField<string> newwritekeys;
     RepeatedPtrField<string> newreadvalues;
@@ -136,7 +135,7 @@ bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_v
     for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
         struct RecordVersion r_record_version;
 
-        newreadvalues[read_id]= kv_get(transaction->read_set(read_id).read_key(), endorsement, &r_record_version, blockid);
+        newreadvalues[read_id]= kv_get(transaction->read_set(read_id).read_key(), endorsement, &r_record_version, block_id);
         newreadkeys[read_id] = transaction->read_set(read_id).read_key();
     }
 
@@ -145,11 +144,11 @@ bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_v
 
     //*(endorsement->mutable_received_ts()) = proposal.received_ts();
     if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-        ycsb_get(newreadkeys(), endorsement);
+        ycsb_get(newreadkeys, endorsement);
     } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-        ycsb_put(newreadkeys(), newreadvalues(), record_version, true, endorsement);
+        ycsb_put(newreadkeys, newreadvalues, record_version, true, endorsement);
     } else {
-        smallbank(newreadkeys(), proposal.type(), proposal.execution_delay(), true, record_version, endorsement);
+        smallbank(newreadkeys, proposal.type(), proposal.execution_delay(), true, record_version, endorsement);
     }
     ep.total_ops++;
     endorsement->set_aborted(false);
@@ -160,10 +159,10 @@ bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_v
     //Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
     //If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
    
-    for (int read_id = 0; read_id<newreadkeys().size(); read_id++) {
+    for (int read_id = 0; read_id<newreadkeys.size(); read_id++) {
     bool readfound = false;
     for (int new_read_id = 0; new_read_id < transaction->read_set_size(); new_read_id++) {
-        if (newreadkeys[read_id] == transaction->read_set[read_id].read_key()) {
+        if (newreadkeys[read_id] == transaction->read_set(read_id).read_key()) {
             readfound = true;
             break;
         }
@@ -173,7 +172,7 @@ bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_v
     }
     }
 
-    for (int write_id = 0; write_id < new_write_id; write_id++) {
+    for (int write_id = 0; write_id < newwritekeyssize; write_id++) {
         bool found = false;
         for (int new_write_id = 0;new_write_id < transaction->write_set_size(); new_write_id++) {
             if (newwritekeys[write_id]== transaction->write_set(new_write_id).write_key()) {
@@ -187,14 +186,7 @@ bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_v
     }
 
 return true;
-
-}
-
-
     //updated RW set is compared to the old one. if all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
-
-return true;
-           
 }
 
 
