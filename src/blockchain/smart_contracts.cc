@@ -117,7 +117,6 @@ bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_v
     RepeatedPtrField<string> newreadvalues;
 
 
-    int oldwrite_set_size = transaction->write_set_size();
     for (int write_id = 0; write_id < transaction->write_set_size(); write_id++) {
         newwritekeys[write_id] = transaction->write_set(write_id).write_key();
     }
