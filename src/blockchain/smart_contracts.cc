@@ -113,12 +113,20 @@ If all the keys are a subset of the old RW set, the result is valid and can be c
 bool patch_up_code(Endorsement *transaction, struct RecordVersion record_version,  TransactionProposal proposal) {
     uint64_t block_id = 0;
     uint64_t last_block_id = 0; 
+    TransactionProposal proposalread;
+    //keys in write set
 
-    //old RW set record in oracle set
+    //keys in read set
+    //The read set is used to get the current key values from the latest version of the world state. 
+    for (int i = 0; i < transaction->read_set_size(); i++) {
+        struct RecordVersion r_record_version;
+        string key = transaction->read_set(i).read_key();
+        proposalread.add_keys(key);
+        proposalread.add_values(kv_get(key, transaction, &r_record_version, block_id));
+    }
+
     for (int i = 0; i < transaction->write_set_size(); i++) {
-        string key = transaction->write_set(i).write_key();
-        string value = transaction->write_set(i).write_value();
-        PutOracle(key, value, transaction);
+        proposal2.add_keys(transaction->write_set(i).write_key());
     }
     /*
     Patch-up code take a transaction’s read set and oracle set as input. 
@@ -126,24 +134,18 @@ bool patch_up_code(Endorsement *transaction, struct RecordVersion record_version
     Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
     If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain.
     */
-    //The read set is used to get the current key values from the latest version of the world state. 
-    //for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
-    //     struct RecordVersion r_record_version;
-    //     newreadvalues[read_id]= kv_get(transaction->read_set(read_id).read_key(), transaction, &r_record_version, block_id);
-    //     newreadkeys[read_id] = transaction->read_set(read_id).read_key();
-    // }
     // //Based on read set and the oracle set the smart contract then performs the necessary computations to generate a new write_set.
     // //*(endorsement->mutable_received_ts()) = proposal.received_ts();
-    // if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-    //     ycsb_get(newreadkeys, transaction);
-    // } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-    //     ycsb_put(newreadkeys, newreadvalues, record_version, true, transaction);
-    // } else {
-    //     smallbank(newreadkeys, proposal.type(), proposal.execution_delay(), true, record_version, transaction);
-    // }    
+    if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
+        ycsb_get(proposalread.keys() , transaction);
+    } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+        ycsb_put(proposalread.keys() , proposalread.values() , record_version, true, transaction);
+    } else {
+        smallbank(proposalread.keys(), proposal.type(), proposal.execution_delay(), true, record_version, transaction);
+    }    
 
-    // //Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
-    // //If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
+    //Finally, in case of success, it generates an updated RW set, which is then compared to the old one. 
+    //If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
    
     // for (int read_id = 0; read_id<newreadkeys.size(); read_id++) {
     // bool readfound = false;
