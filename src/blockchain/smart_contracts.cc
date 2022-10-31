@@ -108,7 +108,7 @@ If all the keys are a subset of the old RW set, the result is valid and can be c
 //RECORD_VERSION = WORLD STATE
 //TRANSACTION IS OLD STATE
 
-bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_version,  TransactionProposal proposal) {
+bool patch_up_code(Endorsement *transaction, struct RecordVersion record_version,  TransactionProposal proposal) {
     uint64_t block_id = 0;
     uint64_t last_block_id = 0;
     RepeatedPtrField<string> newreadkeys;
@@ -135,7 +135,7 @@ bool patch_up_code(const Endorsement *transaction, struct RecordVersion record_v
     for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
         struct RecordVersion r_record_version;
 
-        newreadvalues[read_id]= kv_get(transaction->read_set(read_id).read_key(), endorsement, &r_record_version, block_id);
+        newreadvalues[read_id]= kv_get(transaction->read_set(read_id).read_key(), transaction, &r_record_version, block_id);
         newreadkeys[read_id] = transaction->read_set(read_id).read_key();
     }
 
