@@ -1,11 +1,12 @@
-#AdaChain
+# AdaChain
+
 This is the source code for the publication AdaChain, a learning-based blockchain framework that adaptively chooses the best permissioned blockchain architecture in order to optimize effective throughput for dynamic transaction workloads.
 
 ---
 
-##Installation
-
-###Testbed Setup:
+## Installation
+<!-- 1. Cloudlab setup and Dependencies-->
+### Testbed Setup:
 We use cloudlab to deploy our testbed, our cloudlab profile used is available [here](https://www.cloudlab.us/p/97d8fe450a0cf392e00b4b8e6d91039234121e35). 
 
 To setup the testbed in cloudlab, please follow the steps below:
@@ -22,32 +23,35 @@ Your testbed is ready to run the experiments!
 
 ***Note:*** We use the cloudlab profile for convenience, however, you can also deploy the testbed on your own infrastructure.
 
-####Dependencies: 
+#### Dependencies: 
 The following dependencies are required to run the experiments on the node machines:
 - g++
 - python 3.x(http://www.python.org)
 - Python modules: [numpy](http://www.numpy.org/), [pandas](http://pandas.pydata.org/), [statsmodels](http://statsmodels.sourceforge.net/), [jupyter](http://jupyter.org/), grpc (grpcio), [grpcio-tools](https://pypi.python.org/pypi/grpcio-tools/1.0.0), [sklearn](http://scikit-learn.org/stable/)
 - pip3
 
-[comment]: <> (2. The instruction on how to compile our code)
+<!-- 2. The instruction on how to compile our code -->
 ---
-###Compiling the code:
+### Compiling the code:
 In order to compile the code run the following commands in the root directory of the project:
 ```
 cd src/blockchain
 make
 ```
-
-[comment]: <> (3. How to run the peer (including the command to run the peer, and what user can specify in the peer_config.json like the watermarks, the timeout for slow path, the location of the database.)
+<!-- 3. How to run the peer (including the command to run the peer, and what user can specify in the peer_config.json like the watermarks, the timeout for slow path, the location of the database. -->
 ---
-###Running the peer:
+### Running the peer:
 In order to run the peer, the command of the following format will be used to execute the following command on 3 node machines(node 0, node 1, node 2) - one for leader and two for followers:
 ```
 ./peer -l -a <node_address>
 ```
-where,  &emsp;-l flag indicates that the node is a leader node(used only for the leader node), 
-        &emsp;&emsp;&emsp;&emsp;&emsp;-a flag indicates the address of the node,
-        &emsp;&emsp;&emsp;&emsp;&emsp; node_address is the address of the node in the format <ip_address>:<port_number>
+where,  &nbsp;-l flag indicates that the node is a leader node(used only for the leader node), 
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-a flag indicates the address of the node,
+
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; node_address is the address of the node in the format <ip_address>:<port_number>
 <br />
 
 1. Go into the src/blockchain directory in the main project directory.
@@ -79,8 +83,8 @@ The peer_config.json file specifies the configuration parameters for the peer. T
 - "leveldb_dir": The path to the database.
 
 ---
-[comment]: <> (4.  How to run the learning agent)
-###Running the learning agent:
+<!-- 4.How to run the learning agent -->
+### Running the learning agent:
 In order to run the learning agent, execute the following command on the node machines running the peer:
 Run this from the main project directory on all peer nodes(leader and followers):
 ```
@@ -91,8 +95,8 @@ where, -a flag indicates the address of the node,
         node_address is the address of the node in the format <ip_address>:<port_number>
 
 ---
-[comment]: <> (5. How to run the client (including the command to run the client, and say the workload can be specified in client_config.json accordingly)
-###Running the client:
+<!-- 5. How to run the client (including the command to run the client, and say the workload can be specified in client_config.json accordingly) -->
+### Running the client:
 In order to run the client, execute the following command on the client machine:
 
 Run this from the main project directory on the client machine:
