@@ -1,6 +1,3 @@
-
-
-
 #AdaChain
 This is the source code for the publication AdaChain, a learning-based blockchain framework that adaptively chooses the best permissioned blockchain architecture in order to optimize effective throughput for dynamic transaction workloads.
 
