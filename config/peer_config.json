@@ -2,6 +2,7 @@
     "arch": {
         "blocksize": 10,
         "early_execution": true,
+        "xox": true,
         "reorder": true
     },
     "sysconfig": {

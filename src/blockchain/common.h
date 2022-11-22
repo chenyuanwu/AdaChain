@@ -30,6 +30,7 @@ extern uint64_t block_index;
 struct Architecture {
     size_t max_block_size;
     bool is_xov;
+    bool is_xox;
     bool reorder;
     bool early_abort;
 };

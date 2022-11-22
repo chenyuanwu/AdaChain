@@ -39,4 +39,9 @@ int kv_put(const string &key, const string &value, struct RecordVersion record_v
            Endorsement *endorsement = nullptr);
 void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type type, int execution_delay, bool expose_write,
                struct RecordVersion record_version, Endorsement *endorsement = nullptr, uint64_t last_block_id = 0);
+//Analogous to existing calls to GetState and PutState that record the read and write set
+//key-value pairs, respectively, we add a new call PutOracle to the chain code API
+
+bool patch_up_code(Endorsement *transaction, TransactionProposal proposal);
+
 #endif

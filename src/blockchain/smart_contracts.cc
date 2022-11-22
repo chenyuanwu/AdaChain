@@ -68,6 +68,18 @@ int kv_put(const string &key, const string &value, struct RecordVersion record_v
     return 0;
 }
 
+
+/*
+//This is a TODO
+//Analogous to existing calls to GetState and PutState that record the read and write set
+//key-value pairs, respectively, we add a new call PutOracle to the smartcontracts API
+int PutOracle(const string &key, const string &value, struct RecordVersion record_version, bool expose_write,
+              Endorsement *endorsement) {
+
+              }
+*/
+
+
 void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type type, int execution_delay, bool expose_write,
                struct RecordVersion record_version, Endorsement *endorsement, uint64_t last_block_id) {
     set_timestamp(endorsement->mutable_execution_start_ts());
@@ -193,4 +205,34 @@ void smallbank(const RepeatedPtrField<string> &keys, TransactionProposal::Type t
         }
     }
     set_timestamp(endorsement->mutable_execution_end_ts());
+}
+
+
+//Patch-up code take a transaction’s read set and oracle set as input
+bool patch_up_code(Endorsement *transaction, TransactionProposal proposal)
+{
+    //The read set is used to get the current key values from the latest version of the world state
+    for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
+        struct RecordVersion r_record_version;
+        kv_get(transaction->read_set(read_id).read_key(), nullptr, &r_record_version);
+        
+        //Based on this and the oracle set, the smart contract then performs the necessary computations to generate a new write set
+        if (r_record_version.version_blockid != transaction->read_set(read_id).block_seq_num() ||
+            r_record_version.version_transid != transaction->read_set(read_id).trans_seq_num()) {
+
+            //the smart contract now performs the necessary computations to generate a new write set
+            //If the transaction is not allowed by the logic of the smart contract based on the updated values, it is discarded
+            //Finally, in case of success, it generates an updated RW set, which is then compared to the old one 
+
+            if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
+                    ycsb_get(proposalread.keys() , transaction);
+                } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+                    ycsb_put(proposalread.keys() , proposalread.values() , record_version, true, transaction);
+                } else {
+                    smallbank(proposalread.keys(), proposal.type(), proposal.execution_delay(), true, record_version, transaction);
+                }     
+        }
+        //Finally, in case of success, it generates an updated RW set, which is then compared to the old one
+        //TODO: If all the keys are a subset of the old RW set, the result is valid and can be committed to the world state and blockchain
+    }
 }
