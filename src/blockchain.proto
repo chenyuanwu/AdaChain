@@ -47,6 +47,13 @@ message WriteItem {
     bytes write_value = 2;
 }
 
+//External oracle: extend transaction response by an additional oracle set
+message OracleItem {
+     string keys = 1;
+     bytes values = 2;
+}
+
+
 message Endorsement {
     repeated ReadItem read_set = 1;
     repeated WriteItem write_set = 2;
@@ -57,6 +64,9 @@ message Endorsement {
     google.protobuf.Timestamp received_ts = 7;
     google.protobuf.Timestamp execution_start_ts = 8;
     google.protobuf.Timestamp execution_end_ts = 9;
+    //We extend the transaction response by an additional oracle set
+    //Any external data are recorded in the form of key-value pairs and are added to the response to the client
+    repeated OracleItem oracle_set = 10;
 }
 
 message TransactionProposal {

@@ -57,6 +57,16 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
         }
     }
 
+    //XOX deterministic second execution phase: reexecutes transaction with RW set conflict based on the most up-to-date world state 
+    //When the RW validation finds a conflict between a transaction’s RW set and the world state, that transaction will be re-executed and possibly salvaged using the patch-up code.
+    //It can resolve conflicts due to a lack of knowledge of concurrent transactions during preorder execution. 
+    //However, it still invalidates transactions that attempt something the smart contract does not allow, such as creating a negative account balance.
+
+    if(!is_valid && arch.is_xox){
+        is_valid = patch_up_code(transaction, proposal);
+    }
+
+
     if (is_valid) {
         for (int write_id = 0; write_id < transaction->write_set_size(); write_id++) {
             kv_put(transaction->write_set(write_id).write_key(), transaction->write_set(write_id).write_value(),
@@ -212,17 +222,41 @@ void *block_formation_thread(void *arg) {
                             };
 
                             if (arch.is_xov) {
-                                /* validate */
-                                if (!endorsement->ParseFromString(request_queue.front()) ||
-                                    !endorsement->GetReflection()->GetUnknownFields(*endorsement).empty()) {
-                                    LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
-                                    block.mutable_transactions()->RemoveLast();
-                                } else {
-                                    if (validate_transaction(record_version, endorsement)) {
-                                        ep.total_ops++;
-                                        endorsement->set_aborted(false);
+                                //if xox
+                                if(arch.is_xox)
+                                {
+                                    TransactionProposal proposal;
+                                    if (!proposal.ParseFromString(request_queue.front()) ) {
+                                        LOG(WARNING) << "block formation thread: error in deserialising transaction proposal.";
+                                    } 
+                                    if (!endorsement->ParseFromString(request_queue.front()) ||
+                                        !endorsement->GetReflection()->GetUnknownFields(*endorsement).empty()) {
+                                        LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
+                                        block.mutable_transactions()->RemoveLast();
                                     } else {
-                                        endorsement->set_aborted(true);
+                                        if (validate_transaction(record_version, endorsement, proposal)) {
+                                            ep.total_ops++;
+                                            endorsement->set_aborted(false);
+                                        } else {
+                                            endorsement->set_aborted(true);
+                                        }
+                                    }
+                                }
+
+                                //if xov
+                                else{
+                                    /* validate */
+                                    if (!endorsement->ParseFromString(request_queue.front()) ||
+                                        !endorsement->GetReflection()->GetUnknownFields(*endorsement).empty()) {
+                                        LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
+                                        block.mutable_transactions()->RemoveLast();
+                                    } else {
+                                        if (validate_transaction(record_version, endorsement)) {
+                                            ep.total_ops++;
+                                            endorsement->set_aborted(false);
+                                        } else {
+                                            endorsement->set_aborted(true);
+                                        }
                                     }
                                 }
                             } else {
@@ -685,6 +719,7 @@ int main(int argc, char *argv[]) {
     peer_config.ParseStream(isw);
     arch.max_block_size = peer_config["arch"]["blocksize"].GetInt();  // number of transactions
     arch.is_xov = peer_config["arch"]["early_execution"].GetBool();
+    arch.is_xox = peer_config["arch"]["xox"].GetBool();
     arch.reorder = peer_config["arch"]["reorder"].GetBool();
     arch.early_abort = false;
 
