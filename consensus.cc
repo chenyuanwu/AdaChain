@@ -8,10 +8,14 @@ extern Queue<TransactionProposal> proposal_queue;
 extern Queue<string> ordering_queue;
 extern Queue<TransactionProposal> execution_queue;
 extern atomic<long> total_ops;
+extern atomic<long> readn;
+extern atomic<long> writen;
+
+
 
 void *log_replication_thread(void *arg) {
     struct RaftThreadContext ctx = *(struct RaftThreadContext *)arg;
-    LOG(INFO) << "[server_index = " << ctx.server_index << "]log replication thread is running for follower " << ctx.grpc_endpoint << ".";
+    //LOG(INFO) << "[server_index = " << ctx.server_index << "]log replication thread is running for follower " << ctx.grpc_endpoint << ".";
     shared_ptr<grpc::Channel> channel = grpc::CreateChannel(ctx.grpc_endpoint, grpc::InsecureChannelCredentials());
     unique_ptr<PeerComm::Stub> stub(PeerComm::NewStub(channel));
 
@@ -53,6 +57,7 @@ void *log_replication_thread(void *arg) {
     }
 }
 
+//Leader takes commands from clients and appends them to its log as new entries
 void *leader_main_thread(void *arg) {
     struct RaftThreadContext ctx = *(struct RaftThreadContext *)arg;
     ofstream log("./log/raft.log", ios::out | ios::binary);
@@ -131,7 +136,7 @@ Status PeerCommImpl::prepopulate(ServerContext *context, const TransactionPropos
 }
 
 Status PeerCommImpl::start_benchmarking(ServerContext *context, const google::protobuf::Empty *request, google::protobuf::Empty *response) {
-    LOG(INFO) << "starts benchmarking.";
+    //LOG(INFO) << "starts benchmarking.";
     start = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
 
     return Status::OK;
@@ -141,7 +146,11 @@ Status PeerCommImpl::end_benchmarking(ServerContext *context, const google::prot
     end = chrono::duration_cast<chrono::milliseconds>(chrono::system_clock::now().time_since_epoch());
     uint64_t time = (end - start).count();
     double throughput = ((double)total_ops.load() / time) * 1000;
-    LOG(INFO) << "throughput = " << throughput << "tps.";
+    double readwriteratio = (double)readn.load() / ((double)readn.load() + (double)writen.load());
+    double writereadratio = (double)writen.load() / ((double)readn.load() + (double)writen.load());
+
+    LOG(INFO) << "throughput = " << throughput << "			     Read write ratio: R/(R+W) = " << readwriteratio;
+
 
     return Status::OK;
 }

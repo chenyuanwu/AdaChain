@@ -1,1 +1,1 @@
-{"arch": {"blocksize": 100, "early_execution": true, "reorder": true},"sysconfig": {"num_execution_threads": 16,"leader": "10.10.1.2:50052","followers": ["10.10.1.3:50052","10.10.1.4:50052"]}}
+{"arch": {"blocksize": 50,"early_execution": true,"reorder": false,"early_abort": false,"block_pipe_num": 1},"sysconfig": {"num_execution_threads": 16,"leader": "10.10.1.2:50052","followers": ["10.10.1.3:50052","10.10.1.4:50052"]}}

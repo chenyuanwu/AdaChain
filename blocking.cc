@@ -15,6 +15,9 @@ Queue<TransactionProposal> execution_queue;
 shared_ptr<grpc::Channel> leader_channel;
 bool is_leader = false;
 atomic<long> total_ops = 0;
+atomic<long> readn = 0;
+atomic<long> writen = 0;
+atomic<long long> last_block_id = 0;
 extern deque<atomic<unsigned long>> match_index;
 extern atomic<unsigned long> commit_index;
 
@@ -35,10 +38,13 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
     // logger->debug("******validating transaction[block_id = %v, trans_id = %v]******",
     //           w_record_version.version_blockid, w_record_version.version_transid);
     bool is_valid = true;
-
+    uint64_t blockid = 0;
+    
+    //for every transaction we check whether the version-number of the read value still matches
+    //the one in the current state.
     for (int read_id = 0; read_id < transaction->read_set_size(); read_id++) {
         struct RecordVersion r_record_version;
-        kv_get(transaction->read_set(read_id).read_key(), nullptr, &r_record_version);
+        kv_get(transaction->read_set(read_id).read_key(), nullptr, &r_record_version, blockid);
 
         // logger->debug("read_key = %v\nstored_read_version = [block_id = %v, trans_id = %v]\n"
         //           "current_key_version = [block_id = %v, trans_id = %v]",
@@ -69,7 +75,7 @@ bool validate_transaction(struct RecordVersion w_record_version, const Endorseme
 }
 
 void *block_formation_thread(void *arg) {
-    LOG(INFO) << "Block formation thread is running.";
+    //LOG(INFO) << "Block formation thread is running.";
 
     ifstream log("./log/raft.log", ios::in);
     assert(log.is_open());
@@ -83,6 +89,7 @@ void *block_formation_thread(void *arg) {
     size_t max_block_size = peer_config["arch"]["blocksize"].GetInt();  // number of transactions
     bool is_xov = peer_config["arch"]["early_execution"].GetBool();
     bool reorder = peer_config["arch"]["reorder"].GetBool();
+    size_t block_pipe_num = peer_config["arch"]["block_pipe_num"].GetInt();  // number of blocks reordered together before the block cutting 
 
     Block block;
     string prev_block_hash = sha256(block.SerializeAsString());
@@ -123,7 +130,11 @@ void *block_formation_thread(void *arg) {
 
             //Waiting happens by waiting till request queue has transactions from 2 blocks
             /* TODO: change 2 to a parameter in config file*/ 
-            if (trans_index >= max_block_size*2) {
+            
+            //block_pipe_num
+            if (trans_index >= max_block_size*block_pipe_num) {
+            //if (trans_index >= max_block_size*2) {
+                //arch - xov, reorder 
                 if (reorder) {
                     if (is_xov) {
                         xov_reorder(request_queue, block);
@@ -136,8 +147,25 @@ void *block_formation_thread(void *arg) {
                                     .version_blockid = block_index,
                                     .version_transid = i,
                                     };
-                                if (validate_transaction(record_version, block.mutable_transactions(i))) {
+                                if ((!block.mutable_transactions(i)->aborted()) && validate_transaction(record_version, block.mutable_transactions(i)))
+                                {
                                     total_ops++;
+                                    //counts the reads and writes in every transaction(i) in each block
+                                    if(( block.mutable_transactions(i)->write_set_size()) != 0) 
+                                    {
+                                        //transaction is a write transaction
+                                        writen++;
+                                    }
+                                    else
+                                    {
+                                        //transaction is a read only transaction
+                                        readn++;
+                                    }
+                                    block.mutable_transactions(i)->set_aborted(false);
+                                }
+                                else
+                                {
+                                    block.mutable_transactions(i)->set_aborted(true);
                                 }
                             //push the remaining transactions back into request_queue 
                             } else {
@@ -158,10 +186,12 @@ void *block_formation_thread(void *arg) {
                         */
 
                         //start:max_block_size , j: request_queue.size()
-                        block.mutable_transactions()->DeleteSubrange(max_block_size, request_queue.size());
+                        if(block_pipe_num>1){block.mutable_transactions()->DeleteSubrange(max_block_size, request_queue.size());}
+                            
                     } else {
                     }
-                } else {
+                } 
+                else {
                     uint64_t trans_index_ = 0;
                     while (request_queue.size()) {
                         Endorsement *endorsement = block.add_transactions();
@@ -169,18 +199,35 @@ void *block_formation_thread(void *arg) {
                             .version_blockid = block_index,
                             .version_transid = trans_index_,
                         };
-
+                        //arch - xov, no reorder
                         if (is_xov) {
                             /* validate */
-                            if (!endorsement->ParseFromString(request_queue.front())) {
-                                LOG(ERROR) << "block formation thread: error in deserialising endorsement.";
-                            }
+                             if (!endorsement->ParseFromString(request_queue.front()) ||
+                                    !endorsement->GetReflection()->GetUnknownFields(*endorsement).empty()) {
+                                    LOG(WARNING) << "block formation thread: error in deserialising endorsement.";
+                                    block.mutable_transactions()->RemoveLast();
+                                    } else {
+                                        if ((!endorsement->aborted()) && (validate_transaction(record_version, endorsement))) {
+                                            total_ops++;
+                                            if(( endorsement->write_set_size()) != 0) 
+                                            {
+                                                //transaction is a write transaction
+                                                writen++;
+                                            }
+                                            else
+                                            {
+                                                //transaction is a read only transaction
+                                                readn++;
+                                            }
+                                            endorsement->set_aborted(false);
+                                        } else {
+                                            endorsement->set_aborted(true);
+                                        }
+                                    } 
 
-                            if (validate_transaction(record_version, endorsement)) {
-                                total_ops++;
-                            }
-
-                        } else {
+                        } 
+                        //arch - ox, no reorder
+                        else {
                             /* execute */
                             TransactionProposal proposal;
                             if (!proposal.ParseFromString(request_queue.front())) {
@@ -195,6 +242,18 @@ void *block_formation_thread(void *arg) {
                                 smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), true, record_version, endorsement);
                             }
                             total_ops++;
+                            endorsement->set_aborted(false);
+                              //counts the reads and writes in every transaction(i) in each block
+                                    if(( endorsement->write_set_size()) != 0) 
+                                    {
+                                        //transaction is a write transaction
+                                        writen++;
+                                    }
+                                    else
+                                    {
+                                        //transaction is a read only transaction
+                                        readn++;
+                                    }
                         }
                         trans_index_++;
                         request_queue.pop();
@@ -202,6 +261,7 @@ void *block_formation_thread(void *arg) {
                 }
 
                 /* write the block to stable storage */
+                //print the block id version number 
                 block.set_block_id(block_index);
                 block.set_prev_block_hash(prev_block_hash);  // write to disk and hash the block
                 serialized_block.clear();
@@ -213,13 +273,14 @@ void *block_formation_thread(void *arg) {
                 block_store.write(serialized_block.c_str(), size);
                 block_store.flush();
                 prev_block_hash = sha256(block.SerializeAsString());
+                last_block_id = block_index;
 
                 block_index++;
                 //tran_index will start from request_queue.size() since the request_queue is filled
                 //till there with transactions from Block B2
                 trans_index = request_queue.size();
                 
-                LOG(DEBUG) << "[block_id = " << block_index << ", trans_id = " << trans_index << "]: added transaction to block.";
+                //LOG(DEBUG) << "[block_id = " << block_index << ", trans_id = " << trans_index << "]: added transaction to block.";
                 block.clear_block_id();
                 block.clear_transactions();
             }
@@ -229,7 +290,21 @@ void *block_formation_thread(void *arg) {
     return nullptr;
 }
 
+//exploit the available version-numbers to implement a lock-free concurrency control mechanism 
+//protecting the current state. To do so, in Fabric++
+//1) we first remove the read-write lock, that was  sequentializing simulation and validation phase - already been done in our program where pthreads run concurrently in run_peer
+//2) we have to inspect the version-number of every read value and test whether it is still up-to-date
+//3) if a read value is not up-to-date, we have to abort the transaction and inform client to send the proposal again
+
+
+//transactions from transaction proposals 
+
+//At the start of the simulation phase, we first identify the block-ID of the last block that made it into the ledger
+//This is stored as a global variable last_block_id and changes(atomically) everytime a new block is added to the ledger
 void *simulation_handler(void *arg) {
+
+    bool early_abort = peer_config["arch"]["early_abort"].GetBool();
+    LOG(DEBUG) << "simulation handler thread started.";
     struct ExecThreadContext ctx = *(struct ExecThreadContext *)arg;
     int thread_index = ctx.thread_index;
 
@@ -242,15 +317,30 @@ void *simulation_handler(void *arg) {
         TransactionProposal proposal = execution_queue.pop();
         Request req;
         Endorsement *endorsement = req.mutable_endorsement();
+        bool checking_condition=true;
+        LOG(DEBUG) << "simulation handler thread: received transaction proposal.";
+        //print last_block_id
         if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Get) {
-            ycsb_get(proposal.keys(), endorsement);
-        } else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
-            ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
-        } else {
-            smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement);
+            checking_condition = ycsb_get(proposal.keys(), endorsement, last_block_id);
+            if (!checking_condition && early_abort) {
+                endorsement->set_aborted(true);
+            } else {
+                endorsement->set_aborted(false);
+            }
         }
-
+        else if (proposal.type() == TransactionProposal::Type::TransactionProposal_Type_Put) {
+            ycsb_put(proposal.keys(), proposal.values(), RecordVersion(), false, endorsement);
+        }
+        else {
+            checking_condition =  smallbank(proposal.keys(), proposal.type(), proposal.execution_delay(), false, RecordVersion(), endorsement, last_block_id);
+            if(!checking_condition && early_abort) {
+                endorsement->set_aborted(true);
+            } else {
+                endorsement->set_aborted(false);
+            }
+        }
         if (is_leader) {
+            //ask chenyuan
             ordering_queue.add(endorsement->SerializeAsString());
         } else {
             ClientContext context;
@@ -261,7 +351,6 @@ void *simulation_handler(void *arg) {
             }
         }
     }
-
     return nullptr;
 }
 
@@ -272,7 +361,7 @@ void run_peer(const string &server_address) {
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
     builder.RegisterService(&service);
     std::unique_ptr<Server> server(builder.BuildAndStart());
-    LOG(INFO) << "RPC server listening on " << server_address << ".";
+    //LOG(INFO) << "RPC server listening on " << server_address << ".";
 
     /* spawn the raft threads on leader, block formation thread, and execution threads */
     unique_ptr<PeerComm::Stub> stub;
@@ -285,6 +374,7 @@ void run_peer(const string &server_address) {
     }
 
     pthread_t block_form_tid;
+    //this - block_formation_thread
     pthread_create(&block_form_tid, NULL, block_formation_thread, NULL);
     pthread_detach(block_form_tid);
 
